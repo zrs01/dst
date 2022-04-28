@@ -6,6 +6,8 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/urfave/cli/v2"
+
+	"dst/db"
 )
 
 func main() {
@@ -58,7 +60,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				db := NewDatabase()
+				db := db.NewDatabase()
 				if err := db.Load(file); err != nil {
 					return eris.Wrapf(err, "failed to load the definition file %s", file)
 				}
@@ -73,6 +75,50 @@ func main() {
 			},
 		}
 	}())
+
+	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
+		var file, importType, outfile string
+		return &cli.Command{
+			Name:  "import",
+			Usage: "Import from other format",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:        "file",
+					Aliases:     []string{"f"},
+					Usage:       "Import file",
+					Required:    true,
+					Destination: &file,
+				},
+				&cli.StringFlag{
+					Name:        "type",
+					Aliases:     []string{"t"},
+					Usage:       "Import type, 'xlsx' (default) or 'sql'",
+					Required:    false,
+					Value:       "xlsx",
+					Destination: &importType,
+				},
+				&cli.StringFlag{
+					Name:        "output",
+					Aliases:     []string{"o"},
+					Usage:       "Output file",
+					Required:    true,
+					Destination: &outfile,
+				},
+			},
+			Action: func(c *cli.Context) error {
+				db := db.NewDatabase()
+				if importType == "xlsx" {
+					if err := db.ImportFromExcel(file, outfile); err != nil {
+						return eris.Wrapf(err, "failed to output the file %s", outfile)
+					}
+				} else {
+					return eris.Errorf("Import type '%s' is not supported", importType)
+				}
+				return nil
+			},
+		}
+	}())
+
 	if err := cliapp.Run(os.Args); err != nil {
 		fmt.Println(eris.ToString(err, debug))
 	}

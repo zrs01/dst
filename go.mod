@@ -1,4 +1,4 @@
-module dbschema
+module dst
 
 go 1.18
 

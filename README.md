@@ -31,5 +31,5 @@ schemas:
 ### Export to Excel
 
 ```
-$ dst -f sample.yml -o sample.xslx
+$ dst export -f sample.yml -o sample.xslx
 ```

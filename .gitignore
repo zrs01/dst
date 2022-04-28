@@ -51,4 +51,4 @@ _testmain.go
 .vscode/
 
 # Project
-
+*.xlsx
