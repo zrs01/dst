@@ -6,7 +6,7 @@ Export to different format from definition file.
 
 ```yml
 # column definition:
-# column name, data type, is primary key, is unique value, is nullable, foreign hint, description
+# column name, data type, is primary key, is unique value, is nullable, foreign hint, comment
 
 # repeat columns for every table
 fixColumns: &fc
@@ -21,15 +21,21 @@ schemas:
       - name: "the name of table"
         description: "the description of table"
         columns:
-          - [column name, data type, n, n, n, foreign key hint, description]
+          - [column name, data type, n, n, n, foreign key hint, comment]
           - *fc
 
       - name: "other table"
       ...
 ```
 
-### Export to Excel
+### Yaml to Excel
 
 ```
-$ dst export -f sample.yml -o sample.xslx
+$ dst -i sample.yml -o sample.xslx
+```
+
+### Excel to Yaml
+
+```
+$ dst -i sample.xslx -o sample.yml
 ```

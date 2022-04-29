@@ -2,69 +2,48 @@ package db
 
 import (
 	"fmt"
-	"io/ioutil"
 	"reflect"
 
 	"github.com/rotisserie/eris"
-	"gopkg.in/yaml.v2"
 )
 
-type Database struct {
-	Data Data
-}
-
-type Data struct {
-	Schemas []Schema `yaml:"schemas"`
-}
-
-type Schema struct {
-	Name   string  `yaml:"name" default:"Schema"`
-	Desc   string  `yaml:"description"`
-	Tables []Table `yaml:"tables"`
-}
-
-type Table struct {
-	Name    string          `yaml:"name"`
-	Desc    string          `yaml:"description"`
-	Columns [][]interface{} `yaml:"columns"`
-}
-
-type Column struct {
-	Name        string
-	DataType    string
-	IsPK        string
-	IsUnique    string
-	Nullable    string
-	ForeignHint string
-	Desc        string
-}
+type Database struct{}
 
 func NewDatabase() *Database {
 	return &Database{}
 }
 
-func (s *Database) Load(f string) error {
-	yamlFile, err := ioutil.ReadFile(f)
+func (s *Database) YamlToExcel(infile, outfile string) error {
+	data, err := s.loadYaml(infile)
 	if err != nil {
-		return eris.Wrapf(err, "failed to read the file %s", f)
+		return eris.Wrapf(err, "failed to load the file %s", infile)
 	}
-	var d Data
-	if err := yaml.Unmarshal(yamlFile, &d); err != nil {
-		return eris.Wrapf(err, "failed to unmarshal the file %s", f)
+	if err := s.saveExcel(data, outfile); err != nil {
+		return eris.Wrapf(err, "failed to save the file %s", outfile)
 	}
-	s.Data = d
 	return nil
 }
 
-func (s *Database) convertToColumn(icols [][]interface{}) []Column {
+func (s *Database) ExcelToYaml(infile string, outfile string) error {
+	inData, err := s.loadExcel(infile)
+	if err != nil {
+		return eris.Wrapf(err, "failed to load the data from %s", infile)
+	}
+	if err := s.saveYaml(inData, outfile); err != nil {
+		return eris.Wrapf(err, "failed to save %s", outfile)
+	}
+	return nil
+}
+
+func (s *Database) convertToColumn(icols [][]interface{}) []InColumn {
 	var trueFalse = func(value string) string {
 		if value == "true" {
 			return "Y"
 		}
 		return "N"
 	}
-	var createColumn = func(value []interface{}) Column {
-		return Column{
+	var createColumn = func(value []interface{}) InColumn {
+		return InColumn{
 			Name:        fmt.Sprintf("%v", value[0]),
 			DataType:    fmt.Sprintf("%v", value[1]),
 			IsPK:        trueFalse(fmt.Sprintf("%v", value[2])),
@@ -75,7 +54,7 @@ func (s *Database) convertToColumn(icols [][]interface{}) []Column {
 		}
 	}
 
-	var columns []Column
+	var columns []InColumn
 	for _, icol := range icols {
 		// due to merge array in yaml will cause increase array one level, so need check is array of array
 		if reflect.TypeOf(icol[0]).Kind() == reflect.Slice {
