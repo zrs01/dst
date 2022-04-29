@@ -78,7 +78,7 @@ func (s *Database) saveExcel(data *InDB, outfile string) error {
 		excel.NewSheet(sheet)
 
 		// heading
-		headings := []string{"Column Name", "Data Type", "Primary Key", "Unique", "Nullable", "Foreign Key", "Comment"}
+		headings := []string{"Column Name", "Data Type", "Identity", "Nullable", "Default", "Foreign Key", "Comment"}
 		for i, heading := range headings {
 			cell := fmt.Sprintf("%c1", 66+i) // start from column 2
 			excel.SetCellValue(sheet, cell, heading)
@@ -86,7 +86,7 @@ func (s *Database) saveExcel(data *InDB, outfile string) error {
 		// styling
 		excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)), (*style)["header"])
 		// column width
-		widths := []float64{2, 20, 15, 12, 12, 12, 20, 50}
+		widths := []float64{2, 20, 15, 8, 8, 15, 20, 50}
 		for i, width := range widths {
 			col := fmt.Sprintf("%c", 65+i)
 			excel.SetColWidth(sheet, col, col, width)
@@ -105,15 +105,16 @@ func (s *Database) saveExcel(data *InDB, outfile string) error {
 			excel.SetCellStyle(sheet, tableCell, fmt.Sprintf("%c%d", 65+len(headings), offset), (*style)["table"])
 			offset = offset + 1
 
-			columns := s.convertToColumn(table.Columns)
+			// merge the fixed columns
+			columns := append(table.Columns, data.Fixed...)
 			for i, column := range columns {
 				index := i + offset
 				excel.SetCellValue(sheet, fmt.Sprintf("B%d", index), column.Name)
 				excel.SetCellValue(sheet, fmt.Sprintf("C%d", index), column.DataType)
-				excel.SetCellValue(sheet, fmt.Sprintf("D%d", index), column.IsPK)
-				excel.SetCellValue(sheet, fmt.Sprintf("E%d", index), column.IsUnique)
-				excel.SetCellValue(sheet, fmt.Sprintf("F%d", index), column.Nullable)
-				excel.SetCellValue(sheet, fmt.Sprintf("G%d", index), column.ForeignHint)
+				excel.SetCellValue(sheet, fmt.Sprintf("D%d", index), column.Identity)
+				excel.SetCellValue(sheet, fmt.Sprintf("E%d", index), column.NotNull)
+				excel.SetCellValue(sheet, fmt.Sprintf("F%d", index), column.Value)
+				excel.SetCellValue(sheet, fmt.Sprintf("G%d", index), column.ForeignKeyHint)
 				excel.SetCellValue(sheet, fmt.Sprintf("H%d", index), column.Desc)
 			}
 			offset = offset + len(columns)

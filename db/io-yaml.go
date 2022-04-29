@@ -9,29 +9,30 @@ import (
 )
 
 type InDB struct {
-	Schemas []InSchema `yaml:"schemas"`
+	Fixed   []InColumn `yaml:"fixed,omitempty"`
+	Schemas []InSchema `yaml:"schemas,omitempty"`
 }
 
 type InSchema struct {
-	Name   string    `yaml:"name" default:"Schema"`
-	Desc   string    `yaml:"description"`
-	Tables []InTable `yaml:"tables"`
+	Name   string    `yaml:"name,omitempty" default:"Schema"`
+	Desc   string    `yaml:"description,omitempty"`
+	Tables []InTable `yaml:"tables,omitempty"`
 }
 
 type InTable struct {
-	Name    string          `yaml:"name"`
-	Desc    string          `yaml:"description"`
-	Columns [][]interface{} `yaml:"columns"`
+	Name    string     `yaml:"name,omitempty"`
+	Desc    string     `yaml:"desc,omitempty"`
+	Columns []InColumn `yaml:"columns,omitempty"`
 }
 
 type InColumn struct {
-	Name        string
-	DataType    string
-	IsPK        string
-	IsUnique    string
-	Nullable    string
-	ForeignHint string
-	Desc        string
+	Name           string `yaml:"na,omitempty"`
+	DataType       string `yaml:"ty,omitempty"`
+	Identity       string `yaml:"id,omitempty"`
+	NotNull        string `yaml:"nu,omitempty" default:"N"`
+	Value          string `yaml:"va,omitempty"`
+	ForeignKeyHint string `yaml:"fk,omitempty"`
+	Desc           string `yaml:"dc,omitempty"`
 }
 
 type OutDB struct {

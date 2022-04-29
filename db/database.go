@@ -44,13 +44,13 @@ func (s *Database) convertToColumn(icols [][]interface{}) []InColumn {
 	}
 	var createColumn = func(value []interface{}) InColumn {
 		return InColumn{
-			Name:        fmt.Sprintf("%v", value[0]),
-			DataType:    fmt.Sprintf("%v", value[1]),
-			IsPK:        trueFalse(fmt.Sprintf("%v", value[2])),
-			IsUnique:    trueFalse(fmt.Sprintf("%v", value[3])),
-			Nullable:    trueFalse(fmt.Sprintf("%v", value[4])),
-			ForeignHint: fmt.Sprintf("%v", value[5]),
-			Desc:        fmt.Sprintf("%v", value[6]),
+			Name:           fmt.Sprintf("%v", value[0]),
+			DataType:       fmt.Sprintf("%v", value[1]),
+			Identity:       trueFalse(fmt.Sprintf("%v", value[2])),
+			NotNull:        trueFalse(fmt.Sprintf("%v", value[4])),
+			ForeignKeyHint: fmt.Sprintf("%v", value[5]),
+			Value:          fmt.Sprintf("%v", value[6]),
+			Desc:           fmt.Sprintf("%v", value[7]),
 		}
 	}
 

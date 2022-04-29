@@ -1,31 +1,39 @@
 # Database Schema Tool
+
 Export to different format from definition file.
 
 ## Usage
+
 ### Create a definition file (e.g. sample.yml)
 
 ```yml
 # column definition:
-# column name, data type, is primary key, is unique value, is nullable, foreign hint, comment
+#   na: column-name
+#   ty: data-type
+#   nu: is not null (y/n)
+#   id: is identity (y/n)
+#   va: default value
+#   fk: foreign key hint
+#   dc: description
 
-# repeat columns for every table
-fixColumns: &fc
-  - [createUser, varchar(20), n, n, n, users.id, create user ID]
-  - [createTime, datetime, n, n, n, users.id, date time of creation]
-  - [updateUser, varchar(20), n, n, n, user.id, update user ID]
-  - [updateTime, timestamp, n, n, n, user.id, date time of update]
+# fixed columns:
+# the columns will be appended to all tables
+fixed:
+  - {na: createUser, ty: varchar(20), fk: users.id, dc: create user ID}
+  - {na: createTime, ty: datetime, fk: users.id, dc: date time of creation}
+  - {na: updateUser, ty: varchar(20), fk: user.id, dc: update user ID}
+  - {na: updateTime, ty: timestamp, fk: user.id, dc: date time of update}
 
 schemas:
-  - name: "the name of schema"
-    tables:
-      - name: "the name of table"
-        description: "the description of table"
-        columns:
-          - [column name, data type, n, n, n, foreign key hint, comment]
-          - *fc
+- name: "the name of schema"
+  tables:
+  - name: "the name of table"
+    desc: "the description of table"
+    columns:
+    - [...]
 
-      - name: "other table"
-      ...
+  - name: "other table"
+  ...
 ```
 
 ### Yaml to Excel
