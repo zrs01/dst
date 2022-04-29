@@ -27,7 +27,7 @@ func main() {
 		&cli.BoolFlag{
 			Name:        "debug",
 			Aliases:     []string{"d"},
-			Usage:       "enable debug mode",
+			Usage:       "Debug mode",
 			Required:    false,
 			Destination: &debug,
 		},
@@ -52,10 +52,7 @@ func main() {
 		if inext == ".yml" || inext == ".yaml" {
 			if outext == ".xlsx" {
 				db := db.NewDatabase()
-				if err := db.Load(infile); err != nil {
-					return eris.Wrapf(err, "failed to load the definition file %s", infile)
-				}
-				if err := db.ExportToExcel(outfile); err != nil {
+				if err := db.YamlToExcel(infile, outfile); err != nil {
 					return eris.Wrapf(err, "failed to output the file %s", outfile)
 				}
 			} else {
@@ -64,7 +61,7 @@ func main() {
 		} else if inext == ".xlsx" {
 			if outext == ".yml" || outext == ".yaml" {
 				db := db.NewDatabase()
-				if err := db.ImportFromExcel(infile, outfile); err != nil {
+				if err := db.ExcelToYaml(infile, outfile); err != nil {
 					return eris.Wrapf(err, "failed to output the file %s", outfile)
 				}
 			} else {
