@@ -1,9 +1,6 @@
 package db
 
 import (
-	"fmt"
-	"reflect"
-
 	"github.com/rotisserie/eris"
 )
 
@@ -33,37 +30,4 @@ func (s *Database) ExcelToYaml(infile string, outfile string) error {
 		return eris.Wrapf(err, "failed to save %s", outfile)
 	}
 	return nil
-}
-
-func (s *Database) convertToColumn(icols [][]interface{}) []InColumn {
-	var trueFalse = func(value string) string {
-		if value == "true" {
-			return "Y"
-		}
-		return "N"
-	}
-	var createColumn = func(value []interface{}) InColumn {
-		return InColumn{
-			Name:           fmt.Sprintf("%v", value[0]),
-			DataType:       fmt.Sprintf("%v", value[1]),
-			Identity:       trueFalse(fmt.Sprintf("%v", value[2])),
-			NotNull:        trueFalse(fmt.Sprintf("%v", value[4])),
-			ForeignKeyHint: fmt.Sprintf("%v", value[5]),
-			Value:          fmt.Sprintf("%v", value[6]),
-			Desc:           fmt.Sprintf("%v", value[7]),
-		}
-	}
-
-	var columns []InColumn
-	for _, icol := range icols {
-		// due to merge array in yaml will cause increase array one level, so need check is array of array
-		if reflect.TypeOf(icol[0]).Kind() == reflect.Slice {
-			for _, sub := range icol {
-				columns = append(columns, createColumn(sub.([]interface{})))
-			}
-		} else {
-			columns = append(columns, createColumn(icol))
-		}
-	}
-	return columns
 }
