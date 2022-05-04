@@ -101,7 +101,7 @@ func (s *Database) saveExcel(data *InDB, outfile string) error {
 		excel.NewSheet(sheet)
 
 		// heading
-		headings := []string{"Column Name", "Data Type", "Identity", "Nullable", "Default", "Foreign Key", "Comment"}
+		headings := []string{"Column Name", "Data Type", "Identity", "Not Null", "Default", "Foreign Key", "Comment"}
 		for i, heading := range headings {
 			cell := fmt.Sprintf("%c1", 66+i) // start from column 2
 			excel.SetCellValue(sheet, cell, heading)
