@@ -8,7 +8,7 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/urfave/cli/v2"
 
-	"dst/db"
+	xmfr "dst/xfmr"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	cliapp.Commands = []*cli.Command{}
 
 	debug := false
-	var infile, outfile string
+	var infile, outfile, outtpl string
 
 	// global options
 	cliapp.Flags = []cli.Flag{
@@ -45,23 +45,35 @@ func main() {
 			Required:    true,
 			Destination: &outfile,
 		},
+		&cli.StringFlag{
+			Name:        "template",
+			Aliases:     []string{"t"},
+			Usage:       "Template file",
+			Required:    false,
+			Destination: &outtpl,
+		},
 	}
 	cliapp.Action = func(c *cli.Context) error {
 		inext := filepath.Ext(infile)
 		outext := filepath.Ext(outfile)
 		if inext == ".yml" || inext == ".yaml" {
 			if outext == ".xlsx" {
-				db := db.NewDatabase()
-				if err := db.YamlToExcel(infile, outfile); err != nil {
+				tx := xmfr.NewXMFR()
+				if err := tx.YamlToExcel(infile, outfile); err != nil {
 					return eris.Wrapf(err, "failed to output the file %s", outfile)
+				}
+			} else if outtpl != "" {
+				tx := xmfr.NewXMFR()
+				if err := tx.MergeTemplate(infile, outfile, outtpl); err != nil {
+					return eris.Wrapf(err, "failed to output the file %s with template %s", outfile, outtpl)
 				}
 			} else {
 				return eris.Errorf("Output file type '%s' is not supported", outext)
 			}
 		} else if inext == ".xlsx" {
 			if outext == ".yml" || outext == ".yaml" {
-				db := db.NewDatabase()
-				if err := db.ExcelToYaml(infile, outfile); err != nil {
+				tx := xmfr.NewXMFR()
+				if err := tx.ExcelToYaml(infile, outfile); err != nil {
 					return eris.Wrapf(err, "failed to output the file %s", outfile)
 				}
 			} else {

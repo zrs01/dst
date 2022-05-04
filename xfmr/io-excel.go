@@ -1,4 +1,4 @@
-package db
+package xfmr
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func (s *Database) loadExcel(infile string) (*InDB, error) {
+func (s *Xfmr) loadExcel(infile string) (*InDB, error) {
 	excel, err := excelize.OpenFile(infile)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to open the excel file %s", infile)
@@ -28,9 +28,9 @@ func (s *Database) loadExcel(infile string) (*InDB, error) {
 			return nil, eris.Wrapf(err, "faled to get the rows from the sheet %s", sheet)
 		}
 
-		schema := &InSchema{Name: sheet}
+		schema := &Schema{Name: sheet}
 
-		var table *InTable
+		var table *Table
 		for rowIndex, row := range rows {
 			if rowIndex == 0 {
 				// skip the title row
@@ -43,7 +43,7 @@ func (s *Database) loadExcel(infile string) (*InDB, error) {
 				if table != nil {
 					schema.Tables = append(schema.Tables, *table)
 				}
-				table = &InTable{}
+				table = &Table{}
 
 				tableInfo := row[0]
 				descIndex := strings.Index(tableInfo, " - ")
@@ -54,7 +54,7 @@ func (s *Database) loadExcel(infile string) (*InDB, error) {
 					table.Name = tableInfo
 				}
 			} else {
-				incol := InColumn{}
+				incol := Column{}
 				for idx, cell := range row {
 					if idx == 1 {
 						incol.Name = cell
@@ -88,7 +88,7 @@ func (s *Database) loadExcel(infile string) (*InDB, error) {
 	return &data, nil
 }
 
-func (s *Database) saveExcel(data *InDB, outfile string) error {
+func (s *Xfmr) saveExcel(data *InDB, outfile string) error {
 	excel := excelize.NewFile()
 
 	style, err := s.definedExcelStyle(excel)
@@ -115,7 +115,7 @@ func (s *Database) saveExcel(data *InDB, outfile string) error {
 			excel.SetColWidth(sheet, col, col, width)
 		}
 
-		var setColValue = func(rowIndex int, column InColumn) {
+		var setColValue = func(rowIndex int, column Column) {
 			excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowIndex), column.Name)
 			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.DataType)
 			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.Identity)
@@ -162,7 +162,7 @@ func (s *Database) saveExcel(data *InDB, outfile string) error {
 	return nil
 
 }
-func (s *Database) definedExcelStyle(excel *excelize.File) (*map[string]int, error) {
+func (s *Xfmr) definedExcelStyle(excel *excelize.File) (*map[string]int, error) {
 	style := make(map[string]int, 0)
 
 	// style for the header cell

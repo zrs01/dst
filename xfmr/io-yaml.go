@@ -1,4 +1,4 @@
-package db
+package xfmr
 
 import (
 	"io/ioutil"
@@ -9,24 +9,24 @@ import (
 )
 
 type InDB struct {
-	Fixed   []InColumn `yaml:"fixed,omitempty"`
-	Schemas []InSchema `yaml:"schemas,omitempty"`
+	Fixed   []Column `yaml:"fixed,omitempty"`
+	Schemas []Schema `yaml:"schemas,omitempty"`
 }
 
-type InSchema struct {
-	Name   string    `yaml:"name,omitempty" default:"Schema"`
-	Desc   string    `yaml:"description,omitempty"`
-	Tables []InTable `yaml:"tables,omitempty"`
+type Schema struct {
+	Name   string  `yaml:"name,omitempty" default:"Schema"`
+	Desc   string  `yaml:"description,omitempty"`
+	Tables []Table `yaml:"tables,omitempty"`
 }
 
-type InTable struct {
+type Table struct {
 	Name       string      `yaml:"name,omitempty"`
 	Desc       string      `yaml:"desc,omitempty"`
-	Columns    []InColumn  `yaml:"columns,omitempty"`
+	Columns    []Column    `yaml:"columns,omitempty"`
 	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
 }
 
-type InColumn struct {
+type Column struct {
 	Name           string `yaml:"na,omitempty"`
 	DataType       string `yaml:"ty,omitempty"`
 	Identity       string `yaml:"id,omitempty"`
@@ -37,10 +37,10 @@ type InColumn struct {
 }
 
 type OutColumn struct {
-	Values InColumn `yaml:"_column_values,flow,omitempty"`
+	Values Column `yaml:"_column_values,flow,omitempty"`
 }
 
-func (s *Database) loadYaml(infile string) (*InDB, error) {
+func (s *Xfmr) loadYaml(infile string) (*InDB, error) {
 	yamlFile, err := ioutil.ReadFile(infile)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to read the file %s", infile)
@@ -52,7 +52,7 @@ func (s *Database) loadYaml(infile string) (*InDB, error) {
 	return &d, nil
 }
 
-func (s *Database) saveYaml(data *InDB, outfile string) error {
+func (s *Xfmr) saveYaml(data *InDB, outfile string) error {
 	yaml.FutureLineWrap()
 	bytes, err := yaml.Marshal(data)
 	if err != nil {

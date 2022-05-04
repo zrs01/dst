@@ -1,16 +1,16 @@
-package db
+package xfmr
 
 import (
 	"github.com/rotisserie/eris"
 )
 
-type Database struct{}
+type Xfmr struct{}
 
-func NewDatabase() *Database {
-	return &Database{}
+func NewXMFR() *Xfmr {
+	return &Xfmr{}
 }
 
-func (s *Database) YamlToExcel(infile, outfile string) error {
+func (s *Xfmr) YamlToExcel(infile, outfile string) error {
 	data, err := s.loadYaml(infile)
 	if err != nil {
 		return eris.Wrapf(err, "failed to load the file %s", infile)
@@ -21,7 +21,7 @@ func (s *Database) YamlToExcel(infile, outfile string) error {
 	return nil
 }
 
-func (s *Database) ExcelToYaml(infile string, outfile string) error {
+func (s *Xfmr) ExcelToYaml(infile string, outfile string) error {
 	inData, err := s.loadExcel(infile)
 	if err != nil {
 		return eris.Wrapf(err, "failed to load the data from %s", infile)
