@@ -1,33 +1,30 @@
 package xfmr
 
 import (
-	"html/template"
 	"os"
+	"path/filepath"
 
+	"github.com/CloudyKit/jet/v6"
 	"github.com/rotisserie/eris"
-	// "github.com/CloudyKit/jet/v6"
 )
 
-func (s *Xfmr) MergeTemplate(infile, outfile, outtpl string) error {
-	in, err := s.loadYaml(infile)
-	if err != nil {
-		return eris.Wrapf(err, "failed to load input file %s", infile)
-	}
-
-	// template
-	t, err := template.ParseFiles(outtpl)
-	if err != nil {
-		return eris.Wrapf(err, "failed to parse the template file %s", outtpl)
-	}
+func (s *Xfmr) mergeTemplate(data *InDB, outfile, outtpl string) error {
 	// output
 	f, err := os.Create(outfile)
 	if err != nil {
 		return eris.Wrapf(err, "failed to create the file %s", outfile)
 	}
 	defer f.Close()
+
+	// template
+	views := jet.NewSet(jet.NewOSFileSystemLoader(filepath.Dir(outtpl)), jet.InDevelopmentMode())
+	view, err := views.GetTemplate(filepath.Base(outtpl))
+	if err != nil {
+		return eris.Wrapf(err, "failed to get the template %s", outtpl)
+	}
 	// merge
-	if err := t.Execute(f, *in); err != nil {
-		return eris.Wrapf(err, "failed to merge the template %s and data %+v", outtpl, *in)
+	if err := view.Execute(f, nil, *data); err != nil {
+		return eris.Wrapf(err, "failed to merge the template %s", outtpl)
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ module dst
 go 1.18
 
 require (
+	github.com/CloudyKit/jet/v6 v6.1.0
 	github.com/rotisserie/eris v0.5.4
 	github.com/urfave/cli/v2 v2.5.0
 	github.com/xuri/excelize/v2 v2.6.0
@@ -10,6 +11,7 @@ require (
 )
 
 require (
+	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect

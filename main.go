@@ -64,7 +64,7 @@ func main() {
 				}
 			} else if outtpl != "" {
 				tx := xmfr.NewXMFR()
-				if err := tx.MergeTemplate(infile, outfile, outtpl); err != nil {
+				if err := tx.YamlToText(infile, outfile, outtpl); err != nil {
 					return eris.Wrapf(err, "failed to output the file %s with template %s", outfile, outtpl)
 				}
 			} else {
