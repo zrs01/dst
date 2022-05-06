@@ -1,6 +1,7 @@
 package xfmr
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -67,5 +68,47 @@ func (s *Xfmr) saveYaml(data *InDB, outfile string) error {
 	output = strings.ReplaceAll(output, "\"Y\"", "Y")
 	output = strings.ReplaceAll(output, "\"y\"", "y")
 	ioutil.WriteFile(outfile, []byte(output), 0744)
+	return nil
+}
+
+func (s *Xfmr) VerifyForeignKey(infile string) error {
+	data, err := s.loadYaml(infile)
+	if err != nil {
+		return eris.Wrapf(err, "failed to load the data from %s", infile)
+	}
+
+	tables := make(map[string]*[]Column)
+
+	// convert to map for easy searching
+	for _, schema := range data.Schemas {
+		for _, table := range schema.Tables {
+			tables[table.Name] = &table.Columns
+		}
+	}
+	tables["fixed"] = &data.Fixed
+
+	isFKExist := func(fk string) bool {
+		// fk format: table.field
+		tf := strings.Split(fk, ".")
+		if columns, found := tables[tf[0]]; found {
+			for _, column := range *columns {
+				if column.Name == tf[1] {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	// check the foreign key whether exists
+	for k, columns := range tables {
+		for _, column := range *columns {
+			if column.ForeignKeyHint != "" {
+				if !isFKExist(column.ForeignKeyHint) {
+					fmt.Printf("Warning: In '%s', FK '%s' cannot be found\n", k, column.ForeignKeyHint)
+				}
+			}
+		}
+	}
 	return nil
 }

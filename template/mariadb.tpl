@@ -2,10 +2,11 @@
 {{- fixed := .Fixed }}
 {{ range .Schemas }}
   {{- range .Tables }}
-CREATE TABLE {{ .Name }} (
+CREATE TABLE IF NOT EXISTS {{ .Name }} (
     {{- range i := .Columns}}
       {{ .Name }} {{ .DataType }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
       {{- if .Identity == "Y" }} AUTO_INCREMENT PRIMARY KEY {{- end }}
       {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
       {{- "," }}
@@ -14,6 +15,7 @@ CREATE TABLE {{ .Name }} (
     {{- range i := fixed }}
       {{ .Name }} {{ .DataType }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
       {{- if .Identity == "Y" }} AUTO_INCREMENT PRIMARY KEY {{- end }}
       {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
       {{- if i < fixedCount - 1 }},{{- end }}
