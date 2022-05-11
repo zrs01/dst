@@ -77,21 +77,21 @@ func (s *Xfmr) VerifyForeignKey(infile string) error {
 		return eris.Wrapf(err, "failed to load the data from %s", infile)
 	}
 
-	tables := make(map[string]*[]Column)
+	tables := make(map[string][]Column)
 
 	// convert to map for easy searching
 	for _, schema := range data.Schemas {
 		for _, table := range schema.Tables {
-			tables[table.Name] = &table.Columns
+			tables[table.Name] = table.Columns
 		}
 	}
-	tables["fixed"] = &data.Fixed
+	tables["fixed"] = data.Fixed
 
 	isFKExist := func(fk string) bool {
 		// fk format: table.field
 		tf := strings.Split(fk, ".")
 		if columns, found := tables[tf[0]]; found {
-			for _, column := range *columns {
+			for _, column := range columns {
 				if column.Name == tf[1] {
 					return true
 				}
@@ -102,7 +102,7 @@ func (s *Xfmr) VerifyForeignKey(infile string) error {
 
 	// check the foreign key whether exists
 	for k, columns := range tables {
-		for _, column := range *columns {
+		for _, column := range columns {
 			if column.ForeignKeyHint != "" {
 				if !isFKExist(column.ForeignKeyHint) {
 					fmt.Printf("Warning: In '%s', FK '%s' cannot be found\n", k, column.ForeignKeyHint)
