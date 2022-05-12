@@ -32,10 +32,22 @@ type Column struct {
 	DataType       string `yaml:"ty,omitempty"`
 	Identity       string `yaml:"id,omitempty"`
 	NotNull        string `yaml:"nu,omitempty" default:"N"`
+	Unique         string `yaml:"un,omitempty"`
 	Value          string `yaml:"va,omitempty"`
 	ForeignKeyHint string `yaml:"fk,omitempty"`
 	Desc           string `yaml:"dc,omitempty"`
 }
+
+const (
+	CName           = 0
+	CDataType       = 1
+	CIdentity       = 2
+	CNotNull        = 3
+	CUnique         = 4
+	CValue          = 5
+	CForeignKeyHint = 6
+	CDesc           = 7
+)
 
 type OutColumn struct {
 	Values Column `yaml:"_column_values,flow,omitempty"`

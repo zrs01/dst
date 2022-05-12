@@ -56,25 +56,28 @@ func (s *Xfmr) loadExcel(infile string) (*InDB, error) {
 			} else {
 				incol := Column{}
 				for idx, cell := range row {
-					if idx == 1 {
+					if idx == CName {
 						incol.Name = cell
 					}
-					if idx == 2 {
+					if idx == CDataType {
 						incol.DataType = cell
 					}
-					if idx == 3 {
+					if idx == CIdentity {
 						incol.Identity = cell
 					}
-					if idx == 4 {
+					if idx == CNotNull {
 						incol.NotNull = cell
 					}
-					if idx == 5 {
+					if idx == CUnique {
+						incol.Unique = cell
+					}
+					if idx == CValue {
 						incol.Value = cell
 					}
-					if idx == 6 {
+					if idx == CForeignKeyHint {
 						incol.ForeignKeyHint = cell
 					}
-					if idx == 7 {
+					if idx == CDesc {
 						incol.Desc = cell
 					}
 				}
