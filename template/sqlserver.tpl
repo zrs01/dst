@@ -2,6 +2,7 @@
 {{- fixed := .Fixed }}
 {{ range .Schemas }}
   {{- range .Tables }}
+DROP TABLE IF EXISTS {{ .Name }};
 CREATE TABLE {{ .Name }} (
     {{- range i := .Columns}}
       {{ .Name }} {{ .DataType }}
@@ -28,13 +29,13 @@ CREATE TABLE {{ .Name }} (
     {{- range .Columns}}
       {{- parts := split(.ForeignKeyHint, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ parts[0] }}) REFERENCE {{ parts[0] }} ({{ parts[1] }})
+ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
     {{- end }}
     {{- range fixed }}
       {{- parts := split(.ForeignKeyHint, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ parts[0] }}) REFERENCE {{ parts[0] }} ({{ parts[1] }})
+ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
     {{- end }}
   {{- end }}
