@@ -1,9 +1,8 @@
 {* ---------------------------------- tables ---------------------------------- *}
+-- up
 {{- fixed := .Fixed }}
 {{ range .Schemas }}
   {{- range .Tables }}
-DROP TABLE IF EXISTS {{ .Name }}
-GO
 CREATE TABLE {{ .Name }} (
     {{- range i := .Columns}}
       {{ .Name }} {{ .DataType }}
@@ -20,8 +19,7 @@ CREATE TABLE {{ .Name }} (
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
       {{- if i < fixedCount - 1 }},{{- end }}
     {{- end }}
-)
-GO
+);
   {{- end }}
 {{ end }}
 {* ------------------------------- foreign keys ------------------------------- *}
@@ -31,18 +29,46 @@ GO
     {{- range .Columns}}
       {{- parts := split(.ForeignKeyHint, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }})
-GO
+ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
     {{- end }}
     {{- range fixed }}
       {{- parts := split(.ForeignKeyHint, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }})
-GO
+ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
     {{- end }}
   {{- end }}
 {{- end }}
+
+
+
+-- down
+{* ------------------------------- foreign keys ------------------------------- *}
+{{ range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns}}
+      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE {{ table }} DROP CONSTRAINT fk{{ table }}{{ .Name }};
+      {{- end }}
+    {{- end }}
+    {{- range fixed }}
+      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE {{ table }} DROP CONSTRAINT fk{{ table }}{{ .Name }};
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{* ---------------------------------- tables ---------------------------------- *}
+-- up
+{{ range .Schemas }}
+  {{- range .Tables }}
+DROP TABLE {{ .Name }};
+  {{- end }}
+{{ end }}
+
 
 {* syntax: https://github.com/CloudyKit/jet/blob/master/docs/syntax.md *}
