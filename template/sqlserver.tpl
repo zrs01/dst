@@ -2,7 +2,6 @@
 {{- fixed := .Fixed }}
 {{ range .Schemas }}
   {{- range .Tables }}
-DROP TABLE IF EXISTS {{ .Name }};
 CREATE TABLE {{ .Name }} (
     {{- range i := .Columns}}
       {{ .Name }} {{ .DataType }}
