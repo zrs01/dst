@@ -3,13 +3,14 @@ package xfmr
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/rotisserie/eris"
 )
 
 func (s *Xfmr) savePlantUml(data *InDB, schemaName, outfile string) error {
-	uml, err := buildPlantUml(data, schemaName)
+	uml, err := s.buildPlantUml(data, schemaName, outfile)
 	if err != nil {
 		return eris.Wrapf(err, "failed to build UML")
 	}
@@ -17,11 +18,16 @@ func (s *Xfmr) savePlantUml(data *InDB, schemaName, outfile string) error {
 	return nil
 }
 
-func buildPlantUml(data *InDB, schemaName string) (string, error) {
+func (s *Xfmr) buildPlantUml(data *InDB, schemaName, outfile string) (string, error) {
 	var head strings.Builder
 	var conn strings.Builder
 	var body strings.Builder
-	body.WriteString("@startuml ER\n\nskinparam linetype ortho")
+
+	graphName := schemaName
+	if graphName == "" {
+		graphName = filepath.Base(outfile)
+	}
+	body.WriteString(fmt.Sprintf("@startuml %s\n\nskinparam linetype ortho", graphName))
 
 	for _, schema := range data.Schemas {
 		for _, table := range schema.Tables {

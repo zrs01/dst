@@ -19,12 +19,13 @@ type Table struct {
 }
 
 type Column struct {
-	Name       string `yaml:"na,omitempty"`
-	DataType   string `yaml:"ty,omitempty"`
-	Identity   string `yaml:"id,omitempty"`
-	NotNull    string `yaml:"nu,omitempty" default:"N"`
-	Unique     string `yaml:"un,omitempty"`
-	Value      string `yaml:"va,omitempty"`
-	ForeignKey string `yaml:"fk,omitempty"`
-	Desc       string `yaml:"dc,omitempty"`
+	Name        string `yaml:"na,omitempty"`
+	DataType    string `yaml:"ty,omitempty"`
+	Identity    string `yaml:"id,omitempty"`
+	NotNull     string `yaml:"nu,omitempty" default:"N"`
+	Unique      string `yaml:"un,omitempty"`
+	Value       string `yaml:"va,omitempty"`
+	ForeignKey  string `yaml:"fk,omitempty"`
+	Cardinality string `yaml:"cd,omitempty"`
+	Desc        string `yaml:"dc,omitempty"`
 }
