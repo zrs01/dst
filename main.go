@@ -33,7 +33,7 @@ func main() {
 	}
 
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		var infile, outfile, outtpl string
+		var infile, outfile, intpl, insch string
 		return &cli.Command{
 			Name:  "convert",
 			Usage: "Convert to other format",
@@ -57,7 +57,15 @@ func main() {
 					Aliases:     []string{"t"},
 					Usage:       "Template file",
 					Required:    false,
-					Destination: &outtpl,
+					Destination: &intpl,
+				},
+				&cli.StringFlag{
+					Name:        "schema",
+					Aliases:     []string{"s"},
+					Usage:       "Schema name",
+					Value:       "",
+					Required:    false,
+					Destination: &insch,
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -69,10 +77,15 @@ func main() {
 						if err := tx.YamlToExcel(infile, outfile); err != nil {
 							return eris.Wrapf(err, "failed to output the file %s", outfile)
 						}
-					} else if outtpl != "" {
+					} else if outext == ".plantuml" {
 						tx := xmfr.NewXMFR()
-						if err := tx.YamlToText(infile, outfile, outtpl); err != nil {
-							return eris.Wrapf(err, "failed to output the file %s with template %s", outfile, outtpl)
+						if err := tx.YamlToPlantUML(infile, outfile, insch); err != nil {
+							return eris.Wrapf(err, "failed to output the file %s", outfile)
+						}
+					} else if intpl != "" {
+						tx := xmfr.NewXMFR()
+						if err := tx.YamlToText(infile, outfile, intpl); err != nil {
+							return eris.Wrapf(err, "failed to output the file %s with template %s", outfile, intpl)
 						}
 					} else {
 						return eris.Errorf("Output file type '%s' is not supported", outext)

@@ -75,7 +75,7 @@ func (s *Xfmr) loadExcel(infile string) (*InDB, error) {
 						incol.Value = cell
 					}
 					if idx == CForeignKeyHint {
-						incol.ForeignKeyHint = cell
+						incol.ForeignKey = cell
 					}
 					if idx == CDesc {
 						incol.Desc = cell
@@ -124,7 +124,7 @@ func (s *Xfmr) saveExcel(data *InDB, outfile string) error {
 			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.Identity)
 			excel.SetCellValue(sheet, fmt.Sprintf("E%d", rowIndex), column.NotNull)
 			excel.SetCellValue(sheet, fmt.Sprintf("F%d", rowIndex), column.Value)
-			excel.SetCellValue(sheet, fmt.Sprintf("G%d", rowIndex), column.ForeignKeyHint)
+			excel.SetCellValue(sheet, fmt.Sprintf("G%d", rowIndex), column.ForeignKey)
 			excel.SetCellValue(sheet, fmt.Sprintf("H%d", rowIndex), column.Desc)
 		}
 

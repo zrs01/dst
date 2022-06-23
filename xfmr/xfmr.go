@@ -32,6 +32,17 @@ func (s *Xfmr) YamlToText(infile, outfile, outtpl string) error {
 	return nil
 }
 
+func (s *Xfmr) YamlToPlantUML(infile, outfile, inschema string) error {
+	data, err := s.loadYaml(infile)
+	if err != nil {
+		return eris.Wrapf(err, "failed to load input file %s", infile)
+	}
+	if err := s.savePlantUml(data, inschema, outfile); err != nil {
+		return eris.Wrapf(err, "failed to save the file %s", outfile)
+	}
+	return nil
+}
+
 func (s *Xfmr) ExcelToYaml(infile string, outfile string) error {
 	inData, err := s.loadExcel(infile)
 	if err != nil {

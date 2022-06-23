@@ -9,35 +9,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type InDB struct {
-	Fixed   []Column `yaml:"fixed,omitempty"`
-	Schemas []Schema `yaml:"schemas,omitempty"`
-}
-
-type Schema struct {
-	Name   string  `yaml:"name,omitempty" default:"Schema"`
-	Desc   string  `yaml:"description,omitempty"`
-	Tables []Table `yaml:"tables,omitempty"`
-}
-
-type Table struct {
-	Name       string      `yaml:"name,omitempty"`
-	Desc       string      `yaml:"desc,omitempty"`
-	Columns    []Column    `yaml:"columns,omitempty"`
-	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
-}
-
-type Column struct {
-	Name           string `yaml:"na,omitempty"`
-	DataType       string `yaml:"ty,omitempty"`
-	Identity       string `yaml:"id,omitempty"`
-	NotNull        string `yaml:"nu,omitempty" default:"N"`
-	Unique         string `yaml:"un,omitempty"`
-	Value          string `yaml:"va,omitempty"`
-	ForeignKeyHint string `yaml:"fk,omitempty"`
-	Desc           string `yaml:"dc,omitempty"`
-}
-
 const (
 	CName           = 0
 	CDataType       = 1
@@ -115,9 +86,9 @@ func (s *Xfmr) VerifyForeignKey(infile string) error {
 	// check the foreign key whether exists
 	for k, columns := range tables {
 		for _, column := range columns {
-			if column.ForeignKeyHint != "" {
-				if !isFKExist(column.ForeignKeyHint) {
-					fmt.Printf("Warning: '%s', FK '%s' cannot be found\n", k, column.ForeignKeyHint)
+			if column.ForeignKey != "" {
+				if !isFKExist(column.ForeignKey) {
+					fmt.Printf("Warning: '%s', FK '%s' cannot be found\n", k, column.ForeignKey)
 				}
 			}
 		}
