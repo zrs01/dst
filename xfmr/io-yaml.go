@@ -117,7 +117,7 @@ func (s *Xfmr) VerifyForeignKey(infile string) error {
 		for _, column := range columns {
 			if column.ForeignKeyHint != "" {
 				if !isFKExist(column.ForeignKeyHint) {
-					fmt.Printf("Warning: In '%s', FK '%s' cannot be found\n", k, column.ForeignKeyHint)
+					fmt.Printf("Warning: '%s', FK '%s' cannot be found\n", k, column.ForeignKeyHint)
 				}
 			}
 		}
