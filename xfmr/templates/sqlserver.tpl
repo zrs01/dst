@@ -4,9 +4,13 @@
 {{ range .Schemas }}
   {{- range .Tables }}
 CREATE TABLE {{ .Name }} (
+    {{- idc := "" }}
     {{- range i := .Columns}}
+      {{- if .Identity == "Y" }}
+        {{- idc = . }}
+      {{- end }}
       {{ .Name }} {{ .DataType }}
-      {{- if .Identity == "Y" }} IDENTITY(1,1) PRIMARY KEY {{- end }}
+      {{- if .Identity == "Y" }} IDENTITY(1,1){{- end }}
       {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
       {{- "," }}
@@ -14,10 +18,12 @@ CREATE TABLE {{ .Name }} (
     {{- fixedCount := len(fixed) }}
     {{- range i := fixed }}
       {{ .Name }} {{ .DataType }}
-      {{- if .Identity == "Y" }} IDENTITY(1,1) PRIMARY KEY {{- end }}
       {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
       {{- if i < fixedCount - 1 }},{{- end }}
+    {{- end }}
+    {{- if idc != "" }},
+      CONSTRAINT pk{{ .Name }}{{ idc.Name }} PRIMARY KEY ({{ idc.Name }})
     {{- end }}
 );
   {{- end }}
