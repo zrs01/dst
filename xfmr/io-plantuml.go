@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
+	"github.com/shomali11/util/xconditions"
+	"github.com/thoas/go-funk"
 )
 
 func (s *Xfmr) savePlantUml(data *InDB, schemaName, outfile string) error {
@@ -19,41 +21,97 @@ func (s *Xfmr) savePlantUml(data *InDB, schemaName, outfile string) error {
 }
 
 func (s *Xfmr) buildPlantUml(data *InDB, schemaName, outfile string) (string, error) {
+
+	var isValidSchema = func(name string) bool {
+		return (schemaName != "" && strings.ToLower(schemaName) == strings.ToLower(name)) || schemaName == ""
+	}
+	var addTable = func(builder *strings.Builder, tbNames []string) bool {
+		for _, schema := range data.Schemas {
+			for _, table := range schema.Tables {
+				if funk.Contains(tbNames, strings.ToLower(table.Name)) {
+					builder.WriteString(fmt.Sprintf("\nentity %s {", table.Name))
+					for _, column := range table.Columns {
+						cn := column.Name
+						if strings.ToUpper(column.Identity) == "Y" {
+							cn = "<u>" + cn + "</u>"
+						}
+						builder.WriteString(fmt.Sprintf("\n  <size:11>%s %s</size>", cn, column.DataType))
+					}
+					builder.WriteString("\n  ..")
+					builder.WriteString("\n}")
+				}
+			}
+		}
+		return false
+	}
+	var getCardinality = func(cd string, reverse bool) string {
+		lcd, lshape, rcd, rshape := cd, "", "", ""
+		cdParts := strings.Split(cd, ":")
+		if len(cdParts) > 1 {
+			if reverse {
+				lcd, rcd = cdParts[1], cdParts[0]
+			} else {
+				lcd, rcd = cdParts[0], cdParts[1]
+			}
+		}
+		lshape = xconditions.IfThenElse(strings.Contains(lcd, "*"), "}", "|").(string)
+		lshape += xconditions.IfThenElse(strings.Contains(lcd, "0"), "o", "|").(string)
+		rshape = xconditions.IfThenElse(strings.Contains(rcd, "0"), "o", "|").(string)
+		rshape += xconditions.IfThenElse(strings.Contains(rcd, "*"), "{", "|").(string)
+
+		var sb strings.Builder
+		if lcd != "" {
+			sb.WriteString("\"" + lcd + "\" ")
+		}
+		// sb.WriteString(lshape + "--" + rshape)
+		sb.WriteString("--")
+		if rcd != "" {
+			sb.WriteString(" \"" + rcd + "\"")
+		}
+		return sb.String()
+	}
+
+	/* ---------------------------------- main ---------------------------------- */
+
 	var head strings.Builder
-	var conn strings.Builder
 	var body strings.Builder
+	var content strings.Builder
+
+	tables := []string{}
 
 	graphName := schemaName
 	if graphName == "" {
 		graphName = filepath.Base(outfile)
 	}
-	body.WriteString(fmt.Sprintf("@startuml %s\n\nskinparam linetype ortho", graphName))
+	content.WriteString(fmt.Sprintf("@startuml %s", graphName))
+	// content.WriteString("\n\nskinparam linetype ortho")
 
 	for _, schema := range data.Schemas {
 		for _, table := range schema.Tables {
-			if (schemaName != "" && strings.ToLower(schemaName) == strings.ToLower(schema.Name)) || schemaName == "" {
-				head.WriteString(fmt.Sprintf("\nentity %s {", table.Name))
+			if isValidSchema(schema.Name) {
+				tables = append(tables, strings.ToLower(table.Name))
 
 				for _, column := range table.Columns {
-					head.WriteString(fmt.Sprintf("\n  {field} %s %s", column.Name, column.DataType))
-
 					if len(column.ForeignKey) > 0 {
 						fkParts := strings.Split(column.ForeignKey, ".")
 						fkTable := column.ForeignKey
 						if len(fkParts) > 1 {
 							fkTable = fkParts[0]
 						}
-						conn.WriteString(fmt.Sprintf("\n%s ||--|{ %s", fkTable, table.Name))
+						body.WriteString(fmt.Sprintf("\n%s %s %s", fkTable, getCardinality(column.Cardinality, true), table.Name))
+						// body.WriteString(fmt.Sprintf("\n%s %s %s", table.Name, getCardinality(column.Cardinality, false), fkTable))
+						tables = append(tables, strings.ToLower(fkTable))
 					}
 				}
-				head.WriteString("\n}")
 			}
 		}
 	}
+	tables = funk.UniqString(tables) // remove duplicated values
+	addTable(&head, tables)
 
-	body.WriteString("\n\n" + head.String())
-	body.WriteString("\n\n" + conn.String())
+	content.WriteString("\n" + head.String())
+	content.WriteString("\n" + body.String())
 
-	body.WriteString("\n\n@enduml")
-	return body.String(), nil
+	content.WriteString("\n\n@enduml")
+	return content.String(), nil
 }

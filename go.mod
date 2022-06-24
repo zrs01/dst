@@ -5,6 +5,8 @@ go 1.18
 require (
 	github.com/CloudyKit/jet/v6 v6.1.0
 	github.com/rotisserie/eris v0.5.4
+	github.com/shomali11/util v0.0.0-20200329021417-91c54758c87b
+	github.com/thoas/go-funk v0.9.2
 	github.com/urfave/cli/v2 v2.5.0
 	github.com/xuri/excelize/v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
