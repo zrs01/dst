@@ -33,13 +33,13 @@ CREATE TABLE {{ .Name }} (
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns}}
-      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
     {{- end }}
     {{- range fixed }}
-      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
@@ -55,13 +55,13 @@ ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ 
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns}}
-      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE {{ table }} DROP CONSTRAINT fk{{ table }}{{ .Name }};
       {{- end }}
     {{- end }}
     {{- range fixed }}
-      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE {{ table }} DROP CONSTRAINT fk{{ table }}{{ .Name }};
       {{- end }}

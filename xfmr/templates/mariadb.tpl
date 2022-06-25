@@ -28,13 +28,13 @@ CREATE TABLE IF NOT EXISTS {{ .Name }} (
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns}}
-      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ parts[0] }}) REFERENCE {{ parts[0] }} ({{ parts[1] }})
       {{- end }}
     {{- end }}
     {{- range fixed }}
-      {{- parts := split(.ForeignKeyHint, ".") }}
+      {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ parts[0] }}) REFERENCE {{ parts[0] }} ({{ parts[1] }})
       {{- end }}

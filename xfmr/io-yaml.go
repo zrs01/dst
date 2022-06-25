@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,21 +25,21 @@ type OutColumn struct {
 	Values Column `yaml:"_column_values,flow,omitempty"`
 }
 
-func (s *Xfmr) loadYaml(infile string) (*InDB, error) {
+func (s *Xfmr) LoadYaml(infile string) {
 	yamlFile, err := ioutil.ReadFile(infile)
 	if err != nil {
-		return nil, eris.Wrapf(err, "failed to read the file %s", infile)
+		panic(fmt.Sprintf("failed to read the file %s", infile))
 	}
 	var d InDB
 	if err := yaml.Unmarshal(yamlFile, &d); err != nil {
-		return nil, eris.Wrapf(err, "failed to unmarshal the file %s", infile)
+		panic(fmt.Sprintf("failed to unmarshal the file %s", infile))
 	}
-	return &d, nil
+	s.Data = &d
 }
 
-func (s *Xfmr) saveYaml(data *InDB, outfile string) error {
+func (s *Xfmr) SaveToYaml(outfile string) error {
 	yaml.FutureLineWrap()
-	bytes, err := yaml.Marshal(data)
+	bytes, err := yaml.Marshal(s.Data)
 	if err != nil {
 		return eris.Wrap(err, "failed to transform to yaml")
 	}
@@ -54,21 +55,16 @@ func (s *Xfmr) saveYaml(data *InDB, outfile string) error {
 	return nil
 }
 
-func (s *Xfmr) VerifyForeignKey(infile string) error {
-	data, err := s.loadYaml(infile)
-	if err != nil {
-		return eris.Wrapf(err, "failed to load the data from %s", infile)
-	}
-
+func (s *Xfmr) VerifyForeignKey() error {
 	tables := make(map[string][]Column)
 
 	// convert to map for easy searching
-	for _, schema := range data.Schemas {
+	for _, schema := range s.Data.Schemas {
 		for _, table := range schema.Tables {
 			tables[table.Name] = table.Columns
 		}
 	}
-	tables["fixed"] = data.Fixed
+	tables["fixed"] = s.Data.Fixed
 
 	isFKExist := func(fk string) bool {
 		// fk format: table.field
@@ -88,7 +84,7 @@ func (s *Xfmr) VerifyForeignKey(infile string) error {
 		for _, column := range columns {
 			if column.ForeignKey != "" {
 				if !isFKExist(column.ForeignKey) {
-					fmt.Printf("Warning: '%s', FK '%s' cannot be found\n", k, column.ForeignKey)
+					logrus.Warnf("'%s', FK '%s' cannot be found\n", k, column.ForeignKey)
 				}
 			}
 		}

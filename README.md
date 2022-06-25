@@ -15,6 +15,7 @@ Export to different format from definition file.
 #   un: unique
 #   va: default value
 #   fk: foreign key hint
+#   cd: cardinality
 #   dc: description
 
 # fixed columns:

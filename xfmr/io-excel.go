@@ -8,10 +8,10 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func (s *Xfmr) loadExcel(infile string) (*InDB, error) {
+func (s *Xfmr) LoadExcel(infile string) {
 	excel, err := excelize.OpenFile(infile)
 	if err != nil {
-		return nil, eris.Wrapf(err, "failed to open the excel file %s", infile)
+		panic(fmt.Sprintf("failed to open the excel file %s", infile))
 	}
 	defer func() {
 		if err := excel.Close(); err != nil {
@@ -25,7 +25,7 @@ func (s *Xfmr) loadExcel(infile string) (*InDB, error) {
 	for _, sheet := range sheets {
 		rows, err := excel.GetRows(sheet)
 		if err != nil {
-			return nil, eris.Wrapf(err, "faled to get the rows from the sheet %s", sheet)
+			panic(fmt.Sprintf("faled to get the rows from the sheet %s", sheet))
 		}
 
 		schema := &Schema{Name: sheet}
@@ -88,10 +88,10 @@ func (s *Xfmr) loadExcel(infile string) (*InDB, error) {
 		schema.Tables = append(schema.Tables, *table)
 		data.Schemas = append(data.Schemas, *schema)
 	}
-	return &data, nil
+	s.Data = &data
 }
 
-func (s *Xfmr) saveExcel(data *InDB, outfile string) error {
+func (s *Xfmr) SaveToExcel(outfile string) error {
 	excel := excelize.NewFile()
 
 	style, err := s.definedExcelStyle(excel)
@@ -99,7 +99,7 @@ func (s *Xfmr) saveExcel(data *InDB, outfile string) error {
 		return eris.Wrap(err, "failed to create a bold style")
 	}
 
-	for _, schema := range data.Schemas {
+	for _, schema := range s.Data.Schemas {
 		sheet := schema.Name
 		excel.NewSheet(sheet)
 
@@ -149,13 +149,13 @@ func (s *Xfmr) saveExcel(data *InDB, outfile string) error {
 			offset = offset + len(table.Columns)
 
 			// fixed columns
-			for i, column := range data.Fixed {
+			for i, column := range s.Data.Fixed {
 				index := i + offset
 				setColValue(index, column)
 				excel.SetCellStyle(sheet, fmt.Sprintf("B%d", index), fmt.Sprintf("%c%d", 65+len(headings), index), (*style)["fixcol"])
 			}
 
-			offset = offset + len(data.Fixed)
+			offset = offset + len(s.Data.Fixed)
 		}
 	}
 	excel.DeleteSheet("Sheet1")
