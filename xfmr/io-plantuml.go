@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/rotisserie/eris"
@@ -87,28 +88,39 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		// }
 		return sb.String()
 	}
-	// var getIdentity = func(tableName string) string {
+	var splitToTwo = func(s, sep string) (string, string) {
+		v1, v2 := s, ""
+		parts := strings.Split(s, sep)
+		if len(parts) > 1 {
+			v1 = parts[0]
+			v2 = parts[1]
+		}
+		return v1, v2
+	}
+	// var addRefTable = func(tables, cards *[]string, tableName string) {
 	// 	for _, schema := range s.Data.Schemas {
 	// 		for _, table := range schema.Tables {
-	// 			if table.Name == tableName {
+	// 			if table.Name != tableName {
 	// 				for _, column := range table.Columns {
-	// 					if strings.ToUpper(column.Identity) == "Y" {
-	// 						return column.Name
+	// 					fkTable, _ := splitToTwo(column.ForeignKey, ".")
+	// 					if fkTable == tableName {
+	// 						*tables = append(*tables, table.Name)
+	// 						tbCd, fkCd := splitToTwo(column.Cardinality, ":")
+	// 						*cards = append(*cards, fmt.Sprintf("%s %s %s", fkTable, getCardinality(fkCd, tbCd, "#86371a"), table.Name))
 	// 					}
 	// 				}
 	// 			}
 	// 		}
 	// 	}
-	// 	return ""
 	// }
 
 	/* ---------------------------------- main ---------------------------------- */
 
 	var head strings.Builder
-	var body strings.Builder
 	var content strings.Builder
 
 	tables := []string{}
+	cards := []string{}
 
 	content.WriteString(fmt.Sprintf("@startuml %s", filepath.Base(args.OutFile)))
 	content.WriteString("\n\nskinparam linetype ortho")
@@ -120,28 +132,16 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 					tables = append(tables, strings.ToLower(table.Name))
 
 					for _, column := range table.Columns {
-						if len(column.ForeignKey) > 0 {
+						if xstrings.IsNotBlank(column.ForeignKey) {
 							// foreign key in '<table>.<field>' format
-							fkParts := strings.Split(column.ForeignKey, ".")
-							fkTable := column.ForeignKey
-							// fkfield := ""
-							if len(fkParts) > 1 {
-								fkTable = fkParts[0]
-								// fkField = fkParts[1]
-							}
-							tbCd, fkCd := column.Cardinality, ""
-							cdParts := strings.Split(column.Cardinality, ":")
-							if len(cdParts) > 1 {
-								tbCd, fkCd = cdParts[0], cdParts[1]
-							}
-							body.WriteString(fmt.Sprintf("\n%s %s %s",
-								fkTable,
-								// getCardinality(fkCd, tbCd, xconditions.IfThenElse(fkField == getIdentity(table.Name), "#000000", "#86371a").(string)),
-								getCardinality(fkCd, tbCd, "#000000"),
-								table.Name))
+							fkTable, _ := splitToTwo(column.ForeignKey, ".")
+							tbCd, fkCd := splitToTwo(column.Cardinality, ":")
+							cards = append(cards, fmt.Sprintf("%s %s %s", fkTable, getCardinality(fkCd, tbCd, "#000000"), table.Name))
 							tables = append(tables, strings.ToLower(fkTable))
 						}
 					}
+					// add the tables that reference to
+					// addRefTable(&tables, &cards, table.Name)
 				}
 			}
 		}
@@ -149,9 +149,15 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 	tables = funk.UniqString(tables) // remove duplicated values
 	addTable(&head, tables)
 
-	content.WriteString("\n" + head.String())
-	content.WriteString("\n" + body.String())
+	cards = funk.UniqString(cards)
+	sort.Strings(cards)
 
+	content.WriteString("\n" + head.String())
+	content.WriteString("\n")
+	for _, card := range cards {
+		content.WriteString("\n" + card)
+	}
 	content.WriteString("\n\n@enduml")
+
 	return content.String(), nil
 }
