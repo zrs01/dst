@@ -25,7 +25,7 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 
 	var isValidSchema = func(name string) bool {
 		// return (schemaName != "" && strings.ToLower(schemaName) == strings.ToLower(name)) || schemaName == ""
-		return xstrings.IsBlank(args.Schema) || (xstrings.IsNotBlank(args.Schema) && strings.EqualFold(strings.ToLower(args.Schema), strings.ToLower(name)))
+		return xstrings.IsBlank(args.Schema) || (xstrings.IsNotBlank(args.Schema) && strings.EqualFold(args.Schema, name))
 	}
 	var isValidTable = func(name string) bool {
 		if xstrings.IsBlank(args.TablePrefix) {
@@ -38,7 +38,6 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 			}
 		}
 		return false
-		// return (xstrings.IsNotBlank(args.TablePrefix) && strings.HasPrefix(strings.ToLower(name), strings.ToLower(args.TablePrefix)))
 	}
 	var addTable = func(builder *strings.Builder, tbNames []string) bool {
 		for _, schema := range s.Data.Schemas {
@@ -63,16 +62,8 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		}
 		return false
 	}
-	var getCardinality = func(cd string, reverse bool) string {
-		lcd, lshape, rcd, rshape := cd, "", "", ""
-		cdParts := strings.Split(cd, ":")
-		if len(cdParts) > 1 {
-			if reverse {
-				lcd, rcd = cdParts[1], cdParts[0]
-			} else {
-				lcd, rcd = cdParts[0], cdParts[1]
-			}
-		}
+	var getCardinality = func(lcd, rcd, color string) string {
+		lshape, rshape := "", ""
 		lshape = xconditions.IfThenElse(strings.Contains(lcd, "*"), "}", "|").(string)
 		lshape += xconditions.IfThenElse(strings.Contains(lcd, "0"), "o", "|").(string)
 		rshape = xconditions.IfThenElse(strings.Contains(rcd, "0"), "o", "|").(string)
@@ -82,13 +73,27 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		// if lcd != "" {
 		// 	sb.WriteString("\"" + lcd + "\" ")
 		// }
-		sb.WriteString(lshape + "--" + rshape)
+		sb.WriteString(fmt.Sprintf("%s-[%s]-%s", lshape, color, rshape))
 		// sb.WriteString("--")
 		// if rcd != "" {
 		// 	sb.WriteString(" \"" + rcd + "\"")
 		// }
 		return sb.String()
 	}
+	// var getIdentity = func(tableName string) string {
+	// 	for _, schema := range s.Data.Schemas {
+	// 		for _, table := range schema.Tables {
+	// 			if table.Name == tableName {
+	// 				for _, column := range table.Columns {
+	// 					if strings.ToUpper(column.Identity) == "Y" {
+	// 						return column.Name
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	return ""
+	// }
 
 	/* ---------------------------------- main ---------------------------------- */
 
@@ -109,13 +114,24 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 
 					for _, column := range table.Columns {
 						if len(column.ForeignKey) > 0 {
+							// foreign key in '<table>.<field>' format
 							fkParts := strings.Split(column.ForeignKey, ".")
 							fkTable := column.ForeignKey
+							// fkfield := ""
 							if len(fkParts) > 1 {
 								fkTable = fkParts[0]
+								// fkField = fkParts[1]
 							}
-							body.WriteString(fmt.Sprintf("\n%s %s %s", fkTable, getCardinality(column.Cardinality, true), table.Name))
-							// body.WriteString(fmt.Sprintf("\n%s %s %s", table.Name, getCardinality(column.Cardinality, false), fkTable))
+							tbCd, fkCd := column.Cardinality, ""
+							cdParts := strings.Split(column.Cardinality, ":")
+							if len(cdParts) > 1 {
+								tbCd, fkCd = cdParts[0], cdParts[1]
+							}
+							body.WriteString(fmt.Sprintf("\n%s %s %s",
+								fkTable,
+								// getCardinality(fkCd, tbCd, xconditions.IfThenElse(fkField == getIdentity(table.Name), "#000000", "#86371a").(string)),
+								getCardinality(fkCd, tbCd, "#000000"),
+								table.Name))
 							tables = append(tables, strings.ToLower(fkTable))
 						}
 					}

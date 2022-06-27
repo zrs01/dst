@@ -47,11 +47,14 @@ func main() {
 			Destination: file,
 		}
 	}
-	oFileFlag := func(file *string) *cli.StringFlag {
+	oFileFlag := func(file *string, usage string) *cli.StringFlag {
+		if xstrings.IsBlank(usage) {
+			usage = "Output file"
+		}
 		return &cli.StringFlag{
 			Name:        "output",
 			Aliases:     []string{"o"},
-			Usage:       "Output file",
+			Usage:       usage,
 			Required:    true,
 			Destination: file,
 		}
@@ -81,7 +84,7 @@ func main() {
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
 				iFileFlag(&ifile),
-				oFileFlag(&ofile),
+				oFileFlag(&ofile, "Output file (.xlsx)"),
 			},
 			Action: func(c *cli.Context) error {
 				if validInOutFile(ifile, []string{".yml", ".yaml"}, ofile, []string{".xlsx"}) {
@@ -112,7 +115,7 @@ func main() {
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
 				iFileFlag(&ifile),
-				oFileFlag(&ofile),
+				oFileFlag(&ofile, ""),
 				&cli.StringFlag{
 					Name:        "template",
 					Aliases:     []string{"t"},
@@ -142,7 +145,7 @@ func main() {
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
 				iFileFlag(&args.InFile),
-				oFileFlag(&args.OutFile),
+				oFileFlag(&args.OutFile, "Output file (.wsd, .pu, .puml, .plantuml, .iuml)"),
 				&cli.StringFlag{
 					Name:        "type",
 					Aliases:     []string{"t"},
@@ -177,7 +180,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				if validInOutFile(args.InFile, []string{".yml", ".yaml"}, args.OutFile, []string{".plantuml"}) {
+				if validInOutFile(args.InFile, []string{".yml", ".yaml"}, args.OutFile, []string{".wsd", ".pu", ".puml", ".plantuml", ".iuml"}) {
 					tx := xmfr.NewXMFR()
 					tx.LoadYaml(args.InFile)
 					if err := tx.SaveToPlantUML(args); err != nil {
