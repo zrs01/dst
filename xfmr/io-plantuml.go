@@ -43,7 +43,15 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		for _, schema := range s.Data.Schemas {
 			for _, table := range schema.Tables {
 				if funk.Contains(tbNames, strings.ToLower(table.Name)) {
-					builder.WriteString(fmt.Sprintf("\nentity %s {", table.Name))
+					builder.WriteString(fmt.Sprintf("\nentity %s", table.Name))
+					if xstrings.IsNotBlank(table.Title) {
+						builder.WriteString(fmt.Sprintf(" as \"%s\\n<size:11>(%s)</size>\"", table.Name, table.Title))
+					}
+					builder.WriteString(" {")
+					// builder.WriteString("\n  --")
+					// if xstrings.IsNotBlank(table.Title) {
+					// 	builder.WriteString(fmt.Sprintf("\n  <size:11>%s</size>", table.Title))
+					// }
 					builder.WriteString("\n  |= |= <size:11>name</size> |= <size:11>type</size> |")
 					for _, column := range table.Columns {
 						builder.WriteString("\n  | ")
@@ -55,7 +63,6 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 						}
 						builder.WriteString(fmt.Sprintf(" | <size:11>%s</size> | <size:11>%s</size> |", column.Name, column.DataType))
 					}
-					builder.WriteString("\n  ..")
 					builder.WriteString("\n}")
 				}
 			}

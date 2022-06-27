@@ -13,6 +13,7 @@ type Schema struct {
 
 type Table struct {
 	Name       string      `yaml:"name,omitempty"`
+	Title      string      `yaml:"title,omitempty"`
 	Desc       string      `yaml:"desc,omitempty"`
 	Columns    []Column    `yaml:"columns,omitempty"`
 	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
