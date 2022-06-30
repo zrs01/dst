@@ -15,11 +15,12 @@ Export to different format from definition file.
 #   un: unique
 #   va: default value
 #   fk: foreign key hint
+#   tt: title
 #   cd: cardinality
 #   dc: description
 
 # fixed columns:
-# the columns will be appended to all tables
+# the columns will be appended to each table
 fixed:
   - { na: createUser, ty: varchar(20), fk: users.id, dc: create user ID }
   - { na: createTime, ty: datetime, fk: users.id, dc: date time of creation }
@@ -47,19 +48,19 @@ USAGE:
    dst [global options] command [command options] [arguments...]
 
 VERSION:
-   0.0.1-202204
+   0.0.1
 
 COMMANDS:
-   convert  Convert to other format
-   verify   Verify the foreign key
-   help, h  Shows a list of commands or help for one command
+   convert, c  Convert to other format
+   verify, v   Verify the foreign key
+   help, h     Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
    --debug, -d    Debug mode (default: false)
    --help, -h     show help (default: false)
    --version, -v  print the version (default: false)
-
-
+```
+```sh
 # dst convert - Convert to other format
 USAGE:
    dst convert [command options] [arguments...]
