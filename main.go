@@ -15,12 +15,14 @@ import (
 	xmfr "dst/xfmr"
 )
 
+var version = "development"
+
 func main() {
 
 	cliapp := cli.NewApp()
 	cliapp.Name = "dst"
 	cliapp.Usage = "Database schema tool"
-	cliapp.Version = "0.0.1"
+	cliapp.Version = version
 	cliapp.Commands = []*cli.Command{}
 
 	debug := false

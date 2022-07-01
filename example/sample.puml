@@ -1,0 +1,31 @@
+@startuml sample.puml
+
+skinparam linetype ortho
+
+entity doc as "doc\n<size:11>(document)</size>" {
+  |= |= <size:11>name</size> |= <size:11>type</size> |
+  | <size:11>PK</size> | <size:11>doc_id</size> | <size:11>INT</size> |
+  |  | <size:11>ver</size> | <size:11>INT</size> |
+  |  | <size:11>ref</size> | <size:11>VARCHAR(50)</size> |
+}
+entity doc_tag as "doc_tag\n<size:11>(document tag)</size>" {
+  |= |= <size:11>name</size> |= <size:11>type</size> |
+  | <size:11>PK</size> | <size:11>doc_tag_id</size> | <size:11>INT</size> |
+  | <size:11>FK</size> | <size:11>doc_id</size> | <size:11>INT</size> |
+  | <size:11>FK</size> | <size:11>tag_id</size> | <size:11>INT</size> |
+}
+entity tag {
+  |= |= <size:11>name</size> |= <size:11>type</size> |
+  | <size:11>PK</size> | <size:11>tag_id</size> | <size:11>INT</size> |
+  |  | <size:11>code</size> | <size:11>VARCHAR(10)</size> |
+  |  | <size:11>name</size> | <size:11>VARCHAR(20)</size> |
+  |  | <size:11>priority</size> | <size:11>VARCHAR(50)</size> |
+  |  | <size:11>descr</size> | <size:11>VARCHAR(50)</size> |
+  |  | <size:11>source</size> | <size:11>CHAR(3)</size> |
+  |  | <size:11>type</size> | <size:11>CHAR(3)</size> |
+}
+
+doc ||-[#000000]-o{ doc_tag
+tag ||-[#000000]-o{ doc_tag
+
+@enduml

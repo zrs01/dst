@@ -24,9 +24,6 @@ CREATE TABLE IF NOT EXISTS {{ .Name }} (
   {{- end }}
 {{ end }}
 {* ------------------------------- foreign keys ------------------------------- *}
--- --------------------------------------------------------------------------
---                                FOREIGN KEYS
--- --------------------------------------------------------------------------
 {{ range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
@@ -46,13 +43,12 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
 {{- end }}
 
 {* -------------------------------- drop table -------------------------------- *}
--- --------------------------------------------------------------------------
---                                 DROP TABLES
--- --------------------------------------------------------------------------
 {{ range .Schemas }}
   {{- range .Tables }}
 DROP TABLE IF EXISTS {{ .Name }};
     {{- table := .Name }}
   {{- end }}
 {{- end }}
+
+
 {* syntax: https://github.com/CloudyKit/jet/blob/master/docs/syntax.md *}
