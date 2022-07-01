@@ -14,7 +14,7 @@ import (
 //go:embed templates
 var tpl embed.FS
 
-func (s *Xfmr) mergeTemplate(data *InDB, outfile, outtpl string) error {
+func (s *Xfmr) SaveToText(outfile, outtpl string) error {
 
 	// output
 	f, err := os.Create(outfile)
@@ -45,7 +45,7 @@ func (s *Xfmr) mergeTemplate(data *InDB, outfile, outtpl string) error {
 		return eris.Wrapf(err, "failed to get the template %s", outtpl)
 	}
 	// merge
-	if err := view.Execute(f, nil, *data); err != nil {
+	if err := view.Execute(f, nil, *s.Data); err != nil {
 		return eris.Wrapf(err, "failed to merge the template %s", outtpl)
 	}
 	return nil

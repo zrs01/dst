@@ -6,37 +6,9 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
-
-type InDB struct {
-	Fixed   []Column `yaml:"fixed,omitempty"`
-	Schemas []Schema `yaml:"schemas,omitempty"`
-}
-
-type Schema struct {
-	Name   string  `yaml:"name,omitempty" default:"Schema"`
-	Desc   string  `yaml:"description,omitempty"`
-	Tables []Table `yaml:"tables,omitempty"`
-}
-
-type Table struct {
-	Name       string      `yaml:"name,omitempty"`
-	Desc       string      `yaml:"desc,omitempty"`
-	Columns    []Column    `yaml:"columns,omitempty"`
-	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
-}
-
-type Column struct {
-	Name           string `yaml:"na,omitempty"`
-	DataType       string `yaml:"ty,omitempty"`
-	Identity       string `yaml:"id,omitempty"`
-	NotNull        string `yaml:"nu,omitempty" default:"N"`
-	Unique         string `yaml:"un,omitempty"`
-	Value          string `yaml:"va,omitempty"`
-	ForeignKeyHint string `yaml:"fk,omitempty"`
-	Desc           string `yaml:"dc,omitempty"`
-}
 
 const (
 	CName           = 0
@@ -53,21 +25,21 @@ type OutColumn struct {
 	Values Column `yaml:"_column_values,flow,omitempty"`
 }
 
-func (s *Xfmr) loadYaml(infile string) (*InDB, error) {
+func (s *Xfmr) LoadYaml(infile string) {
 	yamlFile, err := ioutil.ReadFile(infile)
 	if err != nil {
-		return nil, eris.Wrapf(err, "failed to read the file %s", infile)
+		panic(fmt.Sprintf("failed to read the file %s", infile))
 	}
 	var d InDB
 	if err := yaml.Unmarshal(yamlFile, &d); err != nil {
-		return nil, eris.Wrapf(err, "failed to unmarshal the file %s", infile)
+		panic(fmt.Sprintf("failed to unmarshal the file %s", infile))
 	}
-	return &d, nil
+	s.Data = &d
 }
 
-func (s *Xfmr) saveYaml(data *InDB, outfile string) error {
+func (s *Xfmr) SaveToYaml(outfile string) error {
 	yaml.FutureLineWrap()
-	bytes, err := yaml.Marshal(data)
+	bytes, err := yaml.Marshal(s.Data)
 	if err != nil {
 		return eris.Wrap(err, "failed to transform to yaml")
 	}
@@ -83,21 +55,16 @@ func (s *Xfmr) saveYaml(data *InDB, outfile string) error {
 	return nil
 }
 
-func (s *Xfmr) VerifyForeignKey(infile string) error {
-	data, err := s.loadYaml(infile)
-	if err != nil {
-		return eris.Wrapf(err, "failed to load the data from %s", infile)
-	}
-
+func (s *Xfmr) VerifyForeignKey() error {
 	tables := make(map[string][]Column)
 
 	// convert to map for easy searching
-	for _, schema := range data.Schemas {
+	for _, schema := range s.Data.Schemas {
 		for _, table := range schema.Tables {
 			tables[table.Name] = table.Columns
 		}
 	}
-	tables["fixed"] = data.Fixed
+	tables["fixed"] = s.Data.Fixed
 
 	isFKExist := func(fk string) bool {
 		// fk format: table.field
@@ -115,9 +82,9 @@ func (s *Xfmr) VerifyForeignKey(infile string) error {
 	// check the foreign key whether exists
 	for k, columns := range tables {
 		for _, column := range columns {
-			if column.ForeignKeyHint != "" {
-				if !isFKExist(column.ForeignKeyHint) {
-					fmt.Printf("Warning: '%s', FK '%s' cannot be found\n", k, column.ForeignKeyHint)
+			if column.ForeignKey != "" {
+				if !isFKExist(column.ForeignKey) {
+					logrus.Warnf("'%s', FK '%s' cannot be found\n", k, column.ForeignKey)
 				}
 			}
 		}
