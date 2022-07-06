@@ -27,9 +27,7 @@ GLOBAL OPTIONS:
    --version, -v  print the version (default: false)
 ```
 
-Use `--help` after command to show addition information
-
-e.g.
+Use `--help` after command to show addition information, e.g.
 
 ```sh
 $ dst convert --help
@@ -41,6 +39,7 @@ USAGE:
    dst convert command [command options] [arguments...]
 
 COMMANDS:
+   yaml, y
    excel, e
    text, t
    diagram, d
@@ -109,19 +108,22 @@ schemas:
 ```
 
 ```sh
-# -- Excel
+# -- YAML to Excel
 $ dst convert excel -i sample.yml -o sample.xlsx
 
-# -- ER diagram definition file
+# -- Excel to YAML
+$ dst convert yaml -i sample.xlsx -o sample.yml
+
+# -- YAML to ER diagram definition file
 $ dst convert diagram -i sample.yml -o sample.puml
 
-# -- ER diagram (.png)
+# -- YAML to ER diagram (.png)
 # download plantuml.jar from https://plantuml.com/download
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar
 # you may convert some of tables only, below select the tables has 'tag' prefix only
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag
 
-# -- SQL schema file
+# -- YAML to SQL schema file
 # MariaDB
 $ dst convert text -i sample.yml -o sample.sql -t mariadb
 # MsSQL
