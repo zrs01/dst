@@ -8,16 +8,23 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func (s *Xfmr) LoadExcel(infile string) {
+const (
+	CEmpty      = 0
+	CName       = 1
+	CTitle      = 2
+	CDataType   = 3
+	CIdentity   = 4
+	CNotNull    = 5
+	CValue      = 6
+	CForeignKey = 7
+	CDesc       = 8
+)
+
+func (s *Xfmr) LoadXlsx(infile string) error {
 	excel, err := excelize.OpenFile(infile)
 	if err != nil {
-		panic(fmt.Sprintf("failed to open the excel file %s", infile))
+		return eris.Wrapf(err, "failed to open %s", infile)
 	}
-	defer func() {
-		if err := excel.Close(); err != nil {
-			fmt.Println(eris.ToString(err, true))
-		}
-	}()
 
 	var data InDB
 
@@ -25,7 +32,7 @@ func (s *Xfmr) LoadExcel(infile string) {
 	for _, sheet := range sheets {
 		rows, err := excel.GetRows(sheet)
 		if err != nil {
-			panic(fmt.Sprintf("faled to get the rows from the sheet %s", sheet))
+			eris.Wrapf(err, "failed to get the rows from the sheet %s", sheet)
 		}
 
 		schema := &Schema{Name: sheet}
@@ -33,31 +40,43 @@ func (s *Xfmr) LoadExcel(infile string) {
 		var table *Table
 		for rowIndex, row := range rows {
 			if rowIndex == 0 {
-				// skip the title row
+				// skip the heading row
 				continue
 			}
 
 			if len(row) > 0 && row[0] != "" {
-				// new table (first column contains table name and descrition only)
+				// table title (first column contains table name and descrition only)
 
 				if table != nil {
+					// append last table instance
 					schema.Tables = append(schema.Tables, *table)
 				}
 				table = &Table{}
 
-				tableInfo := row[0]
-				descIndex := strings.Index(tableInfo, " - ")
-				if descIndex != -1 {
-					table.Name = tableInfo[0:descIndex]
-					table.Desc = tableInfo[descIndex+3:]
-				} else {
-					table.Name = tableInfo
+				tableText := row[0]
+				parts := strings.Split(tableText, " - ")
+				switch len(parts) {
+				case 0:
+					return eris.New("failed to get the table name")
+				case 1:
+					table.Name = strings.TrimSpace(tableText)
+				case 2:
+					table.Name = strings.TrimSpace(parts[0])
+					table.Desc = strings.TrimSpace(parts[1])
+				default:
+					table.Name = strings.TrimSpace(parts[0])
+					table.Title = strings.TrimSpace(parts[1])
+					table.Desc = strings.TrimSpace(parts[2])
 				}
 			} else {
 				incol := Column{}
 				for idx, cell := range row {
+					cell = strings.TrimSpace(cell)
 					if idx == CName {
 						incol.Name = cell
+					}
+					if idx == CTitle {
+						incol.Title = cell
 					}
 					if idx == CDataType {
 						incol.DataType = cell
@@ -68,13 +87,10 @@ func (s *Xfmr) LoadExcel(infile string) {
 					if idx == CNotNull {
 						incol.NotNull = cell
 					}
-					if idx == CUnique {
-						incol.Unique = cell
-					}
 					if idx == CValue {
 						incol.Value = cell
 					}
-					if idx == CForeignKeyHint {
+					if idx == CForeignKey {
 						incol.ForeignKey = cell
 					}
 					if idx == CDesc {
@@ -89,9 +105,10 @@ func (s *Xfmr) LoadExcel(infile string) {
 		data.Schemas = append(data.Schemas, *schema)
 	}
 	s.Data = &data
+	return nil
 }
 
-func (s *Xfmr) SaveToExcel(outfile string) error {
+func (s *Xfmr) SaveToXlsx(outfile string) error {
 	excel := excelize.NewFile()
 
 	style, err := s.definedExcelStyle(excel)
@@ -104,7 +121,7 @@ func (s *Xfmr) SaveToExcel(outfile string) error {
 		excel.NewSheet(sheet)
 
 		// heading
-		headings := []string{"Column Name", "Data Type", "Identity", "Not Null", "Default", "Foreign Key", "Comment"}
+		headings := []string{"Column Name", "Title", "Data Type", "Identity", "Not Null", "Default", "Foreign Key", "Description"}
 		for i, heading := range headings {
 			cell := fmt.Sprintf("%c1", 66+i) // start from column 2
 			excel.SetCellValue(sheet, cell, heading)
@@ -112,7 +129,7 @@ func (s *Xfmr) SaveToExcel(outfile string) error {
 		// styling
 		excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)), (*style)["header"])
 		// column width
-		widths := []float64{2, 20, 15, 8, 8, 15, 20, 50}
+		widths := []float64{2, 20, 20, 15, 8, 8, 10, 25, 50}
 		for i, width := range widths {
 			col := fmt.Sprintf("%c", 65+i)
 			excel.SetColWidth(sheet, col, col, width)
@@ -120,42 +137,48 @@ func (s *Xfmr) SaveToExcel(outfile string) error {
 
 		var setColValue = func(rowIndex int, column Column) {
 			excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowIndex), column.Name)
-			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.DataType)
-			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.Identity)
-			excel.SetCellValue(sheet, fmt.Sprintf("E%d", rowIndex), column.NotNull)
-			excel.SetCellValue(sheet, fmt.Sprintf("F%d", rowIndex), column.Value)
-			excel.SetCellValue(sheet, fmt.Sprintf("G%d", rowIndex), column.ForeignKey)
-			excel.SetCellValue(sheet, fmt.Sprintf("H%d", rowIndex), column.Desc)
+			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.Title)
+			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.DataType)
+			excel.SetCellValue(sheet, fmt.Sprintf("E%d", rowIndex), column.Identity)
+			excel.SetCellValue(sheet, fmt.Sprintf("F%d", rowIndex), column.NotNull)
+			excel.SetCellValue(sheet, fmt.Sprintf("G%d", rowIndex), column.Value)
+			excel.SetCellValue(sheet, fmt.Sprintf("H%d", rowIndex), column.ForeignKey)
+			excel.SetCellValue(sheet, fmt.Sprintf("I%d", rowIndex), column.Desc)
 		}
 
-		offset := 2
+		rowctnr := 2 // row counter
 
 		for _, table := range schema.Tables {
-			// table infomation
-			tableText := table.Name
-			if table.Desc != "" {
-				tableText = tableText + " - " + table.Desc
+			{
+				// table infomation
+				text := table.Name
+				if table.Title != "" {
+					text += " - " + table.Title
+				}
+				if table.Desc != "" {
+					text += " - " + table.Desc
+				}
+				cell := fmt.Sprintf("A%d", rowctnr)
+				excel.SetCellValue(sheet, cell, text)
+				excel.SetCellStyle(sheet, cell, fmt.Sprintf("%c%d", 65+len(headings), rowctnr), (*style)["table"])
+				rowctnr += 1
 			}
-			tableCell := fmt.Sprintf("A%d", offset)
-			excel.SetCellValue(sheet, tableCell, tableText)
-			excel.SetCellStyle(sheet, tableCell, fmt.Sprintf("%c%d", 65+len(headings), offset), (*style)["table"])
-			offset = offset + 1
 
 			// table columns
 			for i, column := range table.Columns {
-				index := i + offset
+				index := i + rowctnr
 				setColValue(index, column)
 			}
-			offset = offset + len(table.Columns)
+			rowctnr += len(table.Columns)
 
 			// fixed columns
 			for i, column := range s.Data.Fixed {
-				index := i + offset
+				index := i + rowctnr
 				setColValue(index, column)
 				excel.SetCellStyle(sheet, fmt.Sprintf("B%d", index), fmt.Sprintf("%c%d", 65+len(headings), index), (*style)["fixcol"])
 			}
 
-			offset = offset + len(s.Data.Fixed)
+			rowctnr += len(s.Data.Fixed)
 		}
 	}
 	excel.DeleteSheet("Sheet1")

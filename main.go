@@ -40,7 +40,7 @@ func main() {
 
 	/* ------------------------------ Common flags ------------------------------ */
 
-	iFileFlag := func(file *string) *cli.StringFlag {
+	ifileFlag := func(file *string) *cli.StringFlag {
 		return &cli.StringFlag{
 			Name:        "input",
 			Aliases:     []string{"i"},
@@ -49,7 +49,7 @@ func main() {
 			Destination: file,
 		}
 	}
-	oFileFlag := func(file *string, usage string) *cli.StringFlag {
+	ofileFlag := func(file *string, usage string) *cli.StringFlag {
 		if xstrings.IsBlank(usage) {
 			usage = "Output file"
 		}
@@ -82,24 +82,49 @@ func main() {
 	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile string
 		return &cli.Command{
+			Name:    "yaml",
+			Aliases: []string{"y"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile),
+				ofileFlag(&ofile, ""),
+			},
+			Action: func(c *cli.Context) error {
+				if validInOutFile(ifile, []string{".xlsx"}, "", []string{}) {
+					tx := xmfr.NewXMFR()
+					if err := tx.LoadXlsx(ifile); err != nil {
+						return eris.Wrapf(err, "failed to load %s", ifile)
+					}
+					if err := tx.SaveToYaml(ofile); err != nil {
+						return eris.Wrapf(err, "failed output to %s", ofile)
+					}
+					return nil
+				}
+				return eris.Errorf("failed to convert %s to %s", ifile, ofile)
+			},
+		}
+	}())
+
+	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile string
+		return &cli.Command{
 			Name:    "excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				iFileFlag(&ifile),
-				oFileFlag(&ofile, "Output file (.xlsx)"),
+				ifileFlag(&ifile),
+				ofileFlag(&ofile, "Output file (.xlsx)"),
 			},
 			Action: func(c *cli.Context) error {
 				if validInOutFile(ifile, []string{".yml", ".yaml"}, ofile, []string{".xlsx"}) {
 					tx := xmfr.NewXMFR()
 					tx.LoadYaml(ifile)
-					if err := tx.SaveToExcel(ofile); err != nil {
+					if err := tx.SaveToXlsx(ofile); err != nil {
 						return eris.Wrapf(err, "failed output to %s", ofile)
 					}
 					return nil
 				}
 				if validInOutFile(ifile, []string{".xlsx"}, ofile, []string{".yml", ".yaml"}) {
 					tx := xmfr.NewXMFR()
-					tx.LoadExcel(ifile)
+					tx.LoadXlsx(ifile)
 					if err := tx.SaveToYaml(ofile); err != nil {
 						return eris.Wrapf(err, "failed output to %s", ofile)
 					}
@@ -116,8 +141,8 @@ func main() {
 			Name:    "text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				iFileFlag(&ifile),
-				oFileFlag(&ofile, ""),
+				ifileFlag(&ifile),
+				ofileFlag(&ofile, ""),
 				&cli.StringFlag{
 					Name:        "template",
 					Aliases:     []string{"t"},
@@ -146,8 +171,8 @@ func main() {
 			Name:    "diagram",
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
-				iFileFlag(&args.InFile),
-				oFileFlag(&args.OutFile, "Output file (.wsd, .pu, .puml, .plantuml, .iuml)"),
+				ifileFlag(&args.InFile),
+				ofileFlag(&args.OutFile, "Output file (.wsd, .pu, .puml, .plantuml, .iuml)"),
 				&cli.StringFlag{
 					Name:        "type",
 					Aliases:     []string{"t"},
@@ -207,7 +232,7 @@ func main() {
 			Aliases: []string{"v"},
 			Usage:   "Verify the foreign key",
 			Flags: []cli.Flag{
-				iFileFlag(&ifile),
+				ifileFlag(&ifile),
 			},
 			Action: func(c *cli.Context) error {
 				tx := xmfr.NewXMFR()

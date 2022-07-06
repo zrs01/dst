@@ -10,17 +10,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	CName           = 0
-	CDataType       = 1
-	CIdentity       = 2
-	CNotNull        = 3
-	CUnique         = 4
-	CValue          = 5
-	CForeignKeyHint = 6
-	CDesc           = 7
-)
-
 type OutColumn struct {
 	Values Column `yaml:"_column_values,flow,omitempty"`
 }
