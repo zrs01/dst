@@ -237,7 +237,7 @@ func main() {
 			Action: func(c *cli.Context) error {
 				tx := xmfr.NewXMFR()
 				tx.LoadYaml(ifile)
-				return tx.VerifyForeignKey()
+				return tx.Verify()
 			},
 		}
 	}())
