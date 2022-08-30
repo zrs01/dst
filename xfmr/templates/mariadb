@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS {{ .Name }} (
 {{ range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
@@ -38,6 +38,19 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
       {{- if len(parts) > 1 }}
 ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{* ------------------------------ alter columns ----------------------------- *}
+{{ range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- lastColumn := "" }}
+    {{- range i := .Columns }}
+ALTER TABLE {{ table }} ADD COLUMN IF NOT EXISTS {{ .Name }} {{ .DataType }}
+      {{- if i != 0 }} AFTER {{ lastColumn }}{{ end }}
+      {{- lastColumn = .Name }}
     {{- end }}
   {{- end }}
 {{- end }}
