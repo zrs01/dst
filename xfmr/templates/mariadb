@@ -50,6 +50,7 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
     {{- range i := .Columns }}
 ALTER TABLE {{ table }} ADD COLUMN IF NOT EXISTS {{ .Name }} {{ .DataType }}
       {{- if i != 0 }} AFTER {{ lastColumn }}{{ end }}
+      {{- ";" }}
       {{- lastColumn = .Name }}
     {{- end }}
   {{- end }}
