@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS {{ .Name }} (
 );
   {{- end }}
 {{ end }}
-{* ------------------------------- foreign keys ------------------------------- *}
+
+{* -------------------------- foreign keys (create) ------------------------- *}
 {{ range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
@@ -37,6 +38,25 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{* -------------------------- foreign key (remove) -------------------------- *}
+{{ range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT IF EXISTS fk_{{ table }}_{{ .Name }};
+      {{- end }}
+    {{- end }}
+    {{- range fixed }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT fk_{{ table }}_{{ .Name }};
       {{- end }}
     {{- end }}
   {{- end }}
