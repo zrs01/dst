@@ -16,13 +16,6 @@ var tpl embed.FS
 
 func (s *Xfmr) SaveToText(outfile, outtpl string) error {
 
-	// output
-	f, err := os.Create(outfile)
-	if err != nil {
-		return eris.Wrapf(err, "failed to create the file %s", outfile)
-	}
-	defer f.Close()
-
 	var loader jet.Loader
 	if _, err := os.Stat(outtpl); errors.Is(err, os.ErrNotExist) {
 		// read the template from embed file store
@@ -44,8 +37,21 @@ func (s *Xfmr) SaveToText(outfile, outtpl string) error {
 	if err != nil {
 		return eris.Wrapf(err, "failed to get the template %s", outtpl)
 	}
+
+	// output
+	var fh *os.File
+	if outfile == "stdout" {
+		fh = os.Stdout
+	} else {
+		fh, err = os.Create(outfile)
+		if err != nil {
+			return eris.Wrapf(err, "failed to create the file %s", outfile)
+		}
+		defer fh.Close()
+	}
+
 	// merge
-	if err := view.Execute(f, nil, *s.Data); err != nil {
+	if err := view.Execute(fh, nil, *s.Data); err != nil {
 		return eris.Wrapf(err, "failed to merge the template %s", outtpl)
 	}
 	return nil

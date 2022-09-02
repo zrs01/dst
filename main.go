@@ -142,7 +142,7 @@ func main() {
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
 				ifileFlag(&ifile),
-				ofileFlag(&ofile, ""),
+				ofileFlag(&ofile, "Output file ('stdout' output to console)"),
 				&cli.StringFlag{
 					Name:        "template",
 					Aliases:     []string{"t"},
