@@ -70,7 +70,6 @@ ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT fk_{{ table }}_{{ .Name }};
     {{- range i := .Columns }}
 ALTER TABLE {{ table }} ADD COLUMN IF NOT EXISTS {{ .Name }} {{ .DataType }}
       {{- if i != 0 }} AFTER {{ lastColumn }}{{ end }}
-      {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
       {{- ";" }}
       {{- lastColumn = .Name }}
     {{- end }}
