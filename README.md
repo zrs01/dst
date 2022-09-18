@@ -122,6 +122,8 @@ $ dst convert diagram -i sample.yml -o sample.puml
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar
 # you may convert some of tables only, below select the tables has 'tag' prefix only
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag
+# for simple mode, only show PK and FK in the diagram
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag --simple
 
 # -- YAML to SQL schema file
 # MariaDB

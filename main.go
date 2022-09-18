@@ -105,32 +105,40 @@ func main() {
 	}())
 
 	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
-		var ifile, ofile string
+		var args xmfr.ExcelArgs
+		// var ifile, ofile string
 		return &cli.Command{
 			Name:    "excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile),
-				ofileFlag(&ofile, "Output file (.xlsx)"),
+				ifileFlag(&args.InFile),
+				ofileFlag(&args.OutFile, "Output file (.xlsx)"),
+				&cli.BoolFlag{
+					Name:        "simple",
+					Usage:       "simple output, only PK & FK",
+					Value:       false,
+					Required:    false,
+					Destination: &args.Simple,
+				},
 			},
 			Action: func(c *cli.Context) error {
-				if validInOutFile(ifile, []string{".yml", ".yaml"}, ofile, []string{".xlsx"}) {
+				if validInOutFile(args.InFile, []string{".yml", ".yaml"}, args.OutFile, []string{".xlsx"}) {
 					tx := xmfr.NewXMFR()
-					tx.LoadYaml(ifile)
-					if err := tx.SaveToXlsx(ofile); err != nil {
-						return eris.Wrapf(err, "failed output to %s", ofile)
+					tx.LoadYaml(args.InFile)
+					if err := tx.SaveToXlsx(args); err != nil {
+						return eris.Wrapf(err, "failed output to %s", args.OutFile)
 					}
 					return nil
 				}
-				if validInOutFile(ifile, []string{".xlsx"}, ofile, []string{".yml", ".yaml"}) {
+				if validInOutFile(args.InFile, []string{".xlsx"}, args.OutFile, []string{".yml", ".yaml"}) {
 					tx := xmfr.NewXMFR()
-					tx.LoadXlsx(ifile)
-					if err := tx.SaveToYaml(ofile); err != nil {
-						return eris.Wrapf(err, "failed output to %s", ofile)
+					tx.LoadXlsx(args.InFile)
+					if err := tx.SaveToYaml(args.OutFile); err != nil {
+						return eris.Wrapf(err, "failed output to %s", args.OutFile)
 					}
 					return nil
 				}
-				return eris.Errorf("failed to convert %s to %s", ifile, ofile)
+				return eris.Errorf("failed to convert %s to %s", args.InFile, args.OutFile)
 			},
 		}
 	}())
@@ -204,6 +212,13 @@ func main() {
 					Value:       "",
 					Required:    false,
 					Destination: &args.JarFile,
+				},
+				&cli.BoolFlag{
+					Name:        "simple",
+					Usage:       "simple output, only PK & FK",
+					Value:       false,
+					Required:    false,
+					Destination: &args.Simple,
 				},
 			},
 			Action: func(c *cli.Context) error {

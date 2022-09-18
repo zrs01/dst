@@ -32,6 +32,13 @@ type Column struct {
 	Desc        string `yaml:"dc,omitempty"`
 }
 
+// ExcelArgs uses to save the cli arguments of Excel
+type ExcelArgs struct {
+	InFile  string
+	OutFile string
+	Simple  bool
+}
+
 // DiagramArgs uses to save the cli arguments of UML
 type DiagramArgs struct {
 	DigType     string
@@ -40,6 +47,7 @@ type DiagramArgs struct {
 	JarFile     string
 	Schema      string
 	TablePrefix string
+	Simple      bool // simple type, no column except PK & FK if true
 }
 
 type Xfmr struct {
