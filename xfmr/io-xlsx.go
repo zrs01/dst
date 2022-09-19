@@ -133,9 +133,9 @@ func (s *Xfmr) saveSimpleDataDictionaryToExcel(args ExcelArgs) error {
 		excel.SetCellValue(sheet, cell, heading)
 	}
 	// styling
-	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)), (*style)["header"])
+	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)-1), (*style)["header"])
 	// column width
-	widths := []float64{8, 10, 50, 20}
+	widths := []float64{8, 15, 60, 30}
 	for i, width := range widths {
 		col := fmt.Sprintf("%c", 65+i)
 		excel.SetColWidth(sheet, col, col, width)
@@ -146,7 +146,7 @@ func (s *Xfmr) saveSimpleDataDictionaryToExcel(args ExcelArgs) error {
 		// schema name
 		excel.SetCellValue(sheet, fmt.Sprintf("A%d", rowctnr), schema.Name)
 		for j := 0; j < len(headings); j++ {
-			excel.SetCellStyle(sheet, fmt.Sprintf("A%d", rowctnr), fmt.Sprintf("%c%d", 65+len(headings), rowctnr), (*style)["table"])
+			excel.SetCellStyle(sheet, fmt.Sprintf("A%d", rowctnr), fmt.Sprintf("%c%d", 65+len(headings)-1, rowctnr), (*style)["table"])
 		}
 
 		for j, table := range schema.Tables {
@@ -177,6 +177,7 @@ func (s *Xfmr) saveSimpleDataDictionaryToExcel(args ExcelArgs) error {
 			h, _ := excel.GetRowHeight(sheet, 1)
 			excel.SetRowHeight(sheet, rowctnr, h*float64(keyDataRow))
 		}
+		rowctnr += 1
 	}
 	excel.DeleteSheet("Sheet1")
 	if err := excel.SaveAs(args.OutFile); err != nil {
