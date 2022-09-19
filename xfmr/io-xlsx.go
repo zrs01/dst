@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/rotisserie/eris"
+	"github.com/shomali11/util/xstrings"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -108,7 +109,84 @@ func (s *Xfmr) LoadXlsx(infile string) error {
 	return nil
 }
 
-func (s *Xfmr) SaveToXlsx(outfile string) error {
+func (s *Xfmr) SaveToXlsx(args ExcelArgs) error {
+	if args.Simple {
+		return s.saveSimpleDataDictionaryToExcel(args)
+	}
+	return s.saveDataDictionaryToExcel(args)
+}
+
+func (s *Xfmr) saveSimpleDataDictionaryToExcel(args ExcelArgs) error {
+	excel := excelize.NewFile()
+	sheet := "Tables Description"
+	excel.NewSheet(sheet)
+
+	style, err := s.definedExcelStyle(excel)
+	if err != nil {
+		return eris.Wrap(err, "failed to create a bold style")
+	}
+
+	// heading
+	headings := []string{"Table ID", "Title Name", "Table Description", "Key Data Item"}
+	for i, heading := range headings {
+		cell := fmt.Sprintf("%c1", 65+i)
+		excel.SetCellValue(sheet, cell, heading)
+	}
+	// styling
+	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)-1), (*style)["header"])
+	// column width
+	widths := []float64{8, 15, 60, 30}
+	for i, width := range widths {
+		col := fmt.Sprintf("%c", 65+i)
+		excel.SetColWidth(sheet, col, col, width)
+	}
+
+	rowctnr := 2 // row counter
+	for i, schema := range s.Data.Schemas {
+		// schema name
+		excel.SetCellValue(sheet, fmt.Sprintf("A%d", rowctnr), schema.Name)
+		for j := 0; j < len(headings); j++ {
+			excel.SetCellStyle(sheet, fmt.Sprintf("A%d", rowctnr), fmt.Sprintf("%c%d", 65+len(headings)-1, rowctnr), (*style)["table"])
+		}
+
+		for j, table := range schema.Tables {
+			rowctnr += 1
+			excel.SetCellValue(sheet, fmt.Sprintf("A%d", rowctnr), fmt.Sprintf("T%d", (i+1)*100+j))
+			excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowctnr), table.Name)
+			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowctnr), table.Desc)
+
+			// find PK and all FK of the table
+			keyData := ""
+			keyDataRow := 0
+			for k, column := range table.Columns {
+				if strings.ToUpper(column.Identity) == "Y" || xstrings.IsNotBlank(column.ForeignKey) {
+					if k != 0 {
+						keyData += "\n"
+					}
+					if strings.ToUpper(column.Identity) == "Y" {
+						keyData += fmt.Sprintf("%s (%s)", column.Name, "PK")
+						keyDataRow += 1
+					} else if xstrings.IsNotBlank(column.ForeignKey) {
+						keyData += fmt.Sprintf("%s (%s)", column.Name, "FK")
+						keyDataRow += 1
+					}
+				}
+			}
+			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowctnr), keyData)
+
+			h, _ := excel.GetRowHeight(sheet, 1)
+			excel.SetRowHeight(sheet, rowctnr, h*float64(keyDataRow))
+		}
+		rowctnr += 1
+	}
+	excel.DeleteSheet("Sheet1")
+	if err := excel.SaveAs(args.OutFile); err != nil {
+		return eris.Wrapf(err, "failed to save to file %s", args.OutFile)
+	}
+	return nil
+}
+
+func (s *Xfmr) saveDataDictionaryToExcel(args ExcelArgs) error {
 	excel := excelize.NewFile()
 
 	style, err := s.definedExcelStyle(excel)
@@ -182,8 +260,8 @@ func (s *Xfmr) SaveToXlsx(outfile string) error {
 		}
 	}
 	excel.DeleteSheet("Sheet1")
-	if err := excel.SaveAs(outfile); err != nil {
-		return eris.Wrapf(err, "failed to save to file %s", outfile)
+	if err := excel.SaveAs(args.OutFile); err != nil {
+		return eris.Wrapf(err, "failed to save to file %s", args.OutFile)
 	}
 	return nil
 

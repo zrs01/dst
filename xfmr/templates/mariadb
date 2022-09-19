@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS {{ .Name }} (
 );
   {{- end }}
 {{ end }}
-{* ------------------------------- foreign keys ------------------------------- *}
+
+{* -------------------------- foreign keys (create) ------------------------- *}
 {{ range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
@@ -42,6 +43,25 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
   {{- end }}
 {{- end }}
 
+{* -------------------------- foreign key (remove) -------------------------- *}
+{{ range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT IF EXISTS fk_{{ table }}_{{ .Name }};
+      {{- end }}
+    {{- end }}
+    {{- range fixed }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT fk_{{ table }}_{{ .Name }};
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
 {* ------------------------------ alter columns ----------------------------- *}
 {{ range .Schemas }}
   {{- range .Tables }}
@@ -50,6 +70,7 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
     {{- range i := .Columns }}
 ALTER TABLE {{ table }} ADD COLUMN IF NOT EXISTS {{ .Name }} {{ .DataType }}
       {{- if i != 0 }} AFTER {{ lastColumn }}{{ end }}
+      {{- ";" }}
       {{- lastColumn = .Name }}
     {{- end }}
   {{- end }}

@@ -49,21 +49,30 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 						builder.WriteString(fmt.Sprintf(" as \"%s\\n<size:11>(%s)</size>\"", table.Name, table.Title))
 					}
 					builder.WriteString(" {")
-					// builder.WriteString("\n  --")
-					// if xstrings.IsNotBlank(table.Title) {
-					// 	builder.WriteString(fmt.Sprintf("\n  <size:11>%s</size>", table.Title))
-					// }
-					builder.WriteString("\n  |= |= <size:11>name</size> |= <size:11>type</size> |")
+
+					columnContent := ""
 					for _, column := range table.Columns {
-						builder.WriteString("\n  | ")
+						// simple mode, only show PK and FK
+						if args.Simple {
+							if strings.ToUpper(column.Identity) != "Y" && xstrings.IsBlank(column.ForeignKey) {
+								continue
+							}
+						}
+						columnContent += "\n  | "
 						if strings.ToUpper(column.Identity) == "Y" {
-							builder.WriteString("<size:11>PK</size>")
+							columnContent += "<size:11>PK</size>"
 						}
 						if xstrings.IsNotBlank(column.ForeignKey) {
-							builder.WriteString("<size:11>FK</size>")
+							columnContent += "<size:11>FK</size>"
 						}
-						builder.WriteString(fmt.Sprintf(" | <size:11>%s</size> | <size:11>%s</size> |", column.Name, column.DataType))
+						columnContent += fmt.Sprintf(" | <size:11>%s</size> | <size:11>%s</size> |", column.Name, column.DataType)
 					}
+					if xstrings.IsNotBlank(columnContent) {
+						// write the table heading
+						builder.WriteString("\n  |= |= <size:11>name</size> |= <size:11>type</size> |")
+						builder.WriteString(columnContent)
+					}
+
 					builder.WriteString("\n}")
 				}
 			}
@@ -146,7 +155,7 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 			}
 		}
 	}
-	tables = funk.UniqString(tables) // remove duplicated values
+	tables = funk.UniqString(tables) // remove duplicated tables
 	addTable(&head, tables)
 
 	cards = funk.UniqString(cards)
