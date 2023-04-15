@@ -29,6 +29,7 @@ type Column struct {
 	ForeignKey  string `yaml:"fk,omitempty"`
 	Cardinality string `yaml:"cd,omitempty"`
 	Title       string `yaml:"tt,omitempty"`
+	Index       string `yaml:"in,omitempty"`
 	Desc        string `yaml:"dc,omitempty"`
 }
 

@@ -8,6 +8,7 @@ WINDOWS=$(EXECUTABLE)_windows_amd64.exe
 LINUX=$(EXECUTABLE)_linux_amd64
 DARWIN=$(EXECUTABLE)_darwin_amd64
 VERSION=$(shell git describe --tags --always --long --dirty)
+BUILDFLAGS=-v -trimpath -ldflags="-s -w -X main.version=$(VERSION)"
 
 default:
 	GOOS=$(HOSTOS) GOARCH=$(HOSTARCH) go build $(BUILDFLAGS) -o bin/$(BINARY)
@@ -19,13 +20,13 @@ linux: $(LINUX) ## Build for Linux
 darwin: $(DARWIN) ## Build for Darwin (macOS)
 
 $(WINDOWS):
-	env GOOS=windows GOARCH=amd64 go build -v -o build/$(WINDOWS) -trimpath -ldflags="-s -w -X main.version=$(VERSION)"
+	env GOOS=windows GOARCH=amd64 go build $(BUILDFLAGS) -o build/$(WINDOWS)
 
 $(LINUX):
-	env GOOS=linux GOARCH=amd64 go build -v -o build/$(LINUX) -trimpath -ldflags="-s -w -X main.version=$(VERSION)"
+	env GOOS=linux GOARCH=amd64 go build $(BUILDFLAGS) -o build/$(LINUX)
 
 $(DARWIN):
-	env GOOS=darwin GOARCH=amd64 go build -v -o build/$(DARWIN) -trimpath -ldflags="-s -w -X main.version=$(VERSION)"
+	env GOOS=darwin GOARCH=amd64 go build $(BUILDFLAGS) -o build/$(DARWIN)
 
 build: windows linux darwin ## Build binaries
 	@echo version: $(VERSION)
