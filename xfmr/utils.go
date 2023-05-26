@@ -6,7 +6,8 @@ import (
 )
 
 func wildCardToRegexp(pattern string) string {
-	components := strings.Split(pattern, "*")
+	// components := strings.Split(pattern, "*")
+	components := regexp.MustCompile("[*,%]+").Split(pattern, -1)
 	if len(components) == 1 {
 		// if len is 1, there are no *'s, return exact match pattern
 		return "^" + pattern + "$"

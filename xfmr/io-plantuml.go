@@ -28,17 +28,14 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		return xstrings.IsBlank(args.Schema) || (xstrings.IsNotBlank(args.Schema) && strings.EqualFold(args.Schema, name))
 	}
 	var isValidTable = func(name string) bool {
-		if xstrings.IsBlank(args.TablePrefix) {
+		if xstrings.IsBlank(args.Pattern) {
 			return true
 		}
-		parts := strings.Split(args.TablePrefix, ",")
+		parts := strings.Split(args.Pattern, ",")
 		for i := 0; i < len(parts); i++ {
 			if wildCardMatch(strings.ToLower(strings.TrimSpace(parts[i])), strings.ToLower(name)) {
 				return true
 			}
-			// if strings.HasPrefix(strings.ToLower(name), strings.ToLower(strings.TrimSpace(parts[i]))) {
-			// 	return true
-			// }
 		}
 		return false
 	}
