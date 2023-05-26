@@ -1,36 +1,34 @@
 package xfmr
 
 import (
-	"embed"
-	"errors"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/rotisserie/eris"
 )
 
-//go:embed templates
-var tpl embed.FS
+// //go:embed templates
+// var tpl embed.FS
 
 func (s *Xfmr) SaveToText(outfile, outtpl string) error {
 
-	var loader jet.Loader
-	if _, err := os.Stat(outtpl); errors.Is(err, os.ErrNotExist) {
-		// read the template from embed file store
-		tplFile := path.Join("templates", outtpl)
-		content, err := tpl.ReadFile(tplFile)
-		if err != nil {
-			return eris.Wrapf(err, "failed to read the template %s", outtpl)
-		}
-		// use memory loader
-		inMemloader := jet.NewInMemLoader()
-		inMemloader.Set(path.Join("/", outtpl), string(content))
-		loader = inMemloader
-	} else {
-		loader = jet.NewOSFileSystemLoader(filepath.Dir(outtpl))
-	}
+	// var loader jet.Loader
+	// if _, err := os.Stat(outtpl); errors.Is(err, os.ErrNotExist) {
+	// 	// read the template from embed file store
+	// 	tplFile := path.Join("templates", outtpl)
+	// 	content, err := tpl.ReadFile(tplFile)
+	// 	if err != nil {
+	// 		return eris.Wrapf(err, "failed to read the template %s", outtpl)
+	// 	}
+	// 	// use memory loader
+	// 	inMemloader := jet.NewInMemLoader()
+	// 	inMemloader.Set(path.Join("/", outtpl), string(content))
+	// 	loader = inMemloader
+	// } else {
+	// 	loader = jet.NewOSFileSystemLoader(filepath.Dir(outtpl))
+	// }
+	loader := jet.NewOSFileSystemLoader(filepath.Dir(outtpl))
 
 	views := jet.NewSet(loader, jet.InDevelopmentMode())
 	view, err := views.GetTemplate(filepath.Base(outtpl))

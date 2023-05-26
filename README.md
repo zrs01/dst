@@ -59,7 +59,8 @@ Create a definition file (e.g. sample.yml)
 #   ty: data-type
 #   nu: not null (Y/N)
 #   id: identity (Y/N)
-#   un: unique
+#   in: index (Y/N)
+#   un: unique (Y/N)
 #   va: default value
 #   fk: foreign key hint
 #   cd: cardinality
@@ -127,9 +128,9 @@ $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag --simp
 
 # -- YAML to SQL schema file
 # MariaDB
-$ dst convert text -i sample.yml -o sample.sql -t mariadb
+$ dst convert text -i sample.yml -o sample.sql -t mariadb.tpl
 # MsSQL
-$ dst convert text -i sample.yml -o sample.sql -t mssql
+$ dst convert text -i sample.yml -o sample.sql -t mssql.tpl
 
 # -- Verify foreign key
 # make sure the foreign table and key exist
