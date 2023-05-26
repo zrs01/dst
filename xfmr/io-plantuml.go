@@ -25,7 +25,6 @@ func (s *Xfmr) SaveToPlantUML(args DiagramArgs) error {
 func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 
 	var isValidSchema = func(name string) bool {
-		// return (schemaName != "" && strings.ToLower(schemaName) == strings.ToLower(name)) || schemaName == ""
 		return xstrings.IsBlank(args.Schema) || (xstrings.IsNotBlank(args.Schema) && strings.EqualFold(args.Schema, name))
 	}
 	var isValidTable = func(name string) bool {
@@ -34,9 +33,12 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		}
 		parts := strings.Split(args.TablePrefix, ",")
 		for i := 0; i < len(parts); i++ {
-			if strings.HasPrefix(strings.ToLower(name), strings.ToLower(strings.TrimSpace(parts[i]))) {
+			if wildCardMatch(strings.ToLower(strings.TrimSpace(parts[i])), strings.ToLower(name)) {
 				return true
 			}
+			// if strings.HasPrefix(strings.ToLower(name), strings.ToLower(strings.TrimSpace(parts[i]))) {
+			// 	return true
+			// }
 		}
 		return false
 	}
@@ -106,51 +108,51 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 		}
 		return v1, v2
 	}
-	// var addRefTable = func(tables, cards *[]string, tableName string) {
-	// 	for _, schema := range s.Data.Schemas {
-	// 		for _, table := range schema.Tables {
-	// 			if table.Name != tableName {
-	// 				for _, column := range table.Columns {
-	// 					fkTable, _ := splitToTwo(column.ForeignKey, ".")
-	// 					if fkTable == tableName {
-	// 						*tables = append(*tables, table.Name)
-	// 						tbCd, fkCd := splitToTwo(column.Cardinality, ":")
-	// 						*cards = append(*cards, fmt.Sprintf("%s %s %s", fkTable, getCardinality(fkCd, tbCd, "#86371a"), table.Name))
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	/* ---------------------------------- main ---------------------------------- */
 
 	var head strings.Builder
 	var content strings.Builder
 
+	// save all tables involved (include foreign tables)
 	tables := []string{}
 	cards := []string{}
 
 	content.WriteString(fmt.Sprintf("@startuml %s", filepath.Base(args.OutFile)))
-	content.WriteString("\n\nskinparam linetype ortho")
+	// content.WriteString("\n\nskinparam linetype ortho")
+	content.WriteString(`
+
+skinparam {
+	Linetype ortho
+	ArrowFontSize 10
+}`)
 
 	for _, schema := range s.Data.Schemas {
+		// user user selected schema or all
 		if isValidSchema(schema.Name) {
 			for _, table := range schema.Tables {
+				// user selected prefix name or all
 				if isValidTable(table.Name) {
 					tables = append(tables, strings.ToLower(table.Name))
 
 					for _, column := range table.Columns {
 						if xstrings.IsNotBlank(column.ForeignKey) {
-							// foreign key in '<table>.<field>' format
 							fkTable, _ := splitToTwo(column.ForeignKey, ".")
+							// foreign key in '<table>.<field>' format
 							tbCd, fkCd := splitToTwo(column.Cardinality, ":")
-							cards = append(cards, fmt.Sprintf("%s %s %s", fkTable, getCardinality(fkCd, tbCd, "#000000"), table.Name))
+							// if blank, default use '1 to many' relationship
+							if xstrings.IsBlank(column.Cardinality) {
+								tbCd = "1"
+								fkCd = "*"
+							}
+							card := fmt.Sprintf("%s %s %s", fkTable, getCardinality(fkCd, tbCd, "#000000"), table.Name)
+							if args.IncludeFK {
+								card += fmt.Sprintf(" : %s", column.Name)
+							}
+							cards = append(cards, card)
 							tables = append(tables, strings.ToLower(fkTable))
 						}
 					}
-					// add the tables that reference to
-					// addRefTable(&tables, &cards, table.Name)
 				}
 			}
 		}
@@ -158,7 +160,9 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 	tables = funk.UniqString(tables) // remove duplicated tables
 	addTable(&head, tables)
 
-	cards = funk.UniqString(cards)
+	if !args.IncludeFK {
+		cards = funk.UniqString(cards)
+	}
 	sort.Strings(cards)
 
 	content.WriteString("\n" + head.String())

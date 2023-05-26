@@ -220,6 +220,13 @@ func main() {
 					Required:    false,
 					Destination: &args.Simple,
 				},
+				&cli.BoolFlag{
+					Name:        "fk",
+					Usage:       "include foreign key name in the line",
+					Value:       false,
+					Required:    false,
+					Destination: &args.IncludeFK,
+				},
 			},
 			Action: func(c *cli.Context) error {
 				if validInOutFile(args.InFile, []string{".yml", ".yaml"}, args.OutFile, []string{".wsd", ".pu", ".puml", ".plantuml", ".iuml"}) {

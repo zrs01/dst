@@ -49,6 +49,7 @@ type DiagramArgs struct {
 	Schema      string
 	TablePrefix string
 	Simple      bool // simple type, no column except PK & FK if true
+	IncludeFK   bool // include foreign key name in the arrow line
 }
 
 type Xfmr struct {

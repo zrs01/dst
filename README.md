@@ -121,10 +121,12 @@ $ dst convert diagram -i sample.yml -o sample.puml
 # -- YAML to ER diagram (.png)
 # download plantuml.jar from https://plantuml.com/download
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar
-# you may convert some of tables only, below select the tables has 'tag' prefix only
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag
+# you may convert some of tables only, below select the tables has 'tag*' prefix only
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p 'tag*'
 # for simple mode, only show PK and FK in the diagram
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag --simple
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar --simple
+# include foreign key name in the relationship line
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar --fk
 
 # -- YAML to SQL schema file
 # MariaDB
