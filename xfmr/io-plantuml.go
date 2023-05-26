@@ -139,8 +139,8 @@ skinparam {
 							tbCd, fkCd := splitToTwo(column.Cardinality, ":")
 							// if blank, default use '1 to many' relationship
 							if xstrings.IsBlank(column.Cardinality) {
-								tbCd = "1"
-								fkCd = "*"
+								tbCd = "*"
+								fkCd = "1"
 							}
 							card := fmt.Sprintf("%s %s %s", fkTable, getCardinality(fkCd, tbCd, "#000000"), table.Name)
 							if args.IncludeFK {
