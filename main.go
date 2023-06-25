@@ -144,31 +144,40 @@ func main() {
 	}())
 
 	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
-		var ifile, ofile, tfile string
+		// var ifile, ofile, tfile string
+		var args xmfr.TextArgs
 		return &cli.Command{
 			Name:    "text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile),
-				ofileFlag(&ofile, "Output file ('stdout' output to console)"),
+				ifileFlag(&args.InFile),
+				ofileFlag(&args.OutFile, "Output file ('stdout' output to console)"),
 				&cli.StringFlag{
 					Name:        "template",
 					Aliases:     []string{"t"},
 					Usage:       "Template file",
 					Required:    true,
-					Destination: &tfile,
+					Destination: &args.TemplateFile,
+				},
+				&cli.StringFlag{
+					Name:        "pattern",
+					Aliases:     []string{"p"},
+					Usage:       "Table name pattern, e.g. table*",
+					Value:       "",
+					Required:    false,
+					Destination: &args.Pattern,
 				},
 			},
 			Action: func(c *cli.Context) error {
-				if validInOutFile(ifile, []string{".yml", ".yaml"}, "", []string{}) {
+				if validInOutFile(args.InFile, []string{".yml", ".yaml"}, "", []string{}) {
 					tx := xmfr.NewXMFR()
-					tx.LoadYaml(ifile)
-					if err := tx.SaveToText(ofile, tfile); err != nil {
-						return eris.Wrapf(err, "failed output to %s", ofile)
+					tx.LoadYaml(args.InFile)
+					if err := tx.SaveToText(args); err != nil {
+						return eris.Wrapf(err, "failed output to %s", args.OutFile)
 					}
 					return nil
 				}
-				return eris.Errorf("failed to convert %s to %s", ifile, ofile)
+				return eris.Errorf("failed to convert %s to %s", args.InFile, args.OutFile)
 			},
 		}
 	}())
@@ -198,12 +207,12 @@ func main() {
 					Destination: &args.Schema,
 				},
 				&cli.StringFlag{
-					Name:        "prefix",
+					Name:        "pattern",
 					Aliases:     []string{"p"},
-					Usage:       "Table prefix",
+					Usage:       "Table name pattern, e.g. table*",
 					Value:       "",
 					Required:    false,
-					Destination: &args.TablePrefix,
+					Destination: &args.Pattern,
 				},
 				&cli.StringFlag{
 					Name:        "jar",
@@ -219,6 +228,13 @@ func main() {
 					Value:       false,
 					Required:    false,
 					Destination: &args.Simple,
+				},
+				&cli.BoolFlag{
+					Name:        "fk",
+					Usage:       "include foreign key name in the line",
+					Value:       false,
+					Required:    false,
+					Destination: &args.IncludeFK,
 				},
 			},
 			Action: func(c *cli.Context) error {

@@ -121,16 +121,18 @@ $ dst convert diagram -i sample.yml -o sample.puml
 # -- YAML to ER diagram (.png)
 # download plantuml.jar from https://plantuml.com/download
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar
-# you may convert some of tables only, below select the tables has 'tag' prefix only
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag
+# you may convert some of tables, select the tables starts with 'tag' pattern only, '*' can be replaced by '%'
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p 'tag*'
 # for simple mode, only show PK and FK in the diagram
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p tag --simple
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar --simple
+# include foreign key name in the relationship line
+$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar --fk
 
 # -- YAML to SQL schema file
-# MariaDB
-$ dst convert text -i sample.yml -o sample.sql -t mariadb.tpl
-# MsSQL
-$ dst convert text -i sample.yml -o sample.sql -t mssql.tpl
+# generate using template.tpl
+$ dst convert text -i sample.yml -o sample.sql -t template.tpl
+# generate using template.tpl, select the tables start with 'tag' pattern only, '*' can be replaced by '%'
+$ dst convert text -i sample.yml -o sample.sql -t template.tpl -p -p 'tag*'
 
 # -- Verify foreign key
 # make sure the foreign table and key exist
