@@ -2,10 +2,12 @@ package xfmr
 
 import (
 	"fmt"
-	"io/ioutil"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"io/fs"
+	"os"
 
 	"github.com/rotisserie/eris"
 	"github.com/shomali11/util/xconditions"
@@ -18,7 +20,7 @@ func (s *Xfmr) SaveToPlantUML(args DiagramArgs) error {
 	if err != nil {
 		return eris.Wrapf(err, "failed to build UML")
 	}
-	ioutil.WriteFile(args.OutFile, []byte(uml), 0744)
+	os.WriteFile(args.OutFile, []byte(uml), fs.FileMode(0744))
 	return nil
 }
 

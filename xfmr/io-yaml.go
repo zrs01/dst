@@ -2,8 +2,10 @@ package xfmr
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
+
+	"io/fs"
+	"os"
 
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
@@ -16,7 +18,7 @@ type OutColumn struct {
 }
 
 func (s *Xfmr) LoadYaml(infile string) {
-	yamlFile, err := ioutil.ReadFile(infile)
+	yamlFile, err := os.ReadFile(infile)
 	if err != nil {
 		panic(fmt.Sprintf("failed to read the file %s", infile))
 	}
@@ -41,7 +43,7 @@ func (s *Xfmr) SaveToYaml(outfile string) error {
 	output = strings.ReplaceAll(output, "\"n\"", "n")
 	output = strings.ReplaceAll(output, "\"Y\"", "Y")
 	output = strings.ReplaceAll(output, "\"y\"", "y")
-	ioutil.WriteFile(outfile, []byte(output), 0744)
+	os.WriteFile(outfile, []byte(output), fs.FileMode(0744))
 	return nil
 }
 
