@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/ztrue/tracerr"
 
-	"dst/fyml"
+	"dst/transform"
 )
 
 var version = "development"
@@ -76,7 +76,7 @@ func main() {
 	// }
 
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		var ifile, ofile string
+		var ifile, ofile, tfile string
 		return &cli.Command{
 			Name:    "transform",
 			Aliases: []string{"t"},
@@ -84,26 +84,37 @@ func main() {
 			Flags: []cli.Flag{
 				ifileFlag(&ifile),
 				ofileFlag(&ofile, ""),
+
+				&cli.StringFlag{
+					Name:        "template",
+					Aliases:     []string{"t"},
+					Usage:       "Template file",
+					Destination: &tfile,
+				},
 			},
 			Action: func(c *cli.Context) error {
 				iext := strings.ToLower(filepath.Ext(ifile))
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
 
-				if iext == ".yml" && (oext == ".yml" || oext == "") {
-					data, err := fyml.ReadYaml(ifile)
+				switch iext {
+				case ".yml":
+					data, err := transform.ReadYml(ifile)
 					if err != nil {
 						return tracerr.Wrap(err)
 					}
-					if err := fyml.WriteYaml(data, ofile); err != nil {
-						return tracerr.Wrap(err)
+
+					// text output from template
+					if tfile != "" {
+
 					}
-					return nil
-				}
 
-				if iext == ".yml" && oext == ".xlsx" {
-					return nil
+					switch oext {
+					case ".yml", "":
+						if err := transform.WriteYml(data, ofile); err != nil {
+							return tracerr.Wrap(err)
+						}
+					}
 				}
-
 				return nil
 			},
 		}

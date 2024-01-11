@@ -1,10 +1,9 @@
-package fyml
-
-import "gopkg.in/yaml.v3"
+package transform
 
 type DataDef struct {
-	Fixed   []Column `yaml:"fixed,omitempty"`
-	Schemas []Schema `yaml:"schemas,omitempty"`
+	Fixed    []Column    `yaml:"fixed,omitempty"`
+	OutFixed []OutColumn `yaml:"out_fixed,omitempty"`
+	Schemas  []Schema    `yaml:"schemas,omitempty"`
 }
 
 type Schema struct {
@@ -14,11 +13,11 @@ type Schema struct {
 }
 
 type Table struct {
-	Name     string      `yaml:"name,omitempty"`
-	Title    string      `yaml:"title,omitempty"`
-	Desc     string      `yaml:"desc,omitempty"`
-	Columns  []Column    `yaml:"columns,omitempty"`
-	_Columns []OutColumn `yaml:"out_columns,omitempty"`
+	Name       string      `yaml:"name,omitempty"`
+	Title      string      `yaml:"title,omitempty"`
+	Desc       string      `yaml:"desc,omitempty"`
+	Columns    []Column    `yaml:"columns,omitempty"`
+	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
 }
 
 type Column struct {
@@ -36,10 +35,5 @@ type Column struct {
 }
 
 type OutColumn struct {
-	Values Column `yaml:"_column_values,flow,omitempty"`
-}
-
-type DataNode struct {
-	Fixed   []yaml.Node
-	Schemas []yaml.Node
+	Value Column `yaml:"_column_values,flow,omitempty"`
 }
