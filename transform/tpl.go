@@ -9,10 +9,19 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-// //go:embed templates
-// var tpl embed.FS
-
-// func (s *Xfmr) SaveToText(outfile, outtpl string) error {
+// WriteTpl generates a template using the provided data and template file,
+// and writes the output to the specified file or standard output.
+//
+// Parameters:
+//   - data: A pointer to a DataDef struct containing the data for the template.
+//   - tplf: A string specifying the path to the template file.
+//   - out: A string specifying the path to the output file. If empty, the output
+//     will be written to standard output.
+//   - pattern: A string specifying a pattern to filter the desired tables from
+//     the data.
+//
+// Return:
+// - An error if any occurred during the execution of the function.
 func WriteTpl(data *DataDef, tplf string, out string, pattern string) error {
 
 	// var loader jet.Loader

@@ -76,7 +76,8 @@ func main() {
 	// }
 
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		var ifile, ofile, tfile string
+		var ifile, ofile, tfile, pattern string
+		var simple bool
 		return &cli.Command{
 			Name:    "transform",
 			Aliases: []string{"t"},
@@ -88,8 +89,21 @@ func main() {
 				&cli.StringFlag{
 					Name:        "template",
 					Aliases:     []string{"t"},
-					Usage:       "Template file",
+					Usage:       "template file",
 					Destination: &tfile,
+				},
+
+				&cli.StringFlag{
+					Name:        "pattern",
+					Aliases:     []string{"p"},
+					Usage:       "[-t] table name pattern, wildcard char: * or %",
+					Destination: &pattern,
+				},
+				&cli.BoolFlag{
+					Name:        "simple",
+					Usage:       "[-o *.xlsx] simple output, only PK & FK",
+					Value:       false,
+					Destination: &simple,
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -103,12 +117,19 @@ func main() {
 						return tracerr.Wrap(err)
 					}
 
-					// text output from template
+					// template output
 					if tfile != "" {
-
+						if err := transform.WriteTpl(data, tfile, ofile, pattern); err != nil {
+							return tracerr.Wrap(err)
+						}
+						return nil
 					}
 
 					switch oext {
+					case ".xlsx":
+						if err := transform.WriteXlsx(data, ofile, simple); err != nil {
+							return tracerr.Wrap(err)
+						}
 					case ".yml", "":
 						if err := transform.WriteYml(data, ofile); err != nil {
 							return tracerr.Wrap(err)
