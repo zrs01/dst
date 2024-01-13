@@ -84,6 +84,8 @@ func FilterData(data *DataDef, schemaPattern string, tablePattern string) *DataD
 func SearchPathFiles(filename string) ([]string, error) {
 	// Get the PATH environment variable
 	path := os.Getenv("PATH")
+	// add current director to the start of path
+	path = "." + string(os.PathListSeparator) + path
 	// Split the PATH variable into individual directories
 	dirs := strings.Split(path, string(os.PathListSeparator))
 
