@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/shomali11/util/xstrings"
+	"github.com/samber/lo"
 	"github.com/xuri/excelize/v2"
 	"github.com/ztrue/tracerr"
 )
@@ -158,14 +158,14 @@ func writeSimpleDataDict(data *DataDef, out string) error {
 			keyData := ""
 			keyDataRow := 0
 			for k, column := range table.Columns {
-				if strings.ToUpper(column.Identity) == "Y" || xstrings.IsNotBlank(column.ForeignKey) {
+				if strings.ToUpper(column.Identity) == "Y" || lo.IsNotEmpty(column.ForeignKey) {
 					if k != 0 {
 						keyData += "\n"
 					}
 					if strings.ToUpper(column.Identity) == "Y" {
 						keyData += fmt.Sprintf("%s (%s)", column.Name, "PK")
 						keyDataRow += 1
-					} else if xstrings.IsNotBlank(column.ForeignKey) {
+					} else if lo.IsNotEmpty(column.ForeignKey) {
 						keyData += fmt.Sprintf("%s (%s)", column.Name, "FK")
 						keyDataRow += 1
 					}

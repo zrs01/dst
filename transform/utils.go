@@ -1,33 +1,111 @@
 package transform
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/samber/lo"
+	"github.com/ztrue/tracerr"
 )
 
 func wildCardToRegexp(pattern string) string {
-	// components := strings.Split(pattern, "*")
-	components := regexp.MustCompile("[*,%]+").Split(pattern, -1)
+	components := regexp.MustCompile("[*%]+").Split(pattern, -1)
 	if len(components) == 1 {
 		// if len is 1, there are no *'s, return exact match pattern
-		return "^" + pattern + "$"
+		return "^" + "(?i)" + pattern + "$"
 	}
-	var result strings.Builder
+	var sb strings.Builder
 	for i, literal := range components {
 
-		// Replace * with .*
+		// Replace char with .*
 		if i > 0 {
-			result.WriteString(".*")
+			sb.WriteString(".*")
 		}
 
-		// Quote any regular expression meta characters in the
-		// literal text.
-		result.WriteString(regexp.QuoteMeta(literal))
+		// Quote any regular expression meta characters in the literal text.
+		sb.WriteString(regexp.QuoteMeta(literal))
 	}
-	return "^" + result.String() + "$"
+	return "^" + "(?i)" + sb.String() + "$"
 }
 
+// wildCardMatch checks if a given value matches a wildcard pattern.
+//
+// pattern: the wildcard pattern to match against.
+// value: the value to check.
+// bool: true if the value matches the pattern, false otherwise.
 func wildCardMatch(pattern string, value string) bool {
-	result, _ := regexp.MatchString(wildCardToRegexp(pattern), value)
+	result, _ := regexp.MatchString(wildCardToRegexp(strings.TrimSpace(pattern)), value)
 	return result
+}
+
+func wildCardMatchs(pattern []string, value string) bool {
+	for i := 0; i < len(pattern); i++ {
+		if wildCardMatch(pattern[i], value) {
+			return true
+		}
+	}
+	return false
+}
+
+// FilterData filters the data based on the given schema and table patterns.
+//
+// It takes a pointer to a DataDef struct, a schema pattern string, and a table pattern string as parameters.
+// It returns a pointer to a modified DataDef struct.
+func FilterData(data *DataDef, schemaPattern string, tablePattern string) *DataDef {
+	d := &DataDef{
+		Fixed:   data.Fixed,
+		Schemas: make([]Schema, 0),
+	}
+
+	for i := 0; i < len(data.Schemas); i++ {
+		schema := data.Schemas[i]
+		isSchemaMatched := schemaPattern == "" || wildCardMatchs(strings.Split(schemaPattern, ","), schema.Name)
+		if isSchemaMatched {
+			tables := lo.Filter(schema.Tables, func(t Table, _ int) bool {
+				return tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
+			})
+			if len(tables) > 0 {
+				schema.Tables = tables
+				d.Schemas = append(d.Schemas, schema)
+			}
+		}
+	}
+	return d
+}
+
+// SearchPathFiles searches for files with the specified filename in directories listed in the PATH environment variable.
+//
+// It takes a single parameter:
+// - filename: a string representing the name of the file to search for.
+//
+// It returns a slice of strings and an error. The slice contains the paths of the matched files, and the error is non-nil if there was an error during the search.
+func SearchPathFiles(filename string) ([]string, error) {
+	// Get the PATH environment variable
+	path := os.Getenv("PATH")
+	// Split the PATH variable into individual directories
+	dirs := strings.Split(path, string(os.PathListSeparator))
+
+	var matches []string
+
+	// Iterate over each directory in the PATH
+	for _, dir := range dirs {
+		// Get a list of files in the current directory
+		files, err := filepath.Glob(filepath.Join(dir, filename))
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the matched files to the results
+		matches = append(matches, files...)
+	}
+
+	if len(matches) > 0 {
+		// Files found, return the matches
+		return matches, nil
+	}
+
+	// No file matches found
+	return nil, tracerr.Errorf("no matching files found")
 }

@@ -46,23 +46,20 @@ func main() {
 
 	/* ------------------------------ Common flags ------------------------------ */
 
-	ifileFlag := func(file *string) *cli.StringFlag {
+	ifileFlag := func(file *string, usage string) *cli.StringFlag {
 		return &cli.StringFlag{
 			Name:        "input",
 			Aliases:     []string{"i"},
-			Usage:       "Input file",
+			Usage:       lo.Ternary(usage == "", "input file", usage),
 			Required:    true,
 			Destination: file,
 		}
 	}
 	ofileFlag := func(file *string, usage string) *cli.StringFlag {
-		if usage == "" {
-			usage = "Output file"
-		}
 		return &cli.StringFlag{
 			Name:        "output",
 			Aliases:     []string{"o"},
-			Usage:       usage,
+			Usage:       lo.Ternary(usage == "", "output file", usage),
 			Destination: file,
 		}
 	}
@@ -76,14 +73,14 @@ func main() {
 	// }
 
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		var ifile, ofile, tfile, pattern string
+		var ifile, ofile, tfile, schema, table, lib string
 		var simple bool
 		return &cli.Command{
-			Name:    "transform",
-			Aliases: []string{"t"},
-			Usage:   "Transform to other format",
+			Name:    "convert",
+			Aliases: []string{"c"},
+			Usage:   "Convert to other format",
 			Flags: []cli.Flag{
-				ifileFlag(&ifile),
+				ifileFlag(&ifile, ""),
 				ofileFlag(&ofile, ""),
 
 				&cli.StringFlag{
@@ -92,18 +89,26 @@ func main() {
 					Usage:       "template file",
 					Destination: &tfile,
 				},
-
 				&cli.StringFlag{
-					Name:        "pattern",
-					Aliases:     []string{"p"},
+					Name:        "schema",
+					Usage:       "schema name",
+					Destination: &schema,
+				},
+				&cli.StringFlag{
+					Name:        "table",
 					Usage:       "[-t] table name pattern, wildcard char: * or %",
-					Destination: &pattern,
+					Destination: &table,
 				},
 				&cli.BoolFlag{
 					Name:        "simple",
-					Usage:       "[-o *.xlsx] simple output, only PK & FK",
+					Usage:       "simple content",
 					Value:       false,
 					Destination: &simple,
+				},
+				&cli.StringFlag{
+					Name:        "lib",
+					Usage:       "plantuml.jar file",
+					Destination: &lib,
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -112,25 +117,29 @@ func main() {
 
 				switch iext {
 				case ".yml":
-					data, err := transform.ReadYml(ifile)
+					rawData, err := transform.ReadYml(ifile)
 					if err != nil {
 						return tracerr.Wrap(err)
 					}
-
-					// template output
-					if tfile != "" {
-						if err := transform.WriteTpl(data, tfile, ofile, pattern); err != nil {
-							return tracerr.Wrap(err)
-						}
-						return nil
-					}
+					data := transform.FilterData(rawData, schema, table)
 
 					switch oext {
 					case ".xlsx":
 						if err := transform.WriteXlsx(data, ofile, simple); err != nil {
 							return tracerr.Wrap(err)
 						}
+					case ".png":
+						if err := transform.WriteERD(data, tfile, ofile); err != nil {
+							return tracerr.Wrap(err)
+						}
 					case ".yml", "":
+						// template output
+						if tfile != "" {
+							if err := transform.WriteTpl(data, tfile, ofile, table); err != nil {
+								return tracerr.Wrap(err)
+							}
+							return nil
+						}
 						if err := transform.WriteYml(data, ofile); err != nil {
 							return tracerr.Wrap(err)
 						}

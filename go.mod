@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/CloudyKit/jet/v6 v6.1.0
+	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/rotisserie/eris v0.5.4
 	github.com/samber/lo v1.39.0
 	github.com/shomali11/util v0.0.0-20200329021417-91c54758c87b
@@ -17,6 +18,7 @@ require (
 
 require (
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
+	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
