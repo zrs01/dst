@@ -1,0 +1,2422 @@
+---
+# generate Excel
+#   dst convert excel -i mdis.yml -o mdis.xlsx
+# generate schema
+#   dst convert text -i mdis.yml -t mariadb -o mdis.sql
+
+# column definition:
+#   na: column-name
+#   ty: data-type
+#   nu: not null (Y/N)
+#   id: identity (Y/N)
+#   un: unique
+#   va: default value
+#   fk: foreign key hint
+#   cd: cardinality (e.g. 1:1, 0..*:1, 1:0..*, 0:1)
+#   tt: title
+#   dc: description
+
+# unique Key
+#   The unique index must add the field "Deleted" to avoid duplication error
+# optimistic locking
+#   rec_ver is used for optimistic locking
+
+fixed:
+  - { na: deleted, ty: int, va: 0, nu: Y, dc: "0:activated, others:deleted" }
+  - { na: create_user_id, ty: int, nu: Y, dc: "record create user ID" }
+  - { na: create_time, ty: datetime, nu: Y, dc: "record create time" }
+  - { na: update_user_id, ty: int, nu: Y, dc: "record update user ID" }
+  - { na: update_time, ty: datetime, nu: Y, dc: "record update time" }
+  - { na: recver, ty: int, nu: Y, va: 0, dc: "record version" }
+
+schemas:
+  # ---------------------------------------------------------------------------- #
+  #                                    GENERAL                                   #
+  # ---------------------------------------------------------------------------- #
+  - name: General
+    tables:
+      - name: email_tmpl
+        title: email template
+        desc: "Email templates"
+        columns:
+          - { na: email_tmpl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: tmpl_type, ty: CHAR(3), nu: Y, dc: "template type" }
+          - { na: code, ty: VARCHAR(20), nu: Y, dc: "template code" }
+          - { na: subject, ty: VARCHAR(250), nu: Y, dc: "email subject" }
+          - { na: content, ty: LONGTEXT, nu: Y, dc: "email content" }
+
+      - name: addr
+        title: address
+        desc: "Address table"
+        columns:
+          - { na: addr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: company_id, ty: INT, nu: Y, fk: company.company_id, cd: "0..*:1", dc: "company" }
+          - { na: company_type, ty: VARCHAR(3), dc: "e.g. PRI=primary, LRP, IMP, DIS, MAN" }
+          - { na: addr_type, ty: CHAR(2), dc: "HQ: Head Quarter, HK: Hong Kong" }
+          - { na: post_code, ty: VARCHAR(100), dc: "post code" }
+          - { na: ctry, ty: VARCHAR(100), dc: "country" }
+          - { na: addr_en, ty: VARCHAR(100), dc: "address in english" }
+          - { na: addr_zh, ty: VARCHAR(100), dc: "address in chinese" }
+          - { na: unit_no_en, ty: VARCHAR(100), dc: "unit number in english" }
+          - { na: unit_no_zh, ty: VARCHAR(100), dc: "unit number in chinese" }
+          - { na: unit_descr_en, ty: VARCHAR(100), dc: "unit description in english" }
+          - { na: unit_descr_zh, ty: VARCHAR(100), dc: "unit description in chinese" }
+          - { na: flr_en, ty: VARCHAR(100), dc: "floor in english" }
+          - { na: flr_zh, ty: VARCHAR(100), dc: "floor in chinese" }
+          - { na: blk_no_en, ty: VARCHAR(100), dc: "block number in english" }
+          - { na: blk_no_zh, ty: VARCHAR(100), dc: "block number in chinese" }
+          - { na: blk_descr_en, ty: VARCHAR(100), dc: "block description in english" }
+          - { na: blk_descr_zh, ty: VARCHAR(100), dc: "block description in chinese" }
+          - { na: bldg_name_en, ty: VARCHAR(100), dc: "building name in english" }
+          - { na: bldg_name_zh, ty: VARCHAR(100), dc: "building name in chinese" }
+          - { na: phase_en, ty: VARCHAR(100), dc: "phase in english" }
+          - { na: phase_zh, ty: VARCHAR(100), dc: "phase in chinese" }
+          - { na: est_name_en, ty: VARCHAR(100), dc: "estate name in english" }
+          - { na: est_name_zh, ty: VARCHAR(100), dc: "estate name in chinese" }
+          - { na: vlg_name_en, ty: VARCHAR(100), dc: "village name in english" }
+          - { na: vlg_name_zh, ty: VARCHAR(100), dc: "village name in chinese" }
+          - { na: st_name_en, ty: VARCHAR(100), dc: "street name in english" }
+          - { na: st_name_zh, ty: VARCHAR(100), dc: "street name in chinese" }
+          - { na: bldg_no_en, ty: VARCHAR(100), dc: "building number in english" }
+          - { na: bldg_no_zh, ty: VARCHAR(100), dc: "building number in chinese" }
+          - { na: lot_en, ty: VARCHAR(100), dc: "lot in english" }
+          - { na: lot_zh, ty: VARCHAR(100), dc: "lot in english" }
+          - { na: addr_sub_dist_id, ty: INT, fk: addr_sub_dist.addr_sub_dist_id, cd: "0..*:1", dc: "sub district id" }
+          - { na: addr_dist_id, ty: INT, fk: addr_dist.addr_dist_id, cd: "1..*:1", dc: "dist id" }
+          - { na: addr_rgn_id, ty: INT, fk: addr_rgn.addr_rgn_id, cd: "1..*:1", dc: "region id" }
+
+      - name: addr_rgn
+        title: regions
+        desc: "Address regions"
+        columns:
+          - { na: addr_rgn_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: name_en, ty: VARCHAR(100), dc: "region in english" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "region in chinese" }
+
+      - name: addr_dist
+        title: district
+        desc: "Address district"
+        columns:
+          - { na: addr_dist_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: addr_rgn_id, ty: INT, nu: Y, fk: addr_rgn.addr_rgn_id, cd: "0..*:1", dc: "region ID" }
+          - { na: name_en, ty: VARCHAR(100), dc: "district in english" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "district in chinese" }
+
+      - name: addr_sub_dist
+        title: sub-district
+        desc: "Address sub district"
+        columns:
+          - { na: addr_sub_dist_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: addr_dist_id, ty: INT, nu: Y, fk: addr_dist.addr_dist_id, cd: "0..*:1", dc: "district ID" }
+          - { na: name_en, ty: VARCHAR(100), dc: "sub district in english" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "sub district in chinese" }
+
+      - name: doc
+        title: document
+        desc: Document or files
+        columns:
+          - { na: doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ref, ty: VARCHAR(50), nu: Y, dc: "document unique reference" }
+          - { na: file_name, ty: VARCHAR(100), nu: Y, dc: "file name" }
+
+      - name: doc_tag
+        title: document tag
+        desc: "Relationship table between doc and tag"
+        columns:
+          - { na: doc_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, cd: "0..*:1", dc: "doc id" }
+          - { na: tag_id, ty: INT, nu: Y, fk: tag.tag_id, cd: "0..*:1", dc: "tag id" }
+
+      - name: tag
+        desc: "Code table for tag"
+        columns:
+          - { na: tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: code, ty: VARCHAR(10), dc: "tag code. eg. premarket md application index A1" }
+          - { na: name, ty: VARCHAR(20), nu: Y, dc: "tag name" }
+          - { na: priority, ty: VARCHAR(50), dc: "tag priority" }
+          - { na: descr, ty: VARCHAR(50), dc: "tag description" }
+          - { na: source, ty: CHAR(3), nu: Y, dc: "Source; COM: common, PRE: pre, POS: post" }
+          - { na: tag_type, ty: CHAR(3), nu: Y, dc: "Tag Type; ATT: attachment, APP: application, COM: company" }
+
+      - name: sys_authy
+        title: system authority
+        desc: "Authority of the system functions"
+        columns:
+          - { na: sys_authy_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: code, ty: VARCHAR(50), nu: Y, dc: "authority code" }
+          - { na: descr, ty: VARCHAR(50), dc: "authority description" }
+
+      - name: person
+        title: "personal information"
+        desc: "Personal information"
+        columns:
+          - { na: person_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: last_name_en, ty: VARCHAR(255), dc: "last name (english)" }
+          - { na: last_name_zh, ty: VARCHAR(255), dc: "last name (chinese)" }
+          - { na: first_name_en, ty: VARCHAR(255), dc: "first name (english)" }
+          - { na: first_name_zh, ty: VARCHAR(255), dc: "last name (chinese)" }
+          - { na: full_name_en, ty: VARCHAR(255), dc: "full name (english)" }
+          - { na: full_name_zh, ty: VARCHAR(255), dc: "full name (chinese)" }
+          - { na: post, ty: VARCHAR(50), dc: "position" }
+          - { na: email, ty: VARCHAR(100), dc: "email" }
+          - { na: phone, ty: VARCHAR(50), dc: "phone number" }
+          - { na: mobile, ty: VARCHAR(50), dc: "mobile number" }
+          - { na: fax, ty: VARCHAR(50), dc: "fax number" }
+          - { na: url, ty: VARCHAR(100), dc: "url of the website" }
+          - { na: gender, ty: CHAR(1), dc: "Gender; M: male, F: female" }
+          - { na: title, ty: VARCHAR(15), dc: "Title" }
+
+      - name: email_subs
+        desc: "Email subscription"
+        columns:
+          - { na: email_subs_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: email, ty: VARCHAR(100), nu: Y, dc: "Email" }
+
+      - name: sys_param
+        desc: "Configurable parameters"
+        columns:
+          - { na: sys_param_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: value, ty: VARCHAR(100), nu: Y, dc: "system parameter value" }
+          - { na: code, ty: VARCHAR(20), nu: Y, dc: "system parameter code" }
+          - { na: descr, ty: VARCHAR(100), nu: Y, dc: "system parameter description" }
+
+      - name: lab
+        desc: "LAB structure and role"
+        columns:
+          - { na: lab_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: board_type, ty: CHAR(2), nu: Y, dc: "MD:md, IP: importer, DI: distributor, CA: cab, LM: local manufacturer, AP: appeal, NMPA: NMPA" }
+          - { na: abridge, ty: CHAR(1), nu: Y, dc: "Is abridge board; Y:yes, N:No" }
+          - { na: board_role, ty: CHAR(1), nu: Y, dc: "C:chairman, M:member, S:secretary" }
+          - { na: user_role_id, ty: INT, nu: Y, fk: user_role.user_role_id, dc: "user role id" }
+
+      - name: sys_msg
+        desc: "In-system message"
+        columns:
+          - { na: sys_msg_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: msg_type, ty: CHAR(3), nu: Y, dc: "message type" }
+          - { na: recipient_id, ty: INT, nu: Y, fk: person.person_id, cd: "1:1", dc: "message recipient" }
+          - { na: ref_id, ty: INT, nu: Y, dc: "reference case id" }
+          - { na: content, ty: VARCHAR(250), nu: Y, dc: "message content" }
+          - { na: read_flag, ty: CHAR(1), nu: Y, dc: "read flag" }
+
+      - name: convo
+        title: conversation
+        desc: "Conversation topics"
+        columns:
+          - { na: convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: status, ty: CHAR(1), nu: Y, dc: "O:opened, C:closed" }
+
+      - name: convo_post
+        title: conversation post
+        desc: "Posts of each conversation topic"
+        columns:
+          - { na: convo_post_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, cd: "0..*:1", dc: "conversation id" }
+          - { na: to_user_id, ty: INT, nu: Y, fk: person.person_id, cd: "1:1", dc: "conversation receiver user profile id" }
+          - { na: from_user_id, ty: INT, nu: Y, fk: person.person_id, cd: "1:1", dc: "conversation sender user profile id" }
+          - { na: content, ty: LONGTEXT, dc: "conversation content" }
+
+      - name: convo_post_doc
+        title: conversation post attachment
+        desc: "Relationship table between conversation details and document"
+        columns:
+          - { na: convo_post_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: convo_post_id, ty: INT, nu: Y, fk: convo_post.convo_post_id, cd: "0..*:1", dc: "conversation detail id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, cd: "0..*:1", dc: "doc id" }
+
+      - name: convo_tmpl
+        title: conversation content template
+        desc: "Conversation templates (include reply)"
+        columns:
+          - { na: convo_tmpl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: module, ty: CHAR(3), nu: Y, dc: "Source; COM: common, PRE: pre, POS: post" }
+          - { na: tmpl_type, ty: CHAR(3), nu: Y, dc: "conversation type" }
+          - { na: content, ty: LONGTEXT, nu: Y, dc: "reply template content" }
+
+      - name: amdns
+        desc: "AMDNS data"
+        columns:
+          - { na: amdns_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: code, ty: VARCHAR(200), dc: "amdns code" }
+          - { na: defn, ty: VARCHAR(200), dc: "amdns definition" }
+
+      - name: amdns_term
+        desc: "AMDNS term data"
+        columns:
+          - { na: amdns_term_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: amdns_id, ty: INT, fk: amdns.amdns_id, nu: Y }
+          - { na: cod_term_id, ty: VARCHAR(200), fk: cod_amdns_term.cod_term_id, dc: "amdns description" }
+
+      - name: amdns_rel
+        desc: "AMDNS related terms"
+        columns:
+          - { na: amdns_rel_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: amdns_id, ty: INT, fk: amdns.amdns_id, nu: Y }
+          - { na: rel_amdns_id, ty: INT, fk: amdns.amdns_id, nu: Y }
+
+      - name: amdns_cat
+        desc: "AMDNS sepcialty category data"
+        columns:
+          - { na: amdns_cat_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: amdns_id, ty: INT, fk: amdns.amdns_id, nu: Y }
+          - { na: cod_cat_id, ty: VARCHAR(200), fk: cod_amdns_cat.cod_cat_id, dc: "amdns specialty category" }
+
+      - name: cod_amdns_term
+        desc: "code table for AMDNS term data"
+        columns:
+          - { na: cod_term_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: term, ty: VARCHAR(200), dc: "amdns description" }
+
+      - name: cod_amdns_cat
+        desc: "code table for AMDNS sepcialty category data"
+        columns:
+          - { na: cod_cat_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cat, ty: VARCHAR(200), dc: "amdns specialty category" }
+
+      - name: gmdn
+        desc: "GMDN data"
+        columns:
+          - { na: gmdn_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: item, ty: VARCHAR(200), dc: "gmdn item" }
+          - { na: defn, ty: VARCHAR(200), dc: "gmdn definition" }
+
+      - name: udi
+        title: UDI data
+        desc: "UDI data"
+        columns:
+          - { na: udi_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: item, ty: VARCHAR(200), dc: "udi item" }
+          - { na: defn, ty: VARCHAR(200), dc: "udi definition" }
+
+      - name: lang
+        desc: "table stores translated values for different language"
+        columns:
+          - { na: lang_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: section, ty: VARCHAR(50), dc: "section" }
+          - { na: code, ty: VARCHAR(50), dc: "code of the field this translation applied to" }
+          - { na: en, ty: VARCHAR(300), dc: "english text to be displayed" }
+          - { na: zh, ty: VARCHAR(300), dc: "tranditional chinese text to be displayed" }
+
+  # ---------------------------------------------------------------------------- #
+  #                                     USER                                     #
+  # ---------------------------------------------------------------------------- #
+  - name: User
+    tables:
+      - name: user
+        title: login information
+        desc: "Login information"
+        columns:
+          - { na: user_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: person_id, ty: INT, nu: Y, fk: "person.person_id", cd: "0:1" }
+          - { na: login_name, ty: VARCHAR(255), nu: Y, dc: "login name" }
+          - { na: user_type, ty: CHAR(1), nu: Y, dc: "login type: I=Internal, T=Trader, P=Indiviual user" }
+          - { na: failed_login_cnt, ty: INT, nu: Y, dc: "Count of failed login" }
+          - { na: act_expired, ty: CHAR(1), nu: Y, dc: "Y: yes, N: no" }
+          - { na: act_locked, ty: CHAR(1), nu: Y, dc: "Y: yes, N: no" }
+          - { na: cred_expired, ty: CHAR(1), nu: Y, dc: "Y: yes, N: no" }
+          - { na: last_login_time, ty: DATETIME, dc: "Last login time" }
+
+      - name: user_cred
+        title: user credential
+        desc: "User hashed password"
+        columns:
+          - { na: user_cred_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: user_id, ty: INT, nu: Y, fk: user.user_id, cd: "1:1", dc: "login user" }
+          - { na: password, ty: VARCHAR(255), nu: Y, dc: "Password" }
+
+      - name: user_role
+        title: user role
+        desc: "User role"
+        columns:
+          - { na: user_role_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: code, ty: VARCHAR(20), nu: Y, dc: "User role code" }
+          - { na: descr, ty: VARCHAR(50), dc: "User role description" }
+
+      - name: user_login_role
+        title: mapping table
+        desc: "Mapping between user and user_role"
+        columns:
+          - { na: user_login_role_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: user_id, ty: INT, nu: Y, fk: user.user_id, cd: "0..*:1", dc: "Login user" }
+          - { na: user_role_id, ty: INT, nu: Y, fk: user_role.user_role_id, cd: "0..*:1", dc: "User role id" }
+
+      - name: user_role_authy
+        title: mapping table
+        desc: "Mapping between user_role and user_authority"
+        columns:
+          - { na: user_role_authy_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: user_role_id, ty: INT, nu: Y, fk: user_role.user_role_id, cd: "0..*:1", dc: "User role id" }
+          - { na: sys_authy_id, ty: INT, nu: Y, fk: sys_authy.sys_authy_id, cd: "1:0..*", dc: "authority id" }
+
+      - name: company
+        title: company information
+        desc: "Company information"
+        columns:
+          - { na: company_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: user_id, ty: INT, fk: user.user_id, cd: "0..1:1", dc: "user id" }
+          - { na: cert_type, ty: CHAR(1), dc: "B:br, C:cr" }
+          - { na: post_code, ty: CHAR(20), dc: "Post code" }
+          - { na: ctry, ty: VARCHAR(20), dc: "country" }
+          - { na: reg_hk, ty: CHAR(1), dc: "is registered in hk" }
+          - { na: name_en, ty: VARCHAR(100), nu: Y, dc: "company/ organization name (English)" }
+          - { na: name_zh, ty: VARCHAR(100), nu: Y, dc: "company/ organization name (Chinese)" }
+          - { na: br_no, ty: VARCHAR(20), dc: "when cert_type = B" }
+          - { na: br_exp_date, ty: DATE, dc: "when cert_type = B" }
+          - { na: cert_issue_date, ty: DATE, dc: "when cert_type = C" }
+          - { na: qms_type, ty: VARCHAR(20), dc: "qms type, F=full quality management system, P=partial quality management system" }
+          - { na: qms_partial_descr, ty: VARCHAR(100), dc: "description for partial quality management system" }
+          - { na: iso_opt, ty: VARCHAR(20), dc: "list of iso standard" }
+          - { na: iso_cert_by, ty: VARCHAR(50), dc: "iso cert body" }
+          - { na: iso_exp_date, ty: DATE, dc: "iso expiry date" }
+          - { na: lrp_designate, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: lrp_designate_date, ty: DATE, dc: "lrp designated date" }
+          - { na: url, ty: CHAR(100), dc: "website URL" }
+
+      - name: company_user
+        title: individual user
+        desc: "Mapping between user records to indicate external trader and external individual account relationships"
+        columns:
+          - { na: company_user_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: company_id, ty: INT, nu: Y, fk: company.company_id, cd: "0..*:1", dc: "identity of company record" }
+          - { na: user_id, ty: INT, nu: Y, fk: user.user_id, cd: "0..1:1", dc: "identity of user record" }
+
+      - name: company_cont
+        title: company contact
+        desc: "Company contact"
+        columns:
+          - { na: company_cont_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: company_id, ty: INT, nu: Y, fk: company.company_id, cd: "0..*:1", dc: "company" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id, cd: "0..*:1", dc: "person" }
+          - { na: company_type, ty: VARCHAR(3), nu: Y, dc: "company type, M=Manufacturer, L=LRP, I=Importer, D=Distributor" }
+          - { na: contact_type, ty: VARCHAR(50), nu: Y, dc: "contact type, HQ=Head Quarter, HK=HK Office" }
+          - { na: public_tel, ty: VARCHAR(50), nu: Y, dc: "public enquiry tel" }
+
+      - name: company_doc
+        title: company document
+        desc: "documents for the company"
+        columns:
+          - { na: company_doc_id, ty: INT, id: Y, dc: "identity of the record" }
+          - { na: company_id, ty: INT, fk: company.company_id, cd: "0..*:1" }
+          - { na: doc_id, ty: INT, dc: "identity of document record", fk: doc.doc_id, cd: "0..*:1" }
+          - { na: doc_type, ty: INT, dc: "document type" }
+          - { na: doc_ver, ty: INT, dc: "document version" }
+
+      - name: user_delegate
+        title: user delegation
+        desc: "User delegation"
+        columns:
+          - { na: user_delegate_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: delegate_role_id, ty: INT, nu: Y, fk: user_role.user_role_id, cd: "0..*:1", dc: "role to be delegated" }
+          - { na: start_date, ty: DATE, nu: Y, dc: "effective start date" }
+          - { na: end_date, ty: DATE, dc: "effective end date" }
+          - { na: remark, ty: VARCHAR(200) }
+
+      - name: user_role_delegate
+        title: mapping table
+        desc: "Mapping between user_role and user_delegate"
+        columns:
+          - { na: user_role_delegate_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: user_role_id, ty: INT, nu: Y, fk: user_role.user_role_id, cd: "0..*:1", dc: "user role id" }
+          - { na: user_delegate_id, ty: INT, nu: Y, fk: user_delegate.user_delegate_id, cd: "0..*:1", dc: "user delegate id" }
+
+  # ---------------------------------------------------------------------------- #
+  #                                  PRE-MARKET                                  #
+  # ---------------------------------------------------------------------------- #
+  - name: Pre-market
+    tables:
+      - name: premkt
+        desc: "Code table for Pre-market codes. Eg fast track scope, laser class"
+        columns:
+          - { na: premkt_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: premkt_type, ty: VARCHAR(3), nu: Y, dc: "code type, eg QMS" }
+          - { na: code, ty: VARCHAR(20), nu: Y, dc: "code, code" }
+          - { na: descr_en, ty: VARCHAR(50), nu: Y, dc: "code description in english" }
+          - { na: descr_zh, ty: VARCHAR(50), nu: Y, dc: "code description in chinese" }
+
+      - name: md_rule
+        desc: "Code table for MD rule for pre-market"
+        columns:
+          - { na: md_rule_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: level_0, ty: INT, dc: "rule level 0" }
+          - { na: level_1, ty: INT, dc: "rule level 1" }
+          - { na: level_2, ty: INT, dc: "rule level 2" }
+          - { na: text, ty: VARCHAR(100), dc: "rule text" }
+          - { na: descr, ty: VARCHAR(300), dc: "rule description" }
+          - { na: class, ty: VARCHAR(3), dc: "rule class" }
+
+      - name: cert_reg
+        desc: "Code table for storing cert regulatory and description. Eg EC, US FDA"
+        columns:
+          - { na: cert_reg_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: level, ty: INT, dc: "cert level" }
+          - { na: descr, ty: VARCHAR(50), dc: "cert description" }
+
+      - name: dev_model
+        title: device model
+        desc: "Table for storing device model"
+        columns:
+          - { na: dev_model_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: dev_brand_id, ty: INT, nu: Y, fk: dev_brand.dev_brand_id, cd: "1..*:1", dc: "brand id" }
+          - { na: dev_make_id, ty: INT, nu: Y, fk: dev_make.dev_make_id, cd: "1..*:1", dc: "make id" }
+          - { na: name_en, ty: VARCHAR(100), dc: "model name (english)" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "model name (chinese)" }
+          - { na: code, ty: VARCHAR(100), dc: "model product code" }
+
+      - name: dev_brand
+        title: device brand
+        desc: "Table for storing device brand"
+        columns:
+          - { na: dev_brand_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: dev_make_id, ty: INT, nu: Y, fk: dev_make.dev_make_id, cd: "1..*:1", dc: "make id" }
+          - { na: name_en, ty: VARCHAR(200), dc: "brand name (english)" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "brand name (chinese)" }
+
+      - name: dev_make
+        title: device make
+        desc: "Table for storing device make"
+        columns:
+          - { na: dev_make_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: name_en, ty: VARCHAR(200), dc: "make name (english)" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "make name (chinese)" }
+
+      - name: dev_manuf_site
+        title: device manufactoring site
+        desc: "Table for storing md manufacturing sites"
+        columns:
+          - { na: dev_manuf_site_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, cd: "0..*:1", dc: "model id" }
+          - { na: manuf_app_id, ty: INT, fk: manuf_app.manuf_app_id, cd: "0..*:1", dc: "manufacturer application id" }
+          - { na: name_en, ty: VARCHAR(200), dc: "site name in english" }
+          - { na: name_zh, ty: VARCHAR(100), dc: "site name in chinese" }
+          - { na: addr_id, ty: INT, fk: addr.addr_id, cd: "0..*:1", dc: "address id" }
+          - { na: oversea, ty: VARCHAR(300), dc: "oversea address" }
+          - { na: qms_cert_no, ty: VARCHAR(15), dc: "QMS certificate number" }
+          - { na: qms_exp_date, ty: DATE, dc: "QMS Expiry Date" }
+
+      - name: dev_pms
+        desc: "Relationship table between device and pms report"
+        columns:
+          - { na: dev_pms_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: pms_id, ty: INT, nu: Y, fk: pms.pms_id, cd: "0..*:1", dc: "pms id" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, cd: "0..*:1", dc: "device model id" }
+          - { na: supply_year, ty: INT, dc: "device supplied year" }
+          - { na: supply_hk, ty: INT, dc: "device supplied in hk" }
+          - { na: supply_world, ty: INT, dc: "device supplied in worldwide" }
+          - { na: supply_total, ty: INT, dc: "total device supplied" }
+          - { na: cmplt_year, ty: INT, dc: "device complaint year" }
+          - { na: cmplt_hk_no, ty: INT, dc: "number of device complaint in hk" }
+          - { na: cmplt_hk_rate, ty: decimal, dc: "rate of device complaint in hk" }
+          - { na: cmplt_world_no, ty: INT, dc: "number of device complaint in worldwide" }
+          - { na: cmplt_world_rate, ty: INT, dc: "rate of device complaint in worldwide" }
+          - { na: recall_year, ty: INT, dc: "device recall year" }
+          - { na: recall_hk_no, ty: INT, dc: "number of device recall in hk" }
+          - { na: recall_hk_rate, ty: decimal, dc: "rate of device recall in hk" }
+          - { na: recall_world_no, ty: INT, dc: "number of device recall in worldwide" }
+          - { na: recall_world_rate, ty: decimal, dc: "rate of device recall in worldwide" }
+          - { na: ae_year, ty: INT, dc: "device adverse event year" }
+          - { na: ae_hk_no, ty: INT, dc: "number of device adverse event in hk" }
+          - { na: ae_hk_rate, ty: decimal, dc: "rate of device adverse event in hk" }
+          - { na: ae_world_no, ty: INT, dc: "number of device adverse event in worldwide" }
+          - { na: ae_world_rate, ty: decimal, dc: "rate of device adverse event in worldwide" }
+
+      - name: pms
+        title: product PMS report
+        desc: "Table for storing product pms report"
+        columns:
+          - { na: pms_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_id, ty: INT, fk: lrp_app.lrp_app_id, dc: "lrp id" }
+          - { na: reporter_id, ty: INT, fk: person.person_id, dc: "individual user profile id" }
+          - { na: md_app_id, ty: INT, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: submit_date, ty: DATE, dc: "report submission date" }
+          - { na: report_start_date, ty: DATE, dc: "pms covering period start date" }
+          - { na: report_end_date, ty: DATE, dc: "pms covering period end date" }
+          - { na: is_cmplt, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: is_recall, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: is_ae, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: is_reg_action, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: is_pms_study, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: is_recall_cmplt, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: is_ae_cmplt, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: reg_type_list, ty: VARCHAR(10), dc: "D: device(s) banned, M: Marketing approval withdrwan, RC: recall, RS:restrictions imposed, O:Other" }
+          - { na: other_reg_type, ty: VARCHAR(50), dc: "other regulatory actions" }
+          - { na: country_involve, ty: VARCHAR(100), dc: "countries involved" }
+          - { na: pms_study_type_list, ty: VARCHAR(10), dc: "L: laboratory testing, M Market surveys on information, R: risk analysis, C: Clinical trial, O: other" }
+          - { na: other_pms_study_type, ty: VARCHAR(50), dc: "other pms study" }
+          - { na: has_unfavor, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: vo_user_id, ty: INT, fk: person.person_id, dc: "vo user id" }
+
+      - name: pms_doc
+        desc: "Relationship table between pms and doc"
+        columns:
+          - { na: pms_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: pms_id, ty: INT, nu: Y, fk: pms.pms_id, dc: "pms_id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: md_list
+        title: listed MD
+        desc: "Table for storing listing md records"
+        columns:
+          - { na: md_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id, show the latest md application id" }
+          - { na: batch_id, ty: VARCHAR(20), dc: "for generation of batch listing in cover letter and certificate" }
+          - { na: revision, ty: VARCHAR(4), dc: "revision of list., Format: a, b, c, d" }
+          - { na: list_no, ty: VARCHAR(20), nu: Y, dc: "md listing number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: related_md_list_id, ty: INT, fk: md_list.md_list_id, dc: "related md list id" }
+          - { na: cover_ref, ty: VARCHAR(5), dc: "enclosure number for the listing certificate cover letter" }
+          - { na: issue_date, ty: DATE, dc: "issue date" }
+          - { na: delist_date, ty: DATE, dc: "delist date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+          - { na: remark_en, ty: VARCHAR(200), dc: "secretary remark in english content shown in the public list" }
+          - { na: remark_zh, ty: VARCHAR(100), dc: "secretary remark in chinese content shown in the public list" }
+          - { na: case_compl_date, ty: DATE, dc: "case completion date" }
+          - { na: gr_cert_rec_date, ty: DATE, dc: "Date certificate received by GR" }
+          - { na: gr_cert_notify_date, ty: DATE, dc: "Date collection notification email sent by GR" }
+          - { na: gr_cert_collect_date, ty: DATE, dc: "Date certificate collected by applicant" }
+          - { na: gr_cert_file_date, ty: DATE, dc: "Date certificate copy filed by GR" }
+          - { na: lab_user_id, ty: INT, fk: person.person_id, dc: "lab chairperson user profile id" }
+          - { na: list_stats, ty: CHAR(1), dc: "listing deleted, V: valid, D: delist, E: expiry, R: renewal in progress, TD: temporary delisted" }
+
+      - name: md_scn
+        title: MD Screening application
+        desc: "Table for storing MD screnning records"
+        columns:
+          - { na: md_scn_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "applicant user id" }
+          - { na: cat, ty: CHAR(3), dc: "category, M: Md, MT: Md trial scheme, I:ivd, IT: ivd trial scheme" }
+          - { na: scn_no, ty: VARCHAR(20), dc: "screening number" }
+          - { na: scno_id, ty: INT, fk: person.person_id, dc: "screening officer user id" }
+          - { na: scno_recv_date, ty: DATE, dc: "date received by SCNO" }
+          - { na: scno_compl_date, ty: DATE, dc: "date SCNO completion screening" }
+          - { na: close_date, ty: DATE, dc: "case close date" }
+          - { na: manuf_company_id, ty: INT, fk: company.company_id, dc: "manufacturer company id" }
+          - { na: lrp_company_id, ty: INT, fk: company.company_id, dc: "lrp company id" }
+          # a001
+          - { na: manuf_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: manuf_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: manuf_addr_en, ty: VARCHAR(100), dc: "address (english)" }
+          - { na: manuf_addr_zh, ty: VARCHAR(100), dc: "address (chinese)" }
+          - { na: manuf_post_code, ty: VARCHAR(20), dc: "post code" }
+          - { na: manuf_contact, ty: VARCHAR(100), dc: "contact person" }
+          - { na: manuf_phone, ty: VARCHAR(50), dc: "telephone" }
+          - { na: manuf_ctry, ty: VARCHAR(20), dc: "country" }
+          - { na: manuf_fax, ty: VARCHAR(50), dc: "fax no." }
+          - { na: manuf_email, ty: VARCHAR(100), dc: "email" }
+          - { na: manuf_url, ty: VARCHAR(100), dc: "website URL" }
+          # a002
+          - { na: manuf_hk, ty: CHAR(1), dc: "has registered place of business in HK, Y/N" }
+          - { na: manuf_br_no, ty: CHAR(20), dc: "BR no." }
+          - { na: manuf_br_exp_date, ty: DATE, dc: "BR expiry date" }
+          - { na: manuf_hk_contact, ty: VARCHAR(100), dc: "contact person" }
+          - { na: manuf_hk_phone, ty: VARCHAR(50), dc: "telephone" }
+          - { na: manuf_hk_fax, ty: VARCHAR(50), dc: "fax no." }
+          - { na: manuf_hk_email, ty: VARCHAR(100), dc: "email" }
+          # a003
+          - { na: manuf_qms_type, ty: VARCHAR(20), dc: "qms type, F: full quality management system, P: partial quality management system" }
+          - { na: manuf_qms_partial_descr, ty: VARCHAR(100), dc: "description for partial quality management system" }
+          - { na: manuf_iso_opt, ty: VARCHAR(20), dc: "ISO standard" }
+          - { na: manuf_iso_cert_by, ty: VARCHAR(50), dc: "ISO cert by" }
+          - { na: manuf_iso_exp_date, ty: DATE, dc: "iso expiry date" }
+          # a004
+          - { na: lrp_designate, ty: CHAR(1), dc: "has the manufacturer designated LRP, Y/N" }
+          # b001
+          - { na: lrp_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: lrp_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: lrp_hk, ty: CHAR(1), dc: "has registered place of business in HK, Y/N" }
+          - { na: lrp_br_no, ty: CHAR(20), dc: "BR no." }
+          - { na: lrp_br_exp_date, ty: DATE, dc: "BR expiry date" }
+          - { na: lrp_phone, ty: CHAR(50), dc: "public enquiry telephone" }
+          - { na: lrp_contact, ty: TEXT, dc: "Contact persons in JSON format" }
+          # b002
+          - { na: lrp_designate_date, ty: DATE, dc: "designate date by manufacturer" }
+          # b003
+          - { na: lrp_qms_opt, ty: VARCHAR(50), dc: "established QMS, ISO9001,ISO13485,None" }
+          - { na: lrp_iso_cert_by, ty: VARCHAR(50), dc: "ISO cert by" }
+          - { na: lrp_iso_exp_date, ty: DATE, dc: "iso expiry date" }
+          # b004
+          - { na: lrp_has_md, ty: VARCHAR(2), dc: "W: applicant already has listed device, WO: applicant does not have listed device" }
+          - { na: lrp_no, ty: VARCHAR(50), dc: "LRP no." }
+          - { na: lrp_chg_sop, ty: CHAR(1), dc: "Y: Procedure changed, N: no change" }
+          # b005
+          - { na: lrp_imp_dis, ty: CHAR(1), dc: "LRP is also an importer or distributor" }
+          - { na: lrp_imp_no, ty: VARCHAR(50), dc: "listing importer no." }
+          - { na: lrp_dis_no, ty: VARCHAR(50), dc: "listing distributor no." }
+          # b006
+          - { na: lrp_list_dev, ty: CHAR(1), dc: "device is a listed device" }
+          - { na: lrp_list_dev_no, ty: VARCHAR(50), dc: "listed deviced no." }
+          # c001
+          - { na: dev_make_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: dev_make_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: dev_brand_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: dev_brand_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: dev_model_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: dev_model_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: dev_model, ty: TEXT, dc: "[{ nameEn: string(english), nameZh: string(chinese) }]" }
+          # c002
+          - { na: dev_family, ty: VARCHAR(10), dc: "S: single device, F: device family, I: device series, M: device system" }
+          - { na: dev_ivd_comp, ty: VARCHAR(10), dc: "IVDMD components: R: reagent, M: control material, C: calibrator, O: others" }
+          - { na: dev_ivd_comp_other, ty: VARCHAR(100), dc: "other components, when dev_ivd_comp=O" }
+          - { na: dev_ivd_req, ty: VARCHAR(100), dc: "additional required information of IVDMD" }
+          # c003
+          - { na: dev_descr, ty: VARCHAR(100), dc: "description" }
+          - { na: dev_amdns_code, ty: VARCHAR(50), dc: "AMDNS Code" }
+          - { na: dev_other_code, ty: VARCHAR(50), dc: "other codes" }
+          # c004
+          - { na: dev_comm_descr, ty: VARCHAR(100), dc: "other common descriptions" }
+          # c005
+          - { na: dev_use_name_en, ty: VARCHAR(100), dc: "intended use (english)" }
+          - { na: dev_use_name_zh, ty: VARCHAR(100), dc: "intended use (chinese)" }
+          # c007
+          - { na: dev_human_body, ty: CHAR(1), dc: "act on the human body, Y/N" }
+          - { na: dev_human_cell, ty: CHAR(1), dc: "incorporating human cells/tissues/derivatives, Y/N" }
+          - { na: dev_animal_cell, ty: CHAR(1), dc: "incorporating animal cells/tissues/derivatives, Y/N" }
+          - { na: dev_active, ty: CHAR(1), dc: "is an active device, Y/N" }
+          - { na: dev_active_opt, ty: VARCHAR(50), dc: "PE: control the performance, PA: monitor parameters, DI: diagnosing, EX: exchange energy, NO: none of the above" }
+          - { na: dev_invasive, ty: CHAR(1), dc: "invasive device, Y/N" }
+          - { na: dev_noninvasive_opt, ty: VARCHAR(50), dc: "SK: injured skin, CL: Class II or a higher class, CH: channelling blood, CO: modifying the composition of blood, NO: none of the above, when dev_invasive=N" }
+          - { na: dev_invasive_opt, ty: VARCHAR(50), dc: "BO, CL, OC, SE, BE, AD, DC, UG, NO: none of the above, when dev_invasive=Y" }
+          - { na: dev_invasive_none_opt, ty: CHAR(1), dc: "T: transient use, S: short-term use, L: long-term use, when dev_invasive_opt=NO" }
+          - { na: dev_dress_opt, ty: VARCHAR(50), dc: "BA: mechanical barrier, MI: manage the microenvironment, DE: breached the dermis, IM: impregnated with medicinal products" }
+          # c008
+          - { na: dev_class, ty: CHAR(1), dc: "2: Class II, 3: Class 3, 4: Class IV" }
+          - { na: dev_class_reason, ty: VARCHAR(100), dc: "reasons for classifying the device" }
+          # c009
+          - { na: dev_sites, ty: TEXT, dc: "Manufacturing sites" }
+          # c010: History of previous recalls
+          - { na: recall, ty: CHAR(1), dc: "history of previous recalls" }
+          - { na: recall_opt, ty: VARCHAR(50), dc: "W: completed or in progress, I: incidents bearing, B: banned previously, P: proactive studies" }
+          # c011: Usage
+          - { na: usage_opt, ty: VARCHAR(50), dc: "SI: single use, ST: sterile product, DI: disposal device, HE: use by healthcare, LA: use by laypersons, SE: self-use" }
+          # c012: Repair and Servicing
+          - { na: repair_opt, ty: VARCHAR(10), dc: "R: requires regular servicing, H: servicing provided in HK, S: technical support provided by the manufacturer" }
+          - { na: repair_hk_opt, ty: VARCHAR(10), dc: "A: all of repairs performed in HK, P: part of the repairs performed in HK" }
+          # c013: Labelling Requirements
+          - { na: lbl_lang_opt, ty: VARCHAR(100), dc: "label language, EN/ZH" }
+          - { na: lbl_copy, ty: CHAR(1), dc: "a set of copies of device labelling is enclosed, Y/N" }
+          - { na: lbl_elec, ty: CHAR(1), dc: "electronic labelling is available, Y/N" }
+          - { na: lbl_elec_text, ty: VARCHAR(100), dc: "electronic labelling text" }
+          - { na: lbl_spec, ty: CHAR(1), dc: "sample of special listing information is enclosed, Y/N" }
+          - { na: lbl_ind_use, ty: VARCHAR(100), dc: "indications for use of the device" }
+          - { na: lbl_contraind_use, ty: VARCHAR(100), dc: "contraindications against use of the device" }
+          - { na: lbl_clean_proc, ty: VARCHAR(100), dc: "cleaning, disinfection and/or sterilization procedures" }
+          - { na: lbl_user_prec, ty: VARCHAR(100), dc: "user precautions" }
+          - { na: lbl_disposal_prec, ty: VARCHAR(100), dc: "disposal precautions" }
+          # c014: Licencing Requirements
+          - { na: ordinance_ro, ty: CHAR(1), dc: "radiation ordinance, Y/N" }
+          - { na: ordinance_ppo, ty: CHAR(1), dc: "pharmacy and poisons ordinance, Y/N" }
+          - { na: ordinance_ao, ty: CHAR(1), dc: "antibiotics ordinance, Y/N" }
+          - { na: ordinance_ddo, ty: CHAR(1), dc: "dangerous drugs ordinance, Y/N" }
+          # c015(MD)/c016(IVD)
+          - { na: cab, ty: CHAR(1), dc: "conformity assessment, Y/N" }
+          - { na: cab_no, ty: VARCHAR(50), dc: "conformity assessment body number" }
+          # c015(IVD)
+          - { na: cab_batch, ty: VARCHAR(1), dc: "B: IVDMD is included, O: others" }
+          - { na: cab_batch_other, ty: VARCHAR(100), dc: "other batch release verification" }
+          # c016: Safety and Risk Analysis
+          - { na: ra_standard, ty: VARCHAR(100) }
+          - { na: ra_analys_rpt, ty: CHAR(1), dc: "risk analysis conducted: report or summary is enclosed" }
+          - { na: ra_tytest_rpt, ty: CHAR(1), dc: "type test performed: report or test certificate is enclosed" }
+          # c017: Evaluation
+          - { na: eval_rpt, ty: CHAR(1), dc: "clinical investigation report enclosed, Y/N" }
+          - { na: eval_demo, ty: CHAR(1), dc: "demo of equivalence to another device, Y/N" }
+          - { na: eval_demo_device_rpt, ty: CHAR(1), dc: "clinical investigation report of the equivalent device and a report of demonstration of equivalence are enclosed, Y/N" }
+          - { na: eval_demo_product_rpt, ty: CHAR(1), dc: "report demo full equivalence to a well established product is enclosed, Y/N" }
+          # d001: Marketing Approvals in Foreign Countries
+          - { na: mkt_appr_ctry, ty: CHAR(1), dc: "Y / empty" }
+          - { na: mkt_appr_ctry_opt, ty: VARCHAR(100) }
+          - { na: mkt_appr_princ, ty: VARCHAR(10), dc: "essential principles, B: approval on or before 2004-12-31, A: on or after 2005-01-01" }
+          - { na: mkt_appr_princ_after_opt, ty: VARCHAR(10), dc: "MDIVDCCL, MDCCL, EU" }
+          # part e
+          - { na: optout_expedite, ty: CHAR(1), dc: "opt-out from joining the expedited approval schema, Y/N" }
+          # declaration
+          - { na: ack_decl, ty: CHAR(1), dc: "acknowledge declaration, Y/N" }
+          # internal information
+          - { na: create_user_type, ty: CHAR(1), dc: "P: individual, I: internal user" }
+          # Workflow stage
+          - { na: last_status, ty: VARCHAR(15), dc: "last application status" }
+          - { na: status, ty: VARCHAR(15), dc: "application status" }
+
+      - name: md_scn_doc
+        desc: "Relationship table between md and doc"
+        columns:
+          - { na: md_scn_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_scn_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+          - { na: doc_type, ty: VARCHAR(5), dc: "document type, BR: business registration, CR: QMS certificate, ML: manufacturer designation letter, DL: device labelling, SL: special listing label sample, LR303: licencing requirement (Cap.303), LR138, LR137, LR134, RR: risk analysis report, TR: risk test report, ER: evaluation report, ED: evaluation demo report" }
+
+      - name: md_app
+        title: MD application
+        desc: "Table for storing MD application records"
+        columns:
+          - { na: md_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: assign_date, ty: DATE, dc: "date assigning application to vo by screening officer" }
+          # certificate information
+          - { na: list_id, ty: INT }
+          # applicaiton information
+          - { na: md_scn_id, ty: INT, nu: Y, fk: md_scn.md_scn_id, dc: "screen application id" }
+          - { na: app_no, ty: VARCHAR(20), dc: "Parent application number., Application Number assigned after screening is completed, format ANxxxxxx, not unique as ‘renew’ and ‘change’ applications may share the same ID as their original ‘new’ application" }
+          - { na: app_suffix, ty: VARCHAR(2), dc: "Format: a, b, c, d,…, When an application is split, the split ones share the same Application Number but different Split ID" }
+          - { na: revision, ty: INT, dc: "revision of application, format: 1, 2, 3" }
+          - { na: cat, ty: CHAR(3), dc: "category, M: Md, MT: Md trial scheme, I:ivd, IT: ivd trial scheme" }
+          - { na: app_type, ty: CHAR(2), dc: "application type, N: new, C: change, R: renew, D: delist, A: appeal, RC: renew + change" }
+          - { na: vo_id, ty: INTEGER, fk: person.person_id, dc: "vetting officer" }
+          - { na: recv_date, ty: DATE, dc: "date receiving application" }
+          - { na: key_doc_recv_date, ty: DATE, dc: "date key document received by scno" }
+          - { na: ack_date, ty: DATE, dc: "date of acknowledgement" }
+          - { na: prior_tag_id, ty: INT, fk: tag.tag_id, dc: "priority tag" }
+          # applicant information
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "applicant user id" }
+          - { na: lrp_company_id, ty: INT, fk: company.company_id, dc: "LRP company id" }
+          - { na: lrp_app_id, ty: INT, fk: lrp_app.lrp_app_id, dc: "LRP application id (for new LRP)" }
+          # MDLAB approval information
+          - { na: mdlab_appr_date, ty: DATE, dc: "date of approval" }
+          - { na: mdlab_withdraw_date, ty: DATE, dc: "date of withdraw" }
+          - { na: mdlab_close_date, ty: DATE, dc: "date of case close" }
+          - { na: mdlab_case_compl_date, ty: DATE, dc: "case completion date" }
+          - { na: mdlab_notify_date, ty: DATE, dc: "date of notification email issued by mdd" }
+          - { na: mdlab_gr_recv_date, ty: DATE, dc: "date certificate received by GR" }
+          - { na: mdlab_gr_collect_date, ty: DATE, dc: "date collection notification email sent by GR" }
+          - { na: mdlab_cert_collect_date, ty: DATE, dc: "date certificate collected by applicant" }
+          - { na: mdlab_gr_cert_file_date, ty: DATE, dc: "date certificate copy filed by GR" }
+          # other information
+          - { na: req_track, ty: CHAR(1), dc: "required tracking, Y/N" }
+          - { na: req_pms_rpt, ty: CHAR(1), dc: "required PMS report, Y/N" }
+          - { na: last_pms_rpt_date, ty: DATE, dc: "last PMS report date" }
+          - { na: cnt_cosm_ind, ty: CHAR(1), dc: "contained cosmetic indication, Y/N" }
+          - { na: self_use_dev, ty: CHAR(1), dc: "self-use device, Y/N" }
+          - { na: cnt_anim_cell, ty: CHAR(1), dc: "contained animal cells/tissues/derivatives, Y/N" }
+          - { na: sys_num, ty: VARCHAR(10), dc: "no. of system" }
+          - { na: ser_num, ty: VARCHAR(10), dc: "no. of series" }
+          - { na: fam_num, ty: VARCHAR(10), dc: "no. of family" }
+          - { na: md_ttl, ty: VARCHAR(10), dc: "total no. of MD(s)" }
+          - { na: laser_cls, ty: VARCHAR(50), dc: "laser class" }
+          - { na: laser_type, ty: VARCHAR(50), dc: "laser type" }
+          - { na: laser_app, ty: VARCHAR(100), dc: "laser application" }
+          - { na: recall, ty: VARCHAR(100), dc: "recall/FSM/AI history" }
+          # pharmaceutical / chemical information
+          - { na: cnt_chem, ty: CHAR(1), dc: "contain pharmaceutical/chemical substances" }
+          - { na: chem_subs_name, ty: VARCHAR(100), dc: "name of chemical substance" }
+          - { na: chem_subs_qty, ty: INT, dc: "quantity / concentration of substance" }
+          - { na: chem_ref_no, ty: VARCHAR(50), dc: "reference application number" }
+          - { na: chem_claim_act, ty: VARCHAR(100), dc: "claimed action of the clemical substance" }
+          - { na: chem_claim_use, ty: VARCHAR(100), dc: "claimed use of the combination product" }
+          # DO replay
+          - { na: do_id, ty: INT, dc: "DO response officer ID" }
+          - { na: do_pharm, ty: CHAR(1), dc: "pharmaceutical / chemical Substance, Y/N" }
+          - { na: do_pharm_prod, ty: CHAR(1), dc: "pharmaceutical product, Y/N" }
+          - { na: do_pharm_prod_descr, ty: VARCHAR(100), dc: "pharmaceutical product description" }
+          - { na: do_regulate, ty: CHAR(1), dc: "Regulated by DO ordinance, Y/N" }
+          - { na: do_regulate_descr, ty: VARCHAR(100), dc: "Regulated by DO ordinance description" }
+          - { na: do_indication, ty: VARCHAR(100), dc: "usual indication when used in medicine" }
+          - { na: do_dosage, ty: VARCHAR(100), dc: "usual dosage when used in medicine" }
+          - { na: do_precaution, ty: CHAR(1), dc: "precautions / contraindications, Y/N" }
+          - { na: do_precaution_descr, ty: VARCHAR(100) }
+          - { na: do_side_effect, ty: CHAR(1), dc: "side effects, Y/N" }
+          - { na: do_side_effect_descr, ty: VARCHAR(100) }
+          - { na: do_reg_prod, ty: CHAR(1), dc: "substance found in registered pharmaceutical products, Y/N" }
+          - { na: do_reg_prod_descr, ty: VARCHAR(100) }
+          - { na: do_cmt, ty: VARCHAR(100), dc: "other comments" }
+          # manufacturer
+          - { na: manuf_company_id, ty: INT, fk: company.company_id, dc: "manufacturer company id" }
+          - { na: manuf_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: manuf_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: manuf_addr_en, ty: VARCHAR(100), dc: "address (english)" }
+          - { na: manuf_addr_zh, ty: VARCHAR(100), dc: "address (chinese)" }
+          - { na: manuf_post_code, ty: VARCHAR(20), dc: "post code" }
+          - { na: manuf_ctry, ty: VARCHAR(20), dc: "country" }
+          - { na: manuf_qms_cert_no, ty: VARCHAR(50), dc: "QMS cert. no." }
+          - { na: manuf_qms_exp_date, ty: DATE, dc: "QMS expiry date" }
+          # device
+          - { na: dev_make_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: dev_make_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: dev_brand_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: dev_brand_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: dev_model_name_en, ty: VARCHAR(100), dc: "name (english)" }
+          - { na: dev_model_name_zh, ty: VARCHAR(100), dc: "name (chinese)" }
+          - { na: dev_model, ty: TEXT, dc: "[{ nameEn: string(english), nameZh: string(chinese) }]" }
+          - { na: dev_descr, ty: VARCHAR(100), dc: "description" }
+          - { na: dev_amdns_code, ty: VARCHAR(50), dc: "AMDNS code" }
+          - { na: dev_amdns_term, ty: VARCHAR(50), dc: "AMDNS term" }
+          - { na: dev_gmdn_code, ty: VARCHAR(50), dc: "GMDN code" }
+          # Internal information
+          - { na: vo_edit, ty: CHAR(1), dc: "Designate VO right to edit, Flag for MDLAB Secretary use to delegate subject level 2 user right to edit a approved/close/withdrawn case , , Values: y = VO editable after approval; n = not editable" }
+          - { na: lab_ready_date, ty: DATE, dc: "date for the ase ready to mdlab, this is a flag date for secretary use to demarcate cases in generating fask track report" }
+          - { na: req_info_rec_date, ty: DATE, dc: "date all required information received" }
+          - { na: ff_id, ty: VARCHAR(15), fk: ff.ff_id, dc: "file folder id, file folder id" }
+          - { na: submit_hardcopy, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: urgent, ty: CHAR(1), dc: "identify urgency, flag to identify is the application an urgent application, Y/N" }
+          # Workflow stage
+          - { na: last_status, ty: VARCHAR(15), dc: "last application status" }
+          - { na: status, ty: VARCHAR(15), dc: "application status" }
+
+      - name: md_dev
+        desc: "Relationship tabel between md and device"
+        columns:
+          - { na: md_dev_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, cd: "0.*:1", dc: "md app id" }
+          - { na: dev_make_id, ty: INT, nu: Y, fk: dev_make.dev_make_id, cd: "0.*:1", dc: "product make id" }
+          - { na: dev_brand_id, ty: INT, fk: dev_brand.dev_brand_id, cd: "0.*:1", dc: "product brand id" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, cd: "0.*:1", dc: "product model id" }
+
+      - name: md_doc
+        desc: "Relationship table between md and doc"
+        columns:
+          - { na: md_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+          - { na: type, ty: INT, dc: "document type" }
+          - { na: ver, ty: INT, dc: "document version" }
+
+      - name: md_convo
+        desc: "Relationship table between md and conversation"
+        columns:
+          - { na: md_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: md_tag
+        desc: "Relationship table between md and tag"
+        columns:
+          - { na: md_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: tag_id, ty: INT, nu: Y, fk: tag.tag_id, dc: "tag id" }
+
+      - name: md_mkt_appr
+        desc: "Table for storing md marketing approval"
+        columns:
+          - { na: md_mkt_appr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: origin, ty: VARCHAR(50), dc: "origin" }
+          - { na: appr_type, ty: VARCHAR(50), dc: "type" }
+          - { na: cert_reg_id, ty: INT, fk: cert_reg.cert_reg_id, dc: "cert id" }
+          - { na: ecnb_id, ty: INT, dc: "ecnb id" }
+          - { na: cab_list_id, ty: INT, fk: cab_list.cab_list_id, dc: "cab listing id" }
+          - { na: cert_no, ty: VARCHAR(50), dc: "cert number" }
+          - { na: iss_date, ty: DATE, dc: "Issue date" }
+          - { na: rev_date, ty: DATE, dc: "revise date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+
+      - name: md_mkt_appr_doc
+        desc: "Relationship table between md marketing approval and doc"
+        columns:
+          - { na: md_mkt_appr_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_mkt_appr_id, ty: INT, nu: Y, fk: md_mkt_appr.md_mkt_appr_id, dc: "md marketing approval id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: md_do
+        desc: "Relationship table between md and drug office"
+        columns:
+          - { na: md_do_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md app id" }
+          - { na: do_file_ref, ty: VARCHAR(50), dc: "drug office reference" }
+          - { na: do_officer, ty: VARCHAR(50), dc: "drug officer" }
+          - { na: chem_do_dtl, ty: VARCHAR(300), dc: "drug office chemical details" }
+          - { na: do_comment, ty: VARCHAR(300), dc: "drug officer comments" }
+
+      - name: md_do_list
+        desc: ""
+        columns:
+          - { na: md_do_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: md_do_id, ty: INT, nu: Y, fk: md_do.md_do_id, dc: "md drug office id" }
+          - { na: enquiry_date, ty: DATE, dc: "enquiry date" }
+          - { na: reply_date, ty: DATE, dc: "reply date" }
+
+      - name: ipd_list
+        desc: "Table for storing listing importer/distributor records"
+        columns:
+          - { na: ipd_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ipd_app_id, ty: INT, nu: Y, dc: "ipd app id, show the latest ipd application id" }
+          - { na: batch_id, ty: VARCHAR(20), dc: "for generation of batch listing in cover letter and certificate" }
+          - { na: revision, ty: VARCHAR(4), dc: "revision of list., Format: a, b, c, d" }
+          - { na: ipd_list_no, ty: VARCHAR(20), nu: Y, dc: "md listing number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: cover_ref, ty: VARCHAR(5), dc: "enclosure number for the listing certificate cover letter" }
+          - { na: issue_date, ty: DATE, dc: "issue date" }
+          - { na: delist_date, ty: DATE, dc: "delist date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+          - { na: remark_en, ty: VARCHAR(200), dc: "secretary remark in english content shown in the public list" }
+          - { na: remark_zh, ty: VARCHAR(100), dc: "secretary remark in chinese content shown in the public list" }
+          - { na: case_compl_date, ty: DATE, dc: "case completion date" }
+          - { na: gr_cert_rec_date, ty: DATE, dc: "Date certificate received by GR" }
+          - { na: gr_cert_notify_date, ty: DATE, dc: "Date collection notification email sent by GR" }
+          - { na: gr_cert_collect_date, ty: DATE, dc: "Date certificate collected by applicant" }
+          - { na: gr_cert_file_date, ty: DATE, dc: "Date certificate copy filed by GR" }
+          - { na: lab_user_id, ty: INT, fk: person.person_id, dc: "lab chairperson user profile id" }
+          - { na: list_stats, ty: CHAR(1), dc: "listing deleted, V: valid, D: delist, E: expiry, R: renewal in progress, TD: temporary delisted" }
+
+      - name: ipd_app
+        desc: "Table for storing importer and distributor records"
+        columns:
+          - { na: ipd_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: company_name_en, ty: VARCHAR(200) }
+          - { na: company_name_zh, ty: VARCHAR(100) }
+          - { na: ipd_screen_no, ty: VARCHAR(20) }
+          - { na: ipd_app_no, ty: VARCHAR(10) }
+          - { na: ipd_app_preflix, ty: VARCHAR(2) }
+          - { na: revision, ty: INT }
+          - { na: ipd_list_no, ty: VARCHAR(15) }
+          - { na: ipd_app_no_display, ty: VARCHAR(15) }
+          - { na: ipd_type, ty: CHAR(1), dc: "I:importer, D: distributor" }
+          - { na: is_submit_hardcopy, ty: CHAR(1) }
+          - { na: ff_id, ty: VARCHAR(15), fk: ff.ff_id, dc: "file folder id" }
+          - { na: route_id, ty: INT }
+          - { na: is_urgent, ty: CHAR(1) }
+          - { na: receive_date, ty: DATE }
+          - { na: scno_date, ty: DATE }
+          - { na: ack_date, ty: DATE }
+          - { na: assign_date, ty: DATE }
+          - { na: appr_date, ty: DATE }
+          - { na: withdraw_date, ty: DATE }
+          - { na: close_date, ty: DATE }
+          - { na: case_cmplt_date, ty: DATE }
+          - { na: notify_date, ty: DATE }
+          - { na: gr_recevie_date, ty: DATE }
+          - { na: gr_collect_date, ty: DATE }
+          - { na: cert_collect_date, ty: DATE }
+          - { na: gr_cert_file_date, ty: DATE }
+          - { na: company_id, ty: CHAR(1), dc: "B: body corporate, P: Partnership" }
+          # - { na: br_no, ty: }
+          # - { na: br_exp_date, ty: }
+          # - { na: cr_no, ty: }
+          # - { na: cr_issue_date, ty: }
+          - { na: biz_name_en, ty: VARCHAR(200) }
+          - { na: biz_name_zh, ty: VARCHAR(100) }
+          - { na: is_manuf, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: manuf_app_id, ty: INT, fk: manuf_app.manuf_app_id }
+          - { na: manuf_list_no, ty: VARCHAR(15), dc: "manufacturer listing number" }
+          - { na: is_lrp, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: lrp_id, ty: INT }
+          - { na: lrp_list_no, ty: VARCHAR(15), dc: "lrp listing number" }
+          - { na: is_imp, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: imp_id, ty: INT }
+          - { na: imp_list_no, ty: VARCHAR(15), dc: "importer  listing number" }
+          - { na: is_distributor, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: distributor_id, ty: INT }
+          - { na: distributor_list_no, ty: VARCHAR(15), dc: "distributor listing number" }
+          - { na: qms_type, ty: CHAR(1), dc: "C: with cert body, I: has not been certified, N: no qms" }
+          - { na: qms_cert_body, ty: VARCHAR(100) }
+          - { na: qms_cert_no, ty: VARCHAR(50) }
+          - { na: qms_exp_date, ty: DATE }
+          - { na: app_remark_en, ty: VARCHAR(300), dc: "application remark in english" }
+          - { na: app_remark_zh, ty: VARCHAR(300), dc: "application remark in chinese" }
+          - { na: vo_remark, ty: VARCHAR(300), dc: "vo remark" }
+          - { na: sec_remark, ty: VARCHAR(300), dc: "secretary remark" }
+          - { na: gr_remark, ty: VARCHAR(300), dc: "gr remark" }
+          - { na: scno_user_id, ty: INT, fk: person.person_id, dc: "screening officer user profile id" }
+          - { na: vo_user_id, ty: INT, fk: person.person_id, dc: "vo user profile id" }
+          - { na: sec_user_id, ty: INT, fk: person.person_id, dc: "secretary user profile id" }
+          - { na: app_deleted, ty: INT }
+
+      - name: ipd_tag
+        desc: "Relationship table between ipd and tag"
+        columns:
+          - { na: ipd_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ipd_app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+          - { na: tag_id, ty: INT, nu: Y, dc: "tag id" }
+
+      - name: ipd_convo
+        desc: "Relationship table between ipd and conversation"
+        columns:
+          - { na: ipd_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ipd_app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: ipd_doc
+        desc: "Relationship table between ipd and doc"
+        columns:
+          - { na: ipd_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ipd_app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: ipd_addr
+        desc: "Relationship table between ipd and address"
+        columns:
+          - { na: ipd_addr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ipd_app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+          - { na: addr_type, ty: CHAR(1), dc: "H:head office, S: storage facility, M: maintenance, O: other" }
+          - { na: other_type, ty: VARCHAR(100) }
+          - { na: addr_descr, ty: VARCHAR(300) }
+          - { na: facility_activity, ty: VARCHAR(100) }
+          - { na: addr_id, ty: INT, fk: addr.addr_id, dc: "address id" }
+
+      - name: ipd_insp
+        desc: "Relationship table between ipd and inspection"
+        columns:
+          - { na: ipd_insp_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id, dc: "inspection id" }
+          - { na: ipd_app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+
+      - name: ipd_person
+        desc: "Relationship table between ipd and person"
+        columns:
+          - { na: ipd_person_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+          - { na: idp_type, ty: CHAR(1), dc: "o:office" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id, dc: "person id" }
+
+      - name: ipd_dev
+        desc: "Relationship table between ipd and product"
+        columns:
+          - { na: ipd_dev_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, dc: "model id" }
+          - { na: ipd_app_id, ty: INT, nu: Y, fk: ipd_app.ipd_app_id, dc: "ipd application id" }
+
+      - name: manuf_list
+        desc: "Table for storing listing local manufacturer records"
+        columns:
+          - { na: manuf_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, dc: "manuf app id, show the latest manufacturer  application id" }
+          - { na: batch_id, ty: VARCHAR(20), dc: "for generation of batch listing in cover letter and certificate" }
+          - { na: revision, ty: VARCHAR(4), dc: "revision of list., Format: a, b, c, d" }
+          - { na: manuf_list_no, ty: VARCHAR(20), nu: Y, dc: "manufacturer  listing number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: cover_ref, ty: VARCHAR(5), dc: "enclosure number for the listing certificate cover letter" }
+          - { na: issue_date, ty: DATE, dc: "issue date" }
+          - { na: delist_date, ty: DATE, dc: "delist date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+          - { na: remark_en, ty: VARCHAR(200), dc: "secretary remark in english content shown in the public list" }
+          - { na: remark_zh, ty: VARCHAR(100), dc: "secretary remark in chinese content shown in the public list" }
+          - { na: case_compl_date, ty: DATE, dc: "case completion date" }
+          - { na: gr_cert_rec_date, ty: DATE, dc: "Date certificate received by GR" }
+          - { na: gr_cert_notify_date, ty: DATE, dc: "Date collection notification email sent by GR" }
+          - { na: gr_cert_collect_date, ty: DATE, dc: "Date certificate collected by applicant" }
+          - { na: gr_cert_file_date, ty: DATE, dc: "Date certificate copy filed by GR" }
+          - { na: lab_user_id, ty: INT, fk: person.person_id, dc: "lab chairperson user profile id" }
+          - { na: list_stats, ty: CHAR(1), dc: "listing deleted, V: valid, D: delist, E: expiry, R: renewal in progress, TD: temporary delisted" }
+
+      - name: manuf_app
+        desc: "Table for storing local manufacturer records"
+        columns:
+          - { na: manuf_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: manuf_name_en, ty: VARCHAR(200) }
+          - { na: manuf_name_zh, ty: VARCHAR(100) }
+          - { na: manuf_screen_no, ty: VARCHAR(20) }
+          - { na: manuf_app_no, ty: VARCHAR(10) }
+          - { na: manuf_app_preflix, ty: VARCHAR(2) }
+          - { na: num_employee, ty: VARCHAR(20) }
+          - { na: revision, ty: INT }
+          - { na: manuf_list_no, ty: VARCHAR(15) }
+          - { na: manuf_app_no_display, ty: VARCHAR(15) }
+          - { na: app_type, ty: CHAR(1), dc: "I:importer, D: distributor" }
+          - { na: is_submit_hardcopy, ty: CHAR(1) }
+          - { na: ff_id, ty: VARCHAR(15), fk: ff.ff_id, dc: "file folder id" }
+          - { na: route_id, ty: INT }
+          - { na: is_urgent, ty: CHAR(1) }
+          - { na: receive_date, ty: DATE }
+          - { na: scno_date, ty: DATE }
+          - { na: ack_date, ty: DATE }
+          - { na: assign_date, ty: DATE }
+          - { na: appr_date, ty: DATE }
+          - { na: withdraw_date, ty: DATE }
+          - { na: close_date, ty: DATE }
+          - { na: case_cmplt_date, ty: DATE }
+          - { na: notify_date, ty: DATE }
+          - { na: gr_recevie_date, ty: DATE }
+          - { na: gr_collect_date, ty: DATE }
+          - { na: cert_collect_date, ty: DATE }
+          - { na: gr_cert_file_date, ty: DATE }
+          - { na: company_id, ty: CHAR(1), dc: "B: body corporate, P: Partnership" }
+          - { na: br_no, ty: VARCHAR(15) }
+          - { na: br_exp_date, ty: DATE }
+          - { na: qms_type, ty: CHAR(1), dc: "I:iso 13485, O: other" }
+          - { na: other_qms_type, ty: VARCHAR(50), dc: "other qms type" }
+          - { na: qms_cert_body, ty: VARCHAR(100) }
+          - { na: qms_cert_no, ty: VARCHAR(20) }
+          - { na: qms_exp_date, ty: DATE }
+          - { na: is_qms_ddc, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: cert_scope_remark, ty: VARCHAR(300), dc: "Scope of certification remarks" }
+          - { na: is_qms_outsource, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: outsource_remark, ty: VARCHAR(300) }
+          - { na: doc_procedure_list, ty: VARCHAR(10), dc: "C: complaints handling, A: reportable adverse incident in hk, R: recalls" }
+          - { na: app_remark_en, ty: VARCHAR(300), dc: "application remark in english" }
+          - { na: app_remark_zh, ty: VARCHAR(300), dc: "application remark in chinese" }
+          - { na: vo_remark, ty: VARCHAR(300), dc: "vo remark" }
+          - { na: sec_remark, ty: VARCHAR(300), dc: "secretary remark" }
+          - { na: gr_remark, ty: VARCHAR(300), dc: "gr remark" }
+          - { na: scno_user_id, ty: INT, fk: person.person_id, dc: "screening officer user profile id" }
+          - { na: vo_user_id, ty: INT, fk: person.person_id, dc: "vo user profile id" }
+          - { na: sec_user_id, ty: INT, fk: person.person_id, dc: "secretary user profile id" }
+          - { na: manuf, ty }
+
+      - name: manuf_tag
+        desc: "Relationship table between manuf and tag"
+        columns:
+          - { na: manuf_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: tag_id, ty: INT, nu: Y, dc: "tag id" }
+
+      - name: manuf_convo
+        desc: "Relationship table between manuf and conversation"
+        columns:
+          - { na: manuf_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: manuf_doc
+        desc: "Relationship table between manuf and doc"
+        columns:
+          - { na: manuf_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: manuf_addr
+        desc: "Relationship table between manuf and address"
+        columns:
+          - { na: manuf_addr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: addr_type, ty: CHAR(1), dc: "M: manufacturer, S: site" }
+          - { na: other_type, ty: VARCHAR(100) }
+          - { na: addr_id, ty: INT, fk: addr.addr_id, dc: "address id" }
+          - { na: oversea_en, ty: VARCHAR(300), dc: "oversea address in english" }
+          - { na: oversea_zh, ty: VARCHAR(300), dc: "oversea address in chinese" }
+          - { na: employee_no, ty: INT, dc: "number of employee" }
+
+      - name: manuf_insp
+        desc: "Relationship table between manuf and inspection"
+        columns:
+          - { na: manuf_insp_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id, dc: "inspection id" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+
+      - name: manuf_person
+        desc: "Relationship table between manuf and person"
+        columns:
+          - { na: manuf_person_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: person_type, ty: CHAR(1), dc: "M: manufacturer, R: management representative, d: deputy management representative, M: manufacturer, R: management representative, d: deputy management representative" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id, dc: "person id" }
+
+      - name: manuf_class
+        desc: "Table for storing local manufacturer product class"
+        columns:
+          - { na: manuf_class_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: class_type, ty: CHAR(4), nu: Y, dc: "md1,md2,md3,md4,ivda,ivdb,ivdc,ivdd" }
+
+      - name: manuf_dev
+        desc: "Table for storing local manufacturer product per class"
+        columns:
+          - { na: manuf_dev_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_class_id, ty: INT, nu: Y, fk: manuf_class.manuf_class_id, dc: "manufacturer class id" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, dc: "model id" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+
+      - name: manuf_scope
+        desc: "Table for storing local manufacturer listed scope"
+        columns:
+          - { na: manuf_scope_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: manuf_app_id, ty: INT, nu: Y, fk: manuf_app.manuf_app_id, dc: "manufacturer application id" }
+          - { na: scope_type, ty: CHAR(1), dc: "scope type" }
+          - { na: descr, ty: VARCHAR(300), dc: "scope description" }
+
+      - name: cab_list
+        desc: ""
+        columns:
+          - { na: cab_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, dc: "cab app id, show the latest cab application id" }
+          - { na: batch_id, ty: VARCHAR(20), dc: "for generation of batch listing in cover letter and certificate" }
+          - { na: revision, ty: VARCHAR(4), dc: "revision of list., Format: a, b, c, d" }
+          - { na: cab_list_no, ty: VARCHAR(20), nu: Y, dc: "md listing number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: cover_ref, ty: VARCHAR(5), dc: "enclosure number for the listing certificate cover letter" }
+          - { na: issue_date, ty: DATE, dc: "issue date" }
+          - { na: delist_date, ty: DATE, dc: "delist date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+          - { na: remark_en, ty: VARCHAR(200), dc: "secretary remark in english content shown in the public list" }
+          - { na: remark_zh, ty: VARCHAR(100), dc: "secretary remark in chinese content shown in the public list" }
+          - { na: case_compl_date, ty: DATE, dc: "case completion date" }
+          - { na: gr_cert_rec_date, ty: DATE, dc: "Date certificate received by GR" }
+          - { na: gr_cert_notify_date, ty: DATE, dc: "Date collection notification email sent by GR" }
+          - { na: gr_cert_collect_date, ty: DATE, dc: "Date certificate collected by applicant" }
+          - { na: gr_cert_file_date, ty: DATE, dc: "Date certificate copy filed by GR" }
+          - { na: lab_user_id, ty: INT, fk: person.person_id, dc: "lab chairperson user profile id" }
+          - { na: list_stats, ty: CHAR(1), dc: "listing deleted, V: valid, D: delist, E: expiry, R: renewal in progress, TD: temporary delisted" }
+
+      - name: cab_app
+        desc: "Table for storing CAB records"
+        columns:
+          - { na: cab_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: cab_screen_no, ty: VARCHAR(20) }
+          - { na: cab_app_no, ty: VARCHAR(10) }
+          - { na: cab_app_preflix, ty: VARCHAR(2) }
+          - { na: revision, ty: INT }
+          - { na: cab_list_no, ty: VARCHAR(15) }
+          - { na: cab_app_no_display, ty: VARCHAR(15) }
+          - { na: app_type, ty: CHAR(1) }
+          - { na: is_submit_hardcopy, ty: CHAR(1) }
+          - { na: ff_id, ty: VARCHAR(15), fk: ff.ff_id, dc: "file folder id" }
+          - { na: route_id, ty: INT }
+          - { na: is_urgent, ty: CHAR(1) }
+          - { na: receive_date, ty: DATE }
+          - { na: scno_date, ty: DATE }
+          - { na: ack_date, ty: DATE }
+          - { na: assign_date, ty: DATE }
+          - { na: appr_date, ty: DATE }
+          - { na: withdraw_date, ty: DATE }
+          - { na: close_date, ty: DATE }
+          - { na: case_cmplt_date, ty: DATE }
+          - { na: notify_date, ty: DATE }
+          - { na: gr_recevie_date, ty: DATE }
+          - { na: gr_collect_date, ty: DATE }
+          - { na: cert_collect_date, ty: DATE }
+          - { na: gr_cert_file_date, ty: DATE }
+          - { na: cab_name, ty: VARCHAR(50) }
+          - { na: org_business, ty: VARCHAR(10), dc: "A: assesment and certification, P: product certification, T: testing and calibration laboratories, C: consultant, O: others" }
+          - { na: other_org_business, ty: VARCHAR(50), dc: "other organization business" }
+          # - { na: org_deleted, ty: }
+          # - { na: num_employee, ty: }
+          - { na: is_designate_cab, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: scope_designate, ty: VARCHAR(300), dc: "scope of designation / accreditation" }
+          - { na: is_large_org, ty: CHAR(1), dc: "y: yes, n: no" }
+          - { na: org_structure, ty: VARCHAR(300), dc: "scope of designation / accreditation" }
+          - { na: scope_md_class, ty: VARCHAR(50), dc: "md1,md2,md3,md4,ivda,ivdb,ivdc,ivdd" }
+          - { na: insurance_sum, ty: VARCHAR(50), dc: "Liability insurance sum insured" }
+          - { na: insurer_name, ty: VARCHAR(50), dc: "Insurer’s name" }
+          - { na: insurer_addr_id, ty: INT, fk: cab_addr.cab_addr_id, dc: "insurer's address" }
+          - { na: insurer_renew_date, ty: DATE, dc: "Renewal date" }
+
+      - name: cab_person
+        desc: "Relationship table between cab and person"
+        columns:
+          - { na: cab_person_id, ty: INT, id: Y, nu: Y }
+          - { na: person_type, ty: CHAR(3), nu: Y, dc: "CM: certification manager, LR: local representative, DLR: deputy local representative" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id }
+
+      - name: cab_facility
+        desc: "Table for storing CAB test facilities"
+        columns:
+          - { na: cab_facility_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: facility_name, ty: VARCHAR(100), dc: "Facility name" }
+          - { na: facility_addr_id, ty: INT, fk: cab_addr.cab_addr_id, dc: "facility address id" }
+          - { na: facility_cap, ty: VARCHAR(100), dc: "facility capability" }
+
+      - name: cab_expert
+        desc: "Table for storing CAB expert"
+        columns:
+          - { na: cab_expert_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: expert_name, ty: VARCHAR(100), dc: "expert name" }
+          - { na: expert_competence, ty: VARCHAR(100), dc: "expert competence" }
+
+      - name: cab_subcon
+        desc: "Table for storing CAB sub-contractors"
+        columns:
+          - { na: cab_subcon_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: subcon_name, ty: VARCHAR(100), dc: "sub contractor company name" }
+          - { na: cont_name, ty: VARCHAR(50), dc: "contact person name" }
+          - { na: cont_phone, ty: VARCHAR(50), dc: "contact person phone" }
+          - { na: cont_email, ty: VARCHAR(50), dc: "contact person email" }
+          - { na: subcon_addr_id, ty: INT, fk: cab_addr.cab_addr_id, dc: "sub contractor company address id" }
+          - { na: subcon_competence, ty: VARCHAR(100), dc: "sub contractor competence" }
+
+      - name: cab_ind_subcon
+        desc: "Table for storing CAB individual sub-contractors"
+        columns:
+          - { na: cab_ind_subcon_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: ind_name, ty: VARCHAR(50), dc: "individual name" }
+          - { na: ind_competence, ty: VARCHAR(100), dc: "individual competence" }
+
+      - name: cab_subcon_lab
+        desc: "Table for storing CAB sub-contractor test laboratories"
+        columns:
+          - { na: cab_subcon_lab_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: lab_name, ty: VARCHAR(100), dc: "laboratory name" }
+          - { na: lab_cap, ty: VARCHAR(100), dc: "laboratory capability" }
+
+      - name: cab_tag
+        desc: "Relationship table between cab and tag"
+        columns:
+          - { na: cab_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: tag_id, ty: INT, nu: Y, dc: "tag id" }
+
+      - name: cab_convo
+        desc: "Relationship table between cab and conversation"
+        columns:
+          - { na: cab_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: cab_doc
+        desc: "Relationship table between cab and doc"
+        columns:
+          - { na: cab_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: cab_addr
+        desc: "Relationship table between cab and address"
+        columns:
+          - { na: cab_addr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+          - { na: addr_type, ty: CHAR(1), dc: "C: cab, M: certificate manager, L: local representative, D: deputy local representative, O: address outside hk, F: facility, S: subcontractor, I: insurer" }
+          - { na: addr_id, ty: INT, fk: addr.addr_id, dc: "address id" }
+          - { na: oversea, ty: VARCHAR(300), dc: "oversea address" }
+
+      - name: cab_assess
+        desc: "Relationship table between cab and assessment"
+        columns:
+          - { na: cab_assess_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: assess_id, ty: INT, nu: Y, fk: assess.assess_id, dc: "assessment id" }
+          - { na: cab_app_id, ty: INT, nu: Y, fk: cab_app.cab_app_id, dc: "cab application id" }
+
+      - name: lrp_list
+        title: Listed local responsible person
+        desc: "Table for storing listing Local Responsible Person (LRP) records"
+        columns:
+          - { na: lrp_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_app_id, ty: INT, nu: Y, dc: "lrp app id, show the latest lrp application id" }
+          - { na: batch_id, ty: VARCHAR(20), dc: "for generation of batch listing in cover letter and certificate" }
+          - { na: revision, ty: VARCHAR(4), dc: "revision of list., Format: a, b, c, d" }
+          - { na: lrp_list_no, ty: VARCHAR(20), nu: Y, dc: "md listing number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: cover_ref, ty: VARCHAR(5), dc: "enclosure number for the listing certificate cover letter" }
+          - { na: issue_date, ty: DATE, dc: "issue date" }
+          - { na: delist_date, ty: DATE, dc: "delist date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+          - { na: remark_en, ty: VARCHAR(200), dc: "secretary remark in english content shown in the public list" }
+          - { na: remark_zh, ty: VARCHAR(100), dc: "secretary remark in chinese content shown in the public list" }
+
+      - name: lrp_app
+        title: Local responsible person application
+        desc: "Table for storing LRP SOP app records"
+        columns:
+          - { na: lrp_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: lrp_app_no, ty: VARCHAR(10) }
+          - { na: is_submit_hardcopy, ty: CHAR(1) }
+          - { na: ff_id, ty: VARCHAR(15), fk: ff.ff_id, dc: "file folder id" }
+          - { na: company_name_en, ty: VARCHAR(200), dc: "company name in english" }
+          - { na: company_name_zh, ty: VARCHAR(100), dc: "company name in chinese" }
+          - { na: app_deleted, ty: CHAR(1), dc: "application deleted, A: approved, P: pending, R:reject" }
+          - { na: sec_user_id, ty: INT }
+          - { na: vo_user_id, ty: INT }
+          - { na: assign_date, ty: DATE }
+          - { na: approve_date, ty: DATE }
+          - { na: reject_date, ty: DATE }
+
+      - name: lrp_cert
+        desc: "Table for storing LRP cert records"
+        columns:
+          - { na: lrp_cert_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cert_type, ty: VARCHAR(10), nu: Y, dc: "ISO9001, ISO13485, O" }
+          - { na: num, ty: VARCHAR(50), nu: Y, dc: "certificate number" }
+          - { na: body, ty: VARCHAR(50), nu: Y, dc: "certificate body" }
+          - { na: exp_date, ty: DATE, nu: Y, dc: "certificate expiry date" }
+
+      - name: lrp_person
+        desc: "Relationship table between lrp and person"
+        columns:
+          - { na: lrp_person_id, ty: INT, id: Y, nu: Y }
+          - { na: person_type, ty: CHAR(3), nu: Y, dc: "D: display, O: other" }
+          - { na: lrp_app_id, ty: INT, nu: Y, fk: lrp_app.lrp_app_id, dc: "lrp application id" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id }
+
+      - name: lrp_tag
+        desc: "Relationship table between lrp sop app and tag"
+        columns:
+          - { na: lrp_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_app_id, ty: INT, nu: Y, fk: lrp_app.lrp_app_id, dc: "lrp application id" }
+          - { na: tag_id, ty: INT, nu: Y, dc: "tag id" }
+
+      - name: lrp_convo
+        desc: "Relationship table between lrp and conversation"
+        columns:
+          - { na: lrp_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_app_id, ty: INT, nu: Y, fk: lrp_app.lrp_app_id, dc: "lrp application id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: lrp_doc
+        desc: "Relationship table between lrp and doc"
+        columns:
+          - { na: lrp_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_app_id, ty: INT, nu: Y, fk: lrp_app.lrp_app_id, dc: "lrp application id" }
+          - { na: doc_type, ty: CHAR(1), dc: "B: br, C: cr, I: iso cert, O: other" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: lrp_addr
+        desc: "Relationship table between lrp and address"
+        columns:
+          - { na: lrp_addr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_app_id, ty: INT, nu: Y, fk: lrp_app.lrp_app_id, dc: "lrp application id" }
+          - { na: addr_type, ty: CHAR(1), dc: "address type, D: display, O: other" }
+          - { na: addr_id, ty: INT, fk: addr.addr_id, dc: "address id" }
+
+      - name: lrp_md_app
+        desc: "Relationship table between lrp and md application"
+        columns:
+          - { na: lrp_md_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: lrp_app_id, ty: INT, nu: Y, fk: lrp_app.lrp_app_id, dc: "lrp application id" }
+          - { na: md_app_id, ty: INT, nu: Y, fk: md_app.md_app_id, dc: "md application id" }
+
+      - name: nmpa_list
+        desc: ""
+        columns:
+          - { na: nmpa_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, dc: "nmpa app id, show the latest nmpa application id" }
+          - { na: batch_id, ty: VARCHAR(20), dc: "for generation of batch listing in cover letter and certificate" }
+          - { na: revision, ty: VARCHAR(4), dc: "revision of list., Format: a, b, c, d" }
+          - { na: nmpa_list_no, ty: VARCHAR(20), nu: Y, dc: "md listing number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: cover_ref, ty: VARCHAR(5), dc: "enclosure number for the listing certificate cover letter" }
+          - { na: issue_date, ty: DATE, dc: "issue date" }
+          - { na: delist_date, ty: DATE, dc: "delist date" }
+          - { na: exp_date, ty: DATE, dc: "expiry date" }
+          - { na: remark_en, ty: VARCHAR(200), dc: "secretary remark in english content shown in the public list" }
+          - { na: remark_zh, ty: VARCHAR(100), dc: "secretary remark in chinese content shown in the public list" }
+
+      - name: nmpa_app
+        desc: "Table for storing NMPA records"
+        columns:
+          - { na: nmpa_app_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: applicant_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: nmpa_app_no, ty: VARCHAR(10) }
+          - { na: is_submit_hardcopy, ty: CHAR(1) }
+          - { na: ff_id, ty: VARCHAR(15), fk: ff.ff_id, dc: "file folder id" }
+          - { na: device_class, ty: CHAR(1), dc: "device classifc ation, M: class I general medical device, I: class A IVDMD" }
+          - { na: device_rule, ty: INT, fk: md_rule.md_rule_id }
+          - { na: manuf_list_id, ty: INT, fk: manuf_list.manuf_list_id }
+          - { na: is_active_recall, ty: CHAR(1) }
+          - { na: active_recall_descr, ty: VARCHAR(300) }
+          - { na: app_deleted, ty: CHAR(1), dc: "application deleted, ps: pending screen, pa: pending assign, p: in progress, sa: submit for approval, sd: submit for discuss, , a: approved, w: withdraw, c: closed" }
+          - { na: sec_user_id, ty: INT }
+          - { na: vo_user_id, ty: INT }
+          - { na: assign_date, ty: DATE }
+          - { na: approve_date, ty: DATE }
+          - { na: reject_date, ty: DATE }
+
+      - name: nmpa_person
+        desc: "Relationship table between nmpa and person"
+        columns:
+          - { na: nmpa_person_id, ty: INT, id: Y, nu: Y }
+          - { na: person_type, ty: CHAR(3), nu: Y, dc: "D: display, O: other" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, fk: nmpa_app.nmpa_app_id, dc: "nmpa application id" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id }
+
+      - name: nmpa_tag
+        desc: ""
+        columns:
+          - { na: nmpa_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, fk: nmpa_app.nmpa_app_id, dc: "nmpa application id" }
+          - { na: tag_id, ty: INT, nu: Y, dc: "tag id" }
+
+      - name: nmpa_convo
+        desc: "Relationship table between nmpa and conversation"
+        columns:
+          - { na: nmpa_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, fk: nmpa_app.nmpa_app_id, dc: "nmpa application id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: nmpa_doc
+        desc: "Relationship table between nmpa and doc"
+        columns:
+          - { na: nmpa_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, fk: nmpa_app.nmpa_app_id, dc: "nmpa application id" }
+          - { na: doc_type, ty: CHAR(1), dc: "B: br, C: cr, I: iso cert, O: other" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: nmpa_addr
+        desc: ""
+        columns:
+          - { na: nmpa_addr_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, fk: nmpa_app.nmpa_app_id, dc: "nmpa application id" }
+          - { na: addr_type, ty: CHAR(1), dc: "address type, D: display, O: other" }
+          - { na: addr_id, ty: INT, fk: addr.addr_id, dc: "address id" }
+
+      - name: nmpa_dev
+        desc: ""
+        columns:
+          - { na: nmpa_dev_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: nmpa_app_id, ty: INT, nu: Y, fk: nmpa_app.nmpa_app_id, dc: "nmpa app id" }
+          - { na: dev_make_id, ty: INT, nu: Y, fk: dev_make.dev_make_id, dc: "product make id" }
+          - { na: dev_brand_id, ty: INT, fk: dev_brand.dev_brand_id, dc: "product brand id" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, dc: "product model id" }
+
+      - name: insp
+        desc: "Table for storing inspection records"
+        columns:
+          - { na: insp_id, ty: INT, id: Y, nu: Y }
+          - { na: insp_type, ty: CHAR(1), dc: "M: manufacturer, L: LRP, i: importer, D: distributor" }
+          - { na: manuf_app_id, ty: INT, fk: manuf_app.manuf_app_id }
+          - { na: ipd_app_id, ty: INT, fk: ipd_app.ipd_app_id }
+          - { na: lrp_app_id, ty: INT, fk: lrp_app.lrp_app_id }
+          - { na: insp_date, ty: DATE }
+          - { na: insp_start_time, ty: DATETIME }
+          - { na: insp_end_time, ty: DATETIME }
+          - { na: insp_venue, ty: VARCHAR(300) }
+          - { na: insp_lead_user_id, ty: INT, fk: person.person_id }
+          - { na: insp_member_user_id, ty: INT, fk: person.person_id }
+          - { na: remark, ty: VARCHAR(300) }
+          - { na: report_date, ty: DATE }
+          - { na: ack_date, ty: DATE }
+
+      - name: insp_dtl
+        desc: "Table for storing inspection detail records"
+        columns:
+          - { na: insp_dtl_id, ty: INT, id: Y, nu: Y }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id }
+          - { na: finding_type, ty: CHAR(2), dc: "I: improvement, NC: non-confirmity" }
+          - { na: root_cause, ty: VARCHAR(300) }
+          - { na: capa, ty: VARCHAR(300) }
+          - { na: finding_deleted, ty: CHAR(1), dc: "C: complete, P: in progress, O: outstanding" }
+          - { na: expect_cmplt_date, ty: DATE }
+          - { na: actual_cmplt_date, ty: DATE }
+
+      - name: insp_chklist
+        desc: "Table for storing inspection checklist records"
+        columns:
+          - { na: insp_chklist_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id, dc: "inspection id" }
+          - { na: is_iso_cert, ty: CHAR(1), dc: "item 2.1, Y: yes, N: no" }
+          - { na: iso_cert_remark, ty: VARCHAR(300), dc: "item 2.1, Y: yes, N: no" }
+          - { na: is_qms_cover_scope, ty: CHAR(1), dc: "item 2.2, Y: yes, N: no" }
+          - { na: qms_cover_remark, ty: VARCHAR(300), dc: "item 2.2, Y: yes, N: no" }
+          - { na: is_md_submit, ty: CHAR(1), dc: "item 2.3, Y: yes, N: no" }
+          - { na: md_submit_remark, ty: VARCHAR(300), dc: "item 2.3, Y: yes, N: no" }
+          - { na: is_doc_procedure, ty: CHAR(1), dc: "item 2.4.1, Y: yes, N: no" }
+          - { na: doc_procedure_remark, ty: VARCHAR(300), dc: "item 2.4.1, Y: yes, N: no" }
+          - { na: is_doc_update, ty: CHAR(1), dc: "item 2.4.2, Y: yes, N: no" }
+          - { na: doc_update_remark, ty: VARCHAR(300), dc: "item 2.4.2, Y: yes, N: no" }
+          - { na: is_record_doc_procedure, ty: CHAR(1), dc: "item 2.5.1, Y: yes, N: no" }
+          - { na: record_doc_procedure_remark, ty: VARCHAR(300), dc: "item 2.5.1, Y: yes, N: no" }
+          - { na: is_retention, ty: CHAR(1), dc: "item 2.5.2, Y: yes, N: no" }
+          - { na: retention_remark, ty: VARCHAR(300), dc: "item 2.5.2, Y: yes, N: no" }
+          - { na: is_mgt_review, ty: CHAR(1), dc: "item 2.6, Y: yes, N: no" }
+          - { na: mgt_review_remark, ty: VARCHAR(300), dc: "item 2.6, Y: yes, N: no" }
+          - { na: is_in_audit, ty: CHAR(1), dc: "item 2.7, Y: yes, N: no" }
+          - { na: in_audit_remark, ty: VARCHAR(300), dc: "item 2.7, Y: yes, N: no" }
+          - { na: is_ex_audit, ty: CHAR(1), dc: "item 2.8, Y: yes, N: no" }
+          - { na: ex_audit_remark, ty: VARCHAR(300), dc: "item 2.8, Y: yes, N: no" }
+          - { na: is_analysis_data, ty: CHAR(1), dc: "item 2.9, Y: yes, N: no" }
+          - { na: analysis_data_remark, ty: VARCHAR(300), dc: "item 2.9, Y: yes, N: no" }
+          - { na: is_capa, ty: CHAR(1), dc: "item 2.10, Y: yes, N: no" }
+          - { na: capa_remark, ty: VARCHAR(300), dc: "item 2.10, Y: yes, N: no" }
+          - { na: is_insp, ty: CHAR(1), dc: "item 2.11, Y: yes, N: no" }
+          - { na: insp_remark, ty: VARCHAR(300), dc: "item 2.11, Y: yes, N: no" }
+          - { na: is_design_dev, ty: CHAR(1), dc: "item 2.12, Y: yes, N: no" }
+          - { na: descrign_dev_remark, ty: VARCHAR(300), dc: "item 2.12, Y: yes, N: no" }
+          - { na: is_notify_mdd, ty: CHAR(1), dc: "item 2.13, Y: yes, N: no" }
+          - { na: notify_mdd_remark, ty: VARCHAR(300), dc: "item 2.13, Y: yes, N: no" }
+          - { na: is_person_comp, ty: CHAR(1), dc: "item 3.1.1, Y: yes, N: no" }
+          - { na: person_comp_remark, ty: VARCHAR(300), dc: "item 3.1.1, Y: yes, N: no" }
+          - { na: is_person_train, ty: CHAR(1), dc: "item 3.1.2, Y: yes, N: no" }
+          - { na: person_train_remark, ty: VARCHAR(300), dc: "item 3.1.2, Y: yes, N: no" }
+          - { na: is_premise_tidy, ty: CHAR(1), dc: "item 3.2.1, Y: yes, N: no" }
+          - { na: premise_tidy_remark, ty: VARCHAR(300), dc: "item 3.2.1, Y: yes, N: no" }
+          - { na: is_clean, ty: CHAR(1), dc: "item 3.2.2, Y: yes, N: no" }
+          - { na: clean_remark, ty: VARCHAR(300), dc: "item 3.2.2, Y: yes, N: no" }
+          - { na: is_pest, ty: CHAR(1), dc: "item 3.2.3, Y: yes, N: no" }
+          - { na: pest_remark, ty: VARCHAR(300), dc: "item 3.2.3, Y: yes, N: no" }
+          - { na: is_calibrate, ty: CHAR(1), dc: "item 4.1, Y: yes, N: no" }
+          - { na: calibrate_remark, ty: VARCHAR(300), dc: "item 4.1, Y: yes, N: no" }
+          - { na: is_store_req, ty: CHAR(1), dc: "item 4.2.1, Y: yes, N: no" }
+          - { na: store_req_remark, ty: VARCHAR(300), dc: "item 4.2.1, Y: yes, N: no" }
+          - { na: is_toxic, ty: CHAR(1), dc: "item 4.2.2, Y: yes, N: no" }
+          - { na: toxic_remark, ty: VARCHAR(300), dc: "item 4.2.2, Y: yes, N: no" }
+          - { na: is_spillage, ty: CHAR(1), dc: "item 4.2.3, Y: yes, N: no" }
+          - { na: spillage_remark, ty: VARCHAR(300), dc: "item 4.2.3, Y: yes, N: no" }
+          - { na: is_stock_insp, ty: CHAR(1), dc: "item 5.1.1, Y: yes, N: no" }
+          - { na: stock_insp_remark, ty: VARCHAR(300), dc: "item 5.1.1, Y: yes, N: no" }
+          - { na: is_stock_instr, ty: CHAR(1), dc: "item 5.1.2, Y: yes, N: no" }
+          - { na: stock_instr_remark, ty: VARCHAR(300), dc: "item 5.1.2, Y: yes, N: no" }
+          - { na: is_stock_rec, ty: CHAR(1), dc: "item 5.1.3, Y: yes, N: no" }
+          - { na: stock_rec_remark, ty: VARCHAR(300), dc: "item 5.1.3, Y: yes, N: no" }
+          - { na: is_stock_batch, ty: CHAR(1), dc: "item 5.2.1, Y: yes, N: no" }
+          - { na: stock_batch_remark, ty: VARCHAR(300), dc: "item 5.2.1, Y: yes, N: no" }
+          - { na: is_stock_damage, ty: CHAR(1), dc: "item 5.2.2, Y: yes, N: no" }
+          - { na: stock_damage_remark, ty: VARCHAR(300), dc: "item 5.2.2, Y: yes, N: no" }
+          - { na: is_trans_req, ty: CHAR(1), dc: "item 5.3.1, Y: yes, N: no" }
+          - { na: trans_req_remark, ty: VARCHAR(300), dc: "item 5.3.1, Y: yes, N: no" }
+          - { na: is_auth_person, ty: CHAR(1), dc: "item 5.3.2, Y: yes, N: no" }
+          - { na: auth_person_remark, ty: VARCHAR(300), dc: "item 5.3.2, Y: yes, N: no" }
+          - { na: is_lrp_update, ty: CHAR(1), dc: "item 6.1, Y: yes, N: no" }
+          - { na: lrp_update_remark, ty: VARCHAR(300), dc: "item 6.1, Y: yes, N: no" }
+          - { na: is_track_md, ty: CHAR(1), dc: "item 6.2, Y: yes, N: no" }
+          - { na: track_md_remark, ty: VARCHAR(300), dc: "item 6.2, Y: yes, N: no" }
+          - { na: is_trace_doc, ty: CHAR(1), dc: "item 6.3, Y: yes, N: no" }
+          - { na: trace_doc, ty: VARCHAR(300), dc: "item 6.3, Y: yes, N: no" }
+          - { na: is_cmplt_doc, ty: CHAR(1), dc: "item 7.1, Y: yes, N: no" }
+          - { na: cmplt_doc_remark, ty: VARCHAR(300), dc: "item 7.1, Y: yes, N: no" }
+          - { na: is_cmplt_rec, ty: CHAR(1), dc: "item 7.2, Y: yes, N: no" }
+          - { na: cmplt_rec_remark, ty: VARCHAR(300), dc: "item 7.2, Y: yes, N: no" }
+          - { na: is_ae_doc, ty: CHAR(1), dc: "item 8.1, Y: yes, N: no" }
+          - { na: ae_doc_remark, ty: VARCHAR(300), dc: "item 8.1, Y: yes, N: no" }
+          - { na: is_ae_rec, ty: CHAR(1), dc: "item 8.2, Y: yes, N: no" }
+          - { na: ae_rec_remark, ty: VARCHAR(300), dc: "item 8.2, Y: yes, N: no" }
+          - { na: is_recall_doc, ty: CHAR(1), dc: "item 9.1, Y: yes, N: no" }
+          - { na: recall_doc_remark, ty: VARCHAR(300), dc: "item 9.1, Y: yes, N: no" }
+          - { na: is_recall_rec, ty: CHAR(1), dc: "item 9.2, Y: yes, N: no" }
+          - { na: recall_rec_remark, ty: VARCHAR(300), dc: "item 9.2, Y: yes, N: no" }
+          - { na: is_rtn_md_doc, ty: CHAR(1), dc: "item 10.1, Y: yes, N: no" }
+          - { na: rtn_md_doc_remark, ty: VARCHAR(300), dc: "item 10.1, Y: yes, N: no" }
+          - { na: is_segregate, ty: CHAR(1), dc: "item 10.2, Y: yes, N: no" }
+          - { na: segregate_remark, ty: VARCHAR(300), dc: "item 10.2, Y: yes, N: no" }
+          - { na: is_rtn_md_rec, ty: CHAR(1), dc: "item 10.3, Y: yes, N: no" }
+          - { na: rtn_md_rec_remark, ty: VARCHAR(300), dc: "item 10.3, Y: yes, N: no" }
+          - { na: is_disp_doc, ty: CHAR(1), dc: "item 11.1, Y: yes, N: no" }
+          - { na: dist_doc_remark, ty: VARCHAR(300), dc: "item 11.1, Y: yes, N: no" }
+          - { na: is_keep_segregate, ty: CHAR(1), dc: "item 11.2, Y: yes, N: no" }
+          - { na: keep_segregate_remark, ty: VARCHAR(300), dc: "item 11.2, Y: yes, N: no" }
+          - { na: is_disp_rec, ty: CHAR(1), dc: "item 11.3, Y: yes, N: no" }
+          - { na: disp_rec, ty: VARCHAR(300), dc: "item 11.3, Y: yes, N: no" }
+          - { na: is_label, ty: CHAR(1), dc: "item 12.1, Y: yes, N: no" }
+          - { na: label_remark, ty: VARCHAR(300), dc: "item 12.1, Y: yes, N: no" }
+          - { na: is_ad_scope, ty: CHAR(1), dc: "item 13.1.1, Y: yes, N: no" }
+          - { na: ad_scope, ty: VARCHAR(300), dc: "item 13.1.1, Y: yes, N: no" }
+          - { na: is_ad_implicate, ty: CHAR(1), dc: "item 13.1.2, Y: yes, N: no" }
+          - { na: ad_implicate_remark, ty: VARCHAR(300), dc: "item 13.1.2, Y: yes, N: no" }
+          - { na: is_ad_mdacs, ty: CHAR(1), dc: "item 13.1.3, Y: yes, N: no" }
+          - { na: ad_mdacs_remark, ty: VARCHAR(300), dc: "item 13.1.3, Y: yes, N: no" }
+          - { na: is_state_same, ty: CHAR(1), dc: "item 13.1.4, Y: yes, N: no" }
+          - { na: state_same_remark, ty: VARCHAR(300), dc: "item 13.1.4, Y: yes, N: no" }
+          - { na: is_no_false, ty: CHAR(1), dc: "item 13.2, Y: yes, N: no" }
+          - { na: no_false_remark, ty: VARCHAR(300), dc: "item 13.2, Y: yes, N: no" }
+          - { na: is_outsource, ty: CHAR(1), dc: "item 14.1, Y: yes, N: no" }
+          - { na: outsource_remark, ty: VARCHAR(300), dc: "item 14.1, Y: yes, N: no" }
+
+      - name: insp_person
+        desc: ""
+        columns:
+          - { na: insp_person_id, ty: INT, id: Y, nu: Y }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id, dc: "inspection application id" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id }
+
+      - name: insp_doc
+        desc: "Relationship table between inspection and doc"
+        columns:
+          - { na: insp_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id, dc: "inspection application id" }
+          - { na: doc_type, ty: CHAR(1) }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: insp_convo
+        desc: "Relationship table between inspect and conversation"
+        columns:
+          - { na: insp_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: insp_id, ty: INT, nu: Y, fk: insp.insp_id, dc: "inspection application id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: assess
+        desc: "Table for storing assessment records"
+        columns:
+          - { na: assess_id, ty: INT, id: Y, nu: Y }
+          - { na: cab_app_id, ty: INT, fk: cab_app.cab_app_id }
+          - { na: lead_assessor_user_id, ty: INT, fk: person.person_id }
+          - { na: assessor_user_id, ty: INT, fk: person.person_id }
+          - { na: remark, ty: VARCHAR(300) }
+          - { na: report_date, ty: DATE }
+          - { na: ack_date, ty: DATE }
+
+      - name: assess_dtl
+        desc: "Table for storing assessment detail records"
+        columns:
+          - { na: assess_dtl_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_id, ty: INT, nu: Y, fk: assess.assess_id }
+          - { na: dtl_type, ty: CHAR(1), dc: "I:initial, R: renew, S: surveillance assess, A: witnessed audit" }
+          - { na: start_date, ty: DATE }
+          - { na: end_date, ty: DATE }
+          - { na: location, ty: VARCHAR(100) }
+          - { na: intro, ty: VARCHAR(300), dc: "for assess type in I, R, S" }
+          - { na: review_prev_assess, ty: VARCHAR(300) }
+          - { na: result, ty: VARCHAR(300) }
+          - { na: conclusion, ty: VARCHAR(300) }
+
+      - name: assess_nc_rpt
+        desc: ""
+        columns:
+          - { na: assess_nc_rpt_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_dtl_id, ty: INT, nu: Y, fk: assess.assess_id }
+          - { na: assesds_nc_rpt_no, ty: VARCHAR(20) }
+          - { na: nc_cate, ty: CHAR(1), dc: "A: major, I: minor, O: observation" }
+          - { na: nc_descr, ty: VARCHAR(300) }
+          - { na: nc_assessor_user_id, ty: INT, fk: person.person_id }
+          - { na: nc_date, ty: DATE }
+          - { na: cause, ty: VARCHAR(300) }
+          - { na: capa, ty: VARCHAR(300) }
+          - { na: expect_cmplt_date, ty: DATE }
+          - { na: cab_rep_id, ty: INT, fk: assess_role.assess_role_id }
+          - { na: cab_date, ty: DATE }
+          - { na: comment, ty: VARCHAR(300) }
+          - { na: comment_assessor_user_id, ty: INT, fk: person.person_id }
+          - { na: comment_date, ty: DATE }
+
+      - name: assess_role
+        desc: "Table for storing assessment role records"
+        columns:
+          - { na: assess_role_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_dtl_id, ty: INT, nu: Y, fk: assess.assess_id }
+          - { na: role_type, ty: CHAR(1), dc: "A:auditor, R: representative" }
+          - { na: name, ty: DATE }
+          - { na: position, ty: DATETIME }
+
+      - name: assess_plan
+        desc: "Table for storing assessment plan records"
+        columns:
+          - { na: assess_plan_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_dtl_id, ty: INT, nu: Y, fk: assess.assess_id }
+          - { na: assess_date, ty: DATE }
+          - { na: assess_start_time, ty: DATETIME }
+          - { na: assess_end_time, ty: DATETIME }
+          - { na: assess_function, ty: VARCHAR(100) }
+          - { na: assess_element, ty: LONGTEXT }
+          - { na: assessor, ty: CHAR(1), dc: "1 / 2 / All" }
+          - { na: is_lunch, ty: CHAR(1), dc: "Y: yes, N: no" }
+
+      - name: assess_doc
+        desc: "Relationship table between assessment and doc"
+        columns:
+          - { na: assess_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: assess_id, ty: INT, nu: Y, fk: assess.assess_id, dc: "assessment application id" }
+          - { na: doc_type, ty: CHAR(1) }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: assess_mtg
+        desc: "Table for storing assessment meeting records"
+        columns:
+          - { na: assess_mtg_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_dtl_id, ty: INT, nu: Y, fk: assess_dtl.assess_dtl_id }
+          - { na: mgt_date, ty: DATE }
+          - { na: mtg_type, ty: CHAR(1), dc: "o: opening, c: closing" }
+
+      - name: assess_attend
+        desc: "Table for storing assessment meeting attendance records"
+        columns:
+          - { na: assess_attend_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_mtg_id, ty: INT, nu: Y, fk: assess_mtg.assess_mtg_id }
+          - { na: name, ty: VARCHAR(50) }
+          - { na: position, ty: VARCHAR(50) }
+
+      - name: assess_chklist
+        desc: "Table for storing assessment checklist records"
+        columns:
+          - { na: assess_chklist_id, ty: INT, id: Y, nu: Y }
+          - { na: assess_dtl_id, ty: INT, nu: Y, fk: assess_dtl.assess_dtl_id }
+          - { na: is_legal_hk, ty: CHAR(2), dc: "A1.1, Y / N /NA" }
+          - { na: legal_hk_remark, ty: VARCHAR(300), dc: "A1.1" }
+          - { na: is_iaf_mla, ty: CHAR(2), dc: "A1.2, Y / N /NA" }
+          - { na: laf_mla_remark, ty: VARCHAR(300), dc: "A1.2" }
+          - { na: is_ec_body, ty: CHAR(2), dc: "A1.3, Y / N /NA" }
+          - { na: ec_body_remark, ty: VARCHAR(300), dc: "A1.3" }
+          - { na: is_adequate_res, ty: CHAR(2), dc: "A1.4, Y / N /NA" }
+          - { na: adequate_res_remark, ty: VARCHAR(300), dc: "A1.4" }
+          - { na: is_client_agm, ty: CHAR(2), dc: "A1.5, Y / N /NA" }
+          - { na: client_agm_remark, ty: VARCHAR(300), dc: "A1.5" }
+          - { na: is_mechan_perf, ty: CHAR(2), dc: "A1.6, Y / N /NA" }
+          - { na: mechan_perf_remark, ty: VARCHAR(300), dc: "A1.6" }
+          - { na: is_sample_cert, ty: CHAR(2), dc: "A1.7, Y / N /NA" }
+          - { na: sample_cert_remark, ty: VARCHAR(300), dc: "A1.7" }
+          - { na: is_doc_client_agm, ty: CHAR(2), dc: "A2.1, Y / N /NA" }
+          - { na: doc_client_agm_remark, ty: VARCHAR(300), dc: "A2.1" }
+          - { na: is_doc_subcon_agm, ty: CHAR(2), dc: "A2.2, Y / N /NA" }
+          - { na: doc_subcon_agm_remark, ty: VARCHAR(300), dc: "A2.2" }
+          - { na: is_rec_employee, ty: CHAR(2), dc: "A2.3, Y / N /NA" }
+          - { na: rec_employee_remark, ty: VARCHAR(300), dc: "A2.3" }
+          - { na: is_report, ty: CHAR(2), dc: "A2.4, Y / N /NA" }
+          - { na: report_remark, ty: VARCHAR(300), dc: "A2.4" }
+          - { na: is_cert, ty: CHAR(2), dc: "A2.5, Y / N /NA" }
+          - { na: cert_remark, ty: VARCHAR(300), dc: "A2.5" }
+          - { na: is_disclose_mdco, ty: CHAR(2), dc: "A3.1, Y / N /NA" }
+          - { na: disclose_mdco_remark, ty: VARCHAR(300), dc: "A3.1" }
+          - { na: is_attend_audit, ty: CHAR(2), dc: "A3.2, Y / N /NA" }
+          - { na: attend_audit_remark, ty: VARCHAR(300), dc: "A3.2" }
+          - { na: is_director, ty: CHAR(2), dc: "A4.1, Y / N /NA" }
+          - { na: director_remark, ty: VARCHAR(300), dc: "A4.1" }
+          - { na: is_staff_prof, ty: CHAR(2), dc: "A4.2, Y / N /NA" }
+          - { na: staff_prof_remark, ty: VARCHAR(300), dc: "A4.2" }
+          - { na: is_subcon_req, ty: CHAR(2), dc: "A4.3, Y / N /NA" }
+          - { na: subcon_req_remark, ty: VARCHAR(300), dc: "A4.3" }
+          - { na: is_necessary_staff, ty: CHAR(2), dc: "A4.4, Y / N /NA" }
+          - { na: necessary_staff_remark, ty: VARCHAR(300), dc: "A4.4" }
+          - { na: is_vocation_train, ty: CHAR(2), dc: "A4.5, Y / N /NA" }
+          - { na: vocation_train_remark, ty: VARCHAR(300), dc: "A4.5" }
+          - { na: is_knowledge_insp, ty: CHAR(2), dc: "A4.6, Y / N /NA" }
+          - { na: knowledge_insp_remark, ty: VARCHAR(300), dc: "A4.6" }
+          - { na: is_ability_insp, ty: CHAR(2), dc: "A4.7, Y / N /NA" }
+          - { na: ability_insp_remark, ty: VARCHAR(300), dc: "A4.7" }
+          - { na: is_impartiality, ty: CHAR(2), dc: "A4.8, Y / N /NA" }
+          - { na: impartiality_remark, ty: VARCHAR(300), dc: "A4.8" }
+          - { na: is_liability_insurance, ty: CHAR(2), dc: "A4.9, Y / N /NA" }
+          - { na: liability_insurance_remark, ty: VARCHAR(300), dc: "A4.9" }
+          - { na: is_prof_secrecy, ty: CHAR(2), dc: "A4.10, Y / N /NA" }
+          - { na: prof_secrecy_remark, ty: VARCHAR(300), dc: "A4.10" }
+          - { na: is_procedure_qms, ty: CHAR(2), dc: "B1.1, Y / N /NA" }
+          - { na: procedure_qms_remark, ty: VARCHAR(300), dc: "B1.1" }
+          - { na: is_audit_qms, ty: CHAR(2), dc: "B1.2, Y / N /NA" }
+          - { na: audit_qms_remark, ty: VARCHAR(300), dc: "B1.2" }
+          - { na: is_qms_case_file, ty: CHAR(2), dc: "B1.3, Y / N /NA" }
+          - { na: qms_case_file_remark, ty: VARCHAR(300), dc: "B1.3" }
+          - { na: is_manuf_process, ty: CHAR(2), dc: "B2.1, Y / N /NA" }
+          - { na: manuf_process_remark, ty: VARCHAR(300), dc: "B2.1" }
+          - { na: is_tech_manuf, ty: CHAR(2), dc: "B3.1, Y / N /NA" }
+          - { na: tech_manuf_remark, ty: VARCHAR(300), dc: "B3.1" }
+          - { na: is_test_insp, ty: CHAR(2), dc: "B3.2, Y / N /NA" }
+          - { na: test_insp_remark, ty: VARCHAR(300), dc: "B3.2" }
+          - { na: is_test_standard, ty: CHAR(2), dc: "B3.3, Y / N /NA" }
+          - { na: test_standard_remark, ty: VARCHAR(300), dc: "B3.3" }
+          - { na: is_report_standard, ty: CHAR(2), dc: "B3.4, Y / N /NA" }
+          - { na: report_standard_remark, ty: VARCHAR(300), dc: "B3.4" }
+          - { na: is_assess_change, ty: CHAR(2), dc: "B3.5, Y / N /NA" }
+          - { na: assess_change_remark, ty: VARCHAR(300), dc: "B3.5" }
+          - { na: is_type_case_file, ty: CHAR(2), dc: "B3.6, Y / N /NA" }
+          - { na: type_case_file_remark, ty: VARCHAR(300), dc: "B3.6" }
+          - { na: is_sted, ty: CHAR(2), dc: "B4.1, Y / N /NA" }
+          - { na: sted_remark, ty: VARCHAR(300), dc: "B4.1" }
+          - { na: is_doc, ty: CHAR(2), dc: "B5.1, Y / N /NA" }
+          - { na: doc_remark, ty: VARCHAR(300), dc: "B5.1" }
+
+      - name: assess_convo
+        desc: "relation between accessment and conversation"
+        columns:
+          - { na: assess_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: assess_id, ty: INT, nu: Y, fk: assess.assess_id, dc: "assesment id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+  # ---------------------------------------------------------------------------- #
+  #                                  POST-MARKET                                 #
+  # ---------------------------------------------------------------------------- #
+  - name: Post-market
+    tables:
+      - name: postmkt
+        desc: "Code table for Post-market codes"
+        columns:
+          - { na: postmkt_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: postmkt_type, ty: VARCHAR(3), nu: Y, dc: "code type;" }
+          - { na: code, ty: VARCHAR(20), nu: Y, dc: "code" }
+          - { na: descr_en, ty: VARCHAR(50), nu: Y, dc: "code description in english" }
+          - { na: descr_zh, ty: VARCHAR(50), nu: Y, dc: "code description in chinese" }
+
+      - name: disem_list
+        desc: "Table for storing dissemination list"
+        columns:
+          - { na: disem_list_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: list_name, ty: VARCHAR(20), nu: Y, dc: "list name" }
+          - { na: list_descr, ty: VARCHAR(50), dc: "list description" }
+
+      - name: disem_dtl
+        desc: "Table for storing dissemination detail"
+        columns:
+          - { na: disem_dtl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: disem_list_id, ty: INT, nu: Y, fk: disem_list.disem_list_id, dc: "dissemination list id" }
+          - { na: name, ty: VARCHAR(50), nu: Y, dc: "name" }
+          - { na: email, ty: VARCHAR(100), nu: Y, dc: "email" }
+
+      - name: disem_list_tag
+        desc: "Relationship table between disem_list and tag"
+        columns:
+          - { na: disem_list_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: disem_list_id, ty: INT, nu: Y, fk: disem_list.disem_list_id, dc: "dissemination list id" }
+          - { na: tag_id, ty: INT, nu: Y, fk: tag.tag_id, dc: "tag id" }
+
+      - name: sa_rpt
+        desc: "Table for storing safety alert records reported by external users"
+        columns: 
+          - { na: sa_rpt_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: scn_no, ty: VARCHAR(12), dc: "screen case number." }
+          - { na: co_user_id, ty: INT, fk: person.person_id, dc: "case officer user profile id" }
+          - { na: cc_user_id, ty: INT, fk: person.person_id, dc: "case coordinator user profile id" }
+          - { na: case_status, ty: VARCHAR(10), dc: "case status" }
+          - { na: report_date, ty: DATE, dc: "sa reporting date" }
+          - { na: scn_date, ty: DATE, dc: "date received by SCNO" }
+          - { na: alert_date, ty: DATE, dc: "MDSA Idenitification Date" }
+          - { na: alert_ref, ty: VARCHAR(30), dc: "alert reference number" }
+          # reporter information
+          - { na: rpter_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: rpter_role, ty: VARCHAR(3), dc: "reporter role" }
+          - { na: rpter_company_name, ty: VARCHAR(200), dc: "reporter company name" }
+          - { na: rpter_name, ty: VARCHAR(50), dc: "reporter name" }
+          - { na: rpter_post, ty: VARCHAR(50), dc: "reporter post title" }
+          - { na: rpter_mobile, ty: VARCHAR(50), dc: "reporter mobile" }
+          - { na: rpter_tel, ty: VARCHAR(50), dc: "reporter tel" }
+          - { na: rpter_fax, ty: VARCHAR(50), dc: "reporter fax" }
+          - { na: rpter_email, ty: VARCHAR(50), dc: "reporter email" }
+          # device information
+          - { na: dev_name, ty: CHAR(100), dc: "device name"}
+          # device distribute information
+          - { na: dis_hk, ty: CHAR(1), dc: "Y: yes, N: no, U: unknown" }
+          - { na: import_hk, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: import_qty, ty: INT, dc: "quantity affected lot import in hong kong" }
+          - { na: export_hk, ty: CHAR(1), dc: "Y: yes, N: no, U: unknown" }
+          - { na: export_qty, ty: INT, dc: "quantity exported from hong kong" }
+          - { na: export_dest, ty: VARCHAR(50), dc: "destination exported from hong kong" }
+          - { na: lot_dis_hk, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: lot_dis_hk_qty, ty: INT, dc: "quantity affected lot distributed in hong kong" }
+          - { na: lot_dis_hk_dest_opt, ty: VARCHAR(30), dc: "Destination affected lot distributed in hong kong" }
+          - { na: has_distributor, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: consume_hk, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: consume_hk_qty, ty: INT, dc: "quantity affected lot consumed in hong kong" }
+          # risk assessment
+          - { na: hazard_lv, ty: CHAR(1), dc: "reference to postmkt, 1: I, 2:II, 3: III" }
+          - { na: problem, ty: CHAR(1), dc: "reference to postmkt, s:Software Issues, Q:Quality Issues, D:Design Issues, E:Users Error, U:IFU Upates, O: Others" }
+          - { na: other_problem, ty: VARCHAR(50), dc: "other problem description" }
+          - { na: health_risk, ty: VARCHAR(300), dc: "hazard invovled and the associated health risk" }
+          - { na: injury_occur, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: injury_occur_desp, ty: VARCHAR(300), dc: "illness or injuries that have occurred with the use of the affected device" }
+          - { na: action_lv_opt, ty: CHAR(2), dc: "capa action level" }
+          - { na: other_action_lv, ty: VARCHAR(50), dc: "other capa action level" }
+          - { na: hotline, ty: VARCHAR(500), dc: "consumer recall hotline" }
+          - { na: hotline_hour, ty: VARCHAR(500), dc: "consumer recall hotline hour" }
+          - { na: recall_spot, ty: VARCHAR(500), dc: "consumer recall spot" }
+          - { na: recall_spot_hour, ty: VARCHAR(500), dc: "consumer recall spot hour" }
+          - { na: notify_org, ty: CHAR(1), dc: "y: yes, N: No, I: In progress" }
+          - { na: capa_desp, ty: VARCHAR(500), dc: "capa description" }
+          - { na: capa_start_date, ty: DATE, dc: "capa action start date" }
+          - { na: capa_end_date, ty: DATE, dc: "capa action end date" }
+          - { na: dev, ty: TEXT, dc: "affected md" }
+          - { na: dis_contact, ty: TEXT, dc: "distributor contact" }
+          # Workflow stage
+          - { na: last_status, ty: VARCHAR(15), dc: "last case status" }
+          - { na: status, ty: VARCHAR(15), dc: "case status" }
+
+      - name: sa_case
+        desc: "Table for storing safety alert records"
+        columns:
+          - { na: sa_case_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: sa_rpt_id, ty: INT, nu: Y, fk: sa_rpt.sa_rpt_id, dc: "sa report id" }
+          - { na: sa_group_id, ty: INT, fk: sa_group.sa_group_id, dc: "safety alert group id" }
+          - { na: co_user_id, ty: INT, fk: person.person_id, dc: "case officer user profile id" }
+          - { na: ro_user_id, ty: INT, fk: person.person_id, dc: "case reviewer user profile id" }
+          - { na: prior_tag_id, ty: INT, fk: tag.tag_id, dc: "priority tag" }
+          - { na: case_no, ty: VARCHAR(12), dc: "case number. Eg, HK-2022-000X" }
+          - { na: mdd_file_ref, ty: VARCHAR(30), dc: "mdd file reference" }
+          - { na: case_status, ty: VARCHAR(10), dc: "case status" }
+          # case date
+          - { na: file_close_date, ty: DATE, dc: "case close date" }
+          - { na: del_date, ty: DATE, dc: "case delete date" }
+          # sa identification info
+          - { na: alert_date, ty: DATE, dc: "MDSA Idenitification Date" }
+          - { na: alert_src, ty: CHAR(4), dc: "reference to postmkt, F: FDA, HC: Health Canada, TGA: TGA, HSA: HSA, MHRA: MHRA, FSCA: Firm FSCA, O:Others" }
+          - { na: other_src, ty: VARCHAR(50), dc: "other source description" }
+          - { na: alert_ref, ty: VARCHAR(30), dc: "alert reference number" }
+          - { na: alert_ref_src_link, ty: VARCHAR(500), dc: "source hyperlink" }
+          - { na: alert_rmk, ty: VARCHAR(500), dc: "alert remark" }
+          # device information
+          - { na: dev_name, ty: CHAR(100), dc: "device name"}
+          # risk assessment
+          - { na: dis_hk, ty: CHAR(1), dc: "Y: yes, N: no, U: unknown" }
+          - { na: lot_dis_hk, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: exposure_prob, ty: CHAR(1), dc: "reference to postmkt, H:High, M:Moderate, P:Probable, L:Low" }
+          - { na: dis_hk_mkt, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: effect_measure, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: problem, ty: CHAR(1), dc: "reference to postmkt, s:Software Issues, Q:Quality Issues, D:Design Issues, E:Users Error, U:IFU Upates, O: Others" }
+          - { na: other_problem, ty: VARCHAR(50), dc: "other problem description" }
+          - { na: hazard_lv, ty: CHAR(1), dc: "reference to postmkt, 1: I, 2:II, 3: III" }
+          - { na: risk_lv, ty: CHAR(2), dc: "reference to postmkt, A: a, B1: b1, B2: b2, C: c" }
+          - { na: disem_mdd, ty: CHAR(1), dc: "Y: yes, N: no; diseminated by mdd" }
+          # follow up
+          - { na: fda, ty: CHAR(1), dc: "Y: yes, N: no; FDA flag" }
+          - { na: manuf_enq_date, ty: DATE, dc: "Date of enquiry email sent to manufacturer" }
+          - { na: manuf_reply_date, ty: DATE, dc: "Date of manufacturer replied" }
+          # remark
+          - { na: case_rmk, ty: VARCHAR(300), dc: "case remark" }
+          - { na: co_rmk, ty: VARCHAR(300), dc: "case officer remark" }
+          - { na: cr_rmk, ty: VARCHAR(300), dc: "case reviewer remark" }
+          # Workflow stage
+          - { na: last_status, ty: VARCHAR(15), dc: "last case status" }
+          - { na: status, ty: VARCHAR(15), dc: "case status" }
+
+      - name: sa_dev
+        desc: "Relationship table between safety alert case record and product"
+        columns:
+          - { na: sa_dev_id, ty: INT, id: Y, nu: Y }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id }
+          - { na: md_list_id, ty: INT, fk: md_list.md_list_id, dc: "listed md id" }
+          - { na: make, ty: VARCHAR(300), dc: "make name for nonlisted md" }
+          - { na: model, ty: VARCHAR(500), dc: "model name for nonlisted md" }
+          - { na: affect_dtl, ty: VARCHAR(500), dc: "affected product detail" }
+
+      - name: sa_doc
+        desc: "Relationship table between safety alert and doc"
+        columns:
+          - { na: sa_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: sa_rpt_id, ty: INT, fk: sa_rpt.sa_rpt_id, dc: "safety alert report id" }
+          - { na: doc_id, ty: INT, dc: "identity of document record", fk: doc.doc_id, cd: "0..*:1" }
+          - { na: doc_type, ty: INT, dc: "document type" }
+          - { na: doc_ver, ty: INT, dc: "document version" }
+
+      - name: sa_convo
+        desc: "Relationship table between safety alert and conversation"
+        columns:
+          - { na: sa_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: sa_comm
+        desc: "Table for storing safety alert risk communcation record"
+        columns:
+          - { na: sa_comm_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: comm_type, ty: CHAR(1), nu: Y, dc: "reference to postmkt, P:Press Release, A:Safety Alert, L:Letter to  HCPs, S: Safety Alert Summary, O: Others" }
+          - { na: other, ty: VARCHAR(200), dc: "Other communication" }
+          - { na: disem_list_id, ty: INT, fk: disem_list.disem_list_id, dc: "dissemination list id" }
+          - { na: disem_date, ty: DATE, dc: "disseminate date" }
+          - { na: subject_en, ty: VARCHAR(200), dc: "subject in english" }
+          - { na: subject_zh, ty: VARCHAR(200), dc: "subject in chinese" }
+          - { na: content_en, ty: LONGTEXT, dc: "content in english" }
+          - { na: content_zh, ty: LONGTEXT, dc: "content in chinese" }
+
+      - name: sa_fu
+        desc: "Table for storing safety alert follow up action record"
+        columns:
+          - { na: sa_fu_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: fu_type, ty: CHAR(1), nu: Y, dc: "reference to postmkt, P:Pending Information, A:Advisory Letter, W:Warning Letter, S: Suspension Letter, D: Delisting, O: Others" }
+          - { na: other, ty: VARCHAR(50), dc: "Other follow up action" }
+          - { na: 2_wk_fu_date, ty: DATE, dc: "2 weeks follow up date" }
+          - { na: 4_wk_fu_date, ty: DATE, dc: "4 weeks follow up date" }
+
+      - name: sa_capa
+        desc: "Table for storing safety alert corrective action record"
+        columns:
+          - { na: sa_capa_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: capa_type, ty: CHAR(2), nu: Y, dc: "reference to postmkt, IU:IFU update, RC:Product recall, RP:Product repair, PR:Product replacement, SU:Software update, UA: User advice, UR: User instruction, O: Others" }
+          - { na: other, ty: VARCHAR(50), dc: "other corrective actions" }
+          - { na: compl_date, ty: date, dc: "corrective action completion date" }
+
+      - name: sa_mdsa
+        desc: "Table for storing safety alert mdsa records"
+        columns:
+          - { na: sa_mdsa_case_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: ro_user_id, ty: INT, fk: person.person_id, dc: "case reviewer user profile id" }
+          - { na: co_user_id, ty: INT, fk: person.person_id, dc: "case officer user profile id" }
+          - { na: incident, ty: VARCHAR(300), dc: "incident" }
+          - { na: level_recall, ty: VARCHAR(300), dc: "recall level" }
+          - { na: hazard, ty: VARCHAR(300), dc: "hazard" }
+          - { na: root_cause, ty: VARCHAR(300), dc: "Root cause" }
+          - { na: propose_capa, ty: VARCHAR(300), dc: "proposed CAPA" }
+          - { na: capa_progress, ty: VARCHAR(100), dc: "CAPA progress" }
+          - { na: report_date, ty: DATE, dc: "date of report preparation" }
+          - { na: ver, ty: INT, dc: "version number" }
+          - { na: remark, ty: VARCHAR(300), dc: "remark" }
+          - { na: submit_date, ty: DATE, dc: "submit date" }
+          - { na: approve_date, ty: DATE, dc: "approval date" }
+          - { na: return_date, ty: DATE, dc: "return date" }
+          - { na: mdsa_deleted, ty: CHAR(1), nu: Y, dc: "I: in progress, S: submitted for approve, R: returned, A: approved" }
+
+      - name: sa_group
+        desc: "Table for storing safety alert group"
+        columns:
+          - { na: sa_group_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+
+      - name: sa_grp_dtl
+        desc: ""
+        columns:
+          - { na: sa_grp_dtl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_group_id, ty: INT, nu: Y, fk: sa_group.sa_group_id, dc: "safety alert group id" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+
+      - name: sa_tag
+        desc: "Relationship table between safety alert and tag"
+        columns:
+          - { na: sa_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+          - { na: tag_id, ty: INT, nu: Y, fk: tag.tag_id, dc: "tag id" }
+
+      - name: ae
+        desc: "Table for storing adverse event records"
+        columns:
+          - { na: ae_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: report_no, ty: VARCHAR(20), dc: "report number" }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: reporter_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: lrp_id, ty: INT, fk: lrp_app.lrp_app_id, dc: "lrp id" }
+          - { na: manuf_app_id, ty: INT, fk: manuf_app.manuf_app_id, dc: "manufacturer id" }
+          - { na: report_date, ty: DATE, dc: "report date" }
+          - { na: report_type, ty: CHAR(1), dc: "M: MDU, L: LRP" }
+          - { na: is_prelim, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: is_ex_report, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: is_trend, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: incident_date, ty: DATE, dc: "Date of incident" }
+          - { na: lrp_aware_date, ty: DATE, dc: "LRP awareness date" }
+          - { na: next_report_date, ty: DATE, dc: "expected date of next report" }
+          - { na: is_within_timeframe, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: ae_class, ty: CHAR(1), dc: "H: serious public health concern, D: death, I: serious injury, O: other reportable event" }
+          - { na: is_delete, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: is_exempt, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: is_clinical_trial, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: clinical_event_descr, ty: VARCHAR(300), dc: "clinical event description" }
+          - { na: clinical_affect, ty: INT, dc: "no of affect people" }
+          - { na: clinical_device, ty: INT, dc: "no of devices" }
+          - { na: is_cluster_case, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: ae_remark, ty: VARCHAR(300), dc: "case remark" }
+          - { na: problem_descr, ty: VARCHAR(300), dc: "brief description of the problem" }
+          - { na: consequence_type, ty: CHAR(1), dc: "D: death, I: serious injury, P: might lead to death or serious injury if recurs, N: nil" }
+          - { na: consequence_descr, ty: VARCHAR(300), dc: "elaboration of consequence of the problem" }
+          - { na: operator, ty: CHAR(1), dc: "H: healthcare professional, p: patient, o: other, n: none" }
+          - { na: device_use, ty: CHAR(1), dc: "I: initial use, s: reuse of single-use device, r: reuse of reusable device, f: re-serviced / refurbished, o: other" }
+          - { na: other_device_use, ty: VARCHAR(50), dc: "other device usage" }
+          - { na: device_location, ty: VARCHAR(300), dc: "device disposition / current location" }
+          - { na: analysis_result, ty: VARCHAR(500), dc: "manufacturer's device analysis result" }
+          - { na: root_cause, ty: CHAR(1), dc: "D: Design Issues, Q: Quality Issues, M: Manufacturing Issues, S: Software Issues, P: Patient Conditions, E:Expected and Foreseeable Side Effects, UE:Use Errors, AU: Abnormal Use, O: Others, U: Unknown" }
+          - { na: other_root_cause, ty: VARCHAR(50), dc: "other root cause" }
+          - { na: root_cause_descr, ty: VARCHAR(300), dc: "root cause description" }
+          - { na: lrp_incident_ref, ty: VARCHAR(50), dc: "LRP incident reference number" }
+          - { na: is_disseminate_mdd, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: is_pr_issue, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: pr_source, ty: VARCHAR(50), dc: "press release issue party" }
+          - { na: source_link, ty: VARCHAR(300), dc: "source hyperlink" }
+          - { na: health_facility, ty: VARCHAR(150), dc: "health care facility" }
+          - { na: capa, ty: VARCHAR(500), dc: "capa" }
+          - { na: is_recall_hist, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: recall_remark, ty: VARCHAR(300), dc: "recall remark" }
+          - { na: other_report_info, ty: VARCHAR(300), dc: "other reporting information with the same root cause" }
+          - { na: lrp_comment, ty: VARCHAR(300), dc: "LRP comments" }
+          - { na: co_remark, ty: VARCHAR(300), dc: "case officer remark" }
+          - { na: case_close_date, ty: DATE, dc: "case close date" }
+          - { na: submit_date, ty: DATE, dc: "date of case officer submit to case reviwer" }
+          - { na: approve_date, ty: DATE, dc: "date of approval" }
+          - { na: reject_date, ty: DATE, dc: "date of rejection" }
+          - { na: reject_remark, ty: VARCHAR(300), dc: "reject remark" }
+          - { na: cc_user_id, ty: INT, dc: "case coordinator user profile id" }
+          - { na: co_user_id, ty: INT, dc: "case officer user profile id" }
+          - { na: ro_user_id, ty: INT, dc: "case reviewer user profile id" }
+          - { na: ae_deleted, ty: CHAR(1), nu: Y, dc: "adverse event deleted" }
+
+      - name: ae_patient
+        desc: "Table for storing adverse event patient"
+        columns:
+          - { na: ae_patient_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: age_month, ty: INT, dc: "patient age by month" }
+          - { na: age_year, ty: INT, dc: "patient age by year" }
+          - { na: gender, ty: CHAR(1), dc: "M:male, F:female" }
+          - { na: weight, ty: Decimal, dc: "weight in kg" }
+          - { na: action, ty: VARCHAR(300), dc: "corrective action taken relevant to the care of the patient" }
+          - { na: outcome, ty: VARCHAR(300), dc: "patient outcome" }
+
+      - name: ae_action
+        desc: "Table for storing adverse event actions"
+        columns:
+          - { na: ae_action_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: action_type, ty: INT, nu: Y, dc: "e: communication email, a: safety alert, w: special warning, p: press release" }
+          - { na: act_date, ty: DATE, dc: "action date" }
+          - { na: ref, ty: VARCHAR(300), dc: "action reference hyperlink" }
+          - { na: issue_by, ty: VARCHAR(100), dc: "action issue party" }
+
+      - name: ae_dev
+        desc: "Relationship table between adverse_event and product"
+        columns:
+          - { na: ae_dev_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: ae_patient_id, ty: INT, fk: ae_patient.ae_patient_id, dc: "adverse event patient id" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, dc: "product model id" }
+
+      - name: ae_rpt_party
+        desc: ""
+        columns:
+          - { na: ae_rpt_party_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: party_name, ty: VARCHAR(50), dc: "name of report party" }
+          - { na: cont_name, ty: VARCHAR(50), dc: "report party person contact" }
+          - { na: cont_tel, ty: VARCHAR(20), dc: "contact telephone" }
+          - { na: rpt_date, ty: DATE, dc: "report date" }
+
+      - name: ae_doc
+        desc: "Relationship table between adverse_event and doc"
+        columns:
+          - { na: ae_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: ae_convo
+        desc: "Relationship table between adverse_event and conversation"
+        columns:
+          - { na: ae_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: ae_group
+        desc: "Table for storing adverse event group"
+        columns:
+          - { na: ae_group_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+
+      - name: ae_grp_dtl
+        desc: ""
+        columns:
+          - { na: ae_grp_dtl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_group_id, ty: INT, nu: Y, fk: ae_group.ae_group_id, dc: "adverse event group id" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+
+      - name: ae_person
+        desc: "Relationship table between adverse_event and person"
+        columns:
+          - { na: ae_person_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: person_type, ty: CHAR(1), dc: "r: reporter, s: supplier, l:lrp, h: healthcare facility" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id, dc: "person id" }
+
+      - name: ae_recall
+        desc: "Relationship table between adverse_event and safety alert"
+        columns:
+          - { na: ae_recall_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: sa_case_id, ty: INT, nu: Y, fk: sa_case.sa_case_id, dc: "safety alert id" }
+
+      - name: ae_tag
+        desc: "Relationship table between adverse event and tag"
+        columns:
+          - { na: ae_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ae_id, ty: INT, nu: Y, fk: ae.ae_id, dc: "adverse event id" }
+          - { na: tag_id, ty: INT, nu: Y, fk: tag.tag_id, dc: "tag id" }
+
+      - name: cmplt
+        desc: "Table for storing complaint records"
+        columns:
+          - { na: cmplt_id, ty: INT, id: Y, nu: Y }
+          - { na: ff_id, ty: INT, fk: ff.ff_id, dc: "file folder id" }
+          - { na: report_date, ty: DATE, nu: Y, dc: "report date" }
+          - { na: reporter_id, ty: INT, fk: person.person_id, dc: "external user profile id" }
+          - { na: is_ex_report, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: is_prelim, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: case_no, ty: VARCHAR(12), dc: "case number" }
+          - { na: cmplt_type, ty: CHAR(1), dc: "MD: MD, MF: manufacturer, IP: importer, D: distributor" }
+          - { na: md_list_id, ty: INT, fk: md_list.md_list_id, dc: "listed md id" }
+          - { na: manuf_list_id, ty: INT, fk: manuf_list.manuf_list_id, dc: "listed manufacturer id" }
+          - { na: ipd_list_id, ty: INT, fk: ipd_list.ipd_list_id, dc: "listed ipd id" }
+          - { na: descr, ty: VARCHAR(300) }
+          # - { na: <-- complaint form fields -->, ty:  }
+          - { na: cc_user_id, ty: INT, fk: person.person_id, dc: "case coordinator user profile id" }
+          - { na: co_user_id, ty: INT, fk: person.person_id, dc: "case officer user profile id" }
+          - { na: case_close_date, ty: DATE, dc: "case close date" }
+          - { na: assign_date, ty: DATE, dc: "date of case coordinator assign case officer" }
+          - { na: case_deleted, ty: CHAR(1), nu: Y, dc: "O: opened, S: submitted for close, C: close" }
+
+      - name: cmplt_doc
+        desc: "Relationship table between complaint and doc"
+        columns:
+          - { na: cmplt_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cmplt_id, ty: INT, nu: Y, fk: cmplt.cmplt_id, dc: "complaint id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: cmplt_convo
+        desc: "Relationship table between complaint and conversation"
+        columns:
+          - { na: cmplt_convo_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cmplt_id, ty: INT, nu: Y, fk: cmplt.cmplt_id, dc: "complaint id" }
+          - { na: convo_id, ty: INT, nu: Y, fk: convo.convo_id, dc: "conversation id" }
+
+      - name: cmplt_dev
+        desc: "Relationship table between complaint and product"
+        columns:
+          - { na: cmplt_dev_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cmplt_id, ty: INT, nu: Y, fk: cmplt.cmplt_id, dc: "complaint id" }
+          - { na: dev_model_id, ty: INT, nu: Y, fk: dev_model.dev_model_id, dc: "product model id" }
+
+      - name: cmplt_group
+        desc: "Table for storing complaint group"
+        columns:
+          - { na: cmplt_group_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+
+      - name: cmplt_grp_dtl
+        desc: "Table for storing details of complaint group (subsequent complaint)"
+        columns:
+          - { na: cmplt_grp_dtl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cmplt_group_id, ty: INT, nu: Y, fk: cmplt_group.cmplt_group_id, dc: "complaint group id" }
+          - { na: cmplt_id, ty: INT, nu: Y, fk: cmplt.cmplt_id, dc: "complaint id" }
+
+      - name: cmplt_tag
+        desc: "Relationship table between complaint and tag"
+        columns:
+          - { na: cmplt_tag_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: cmplt_id, ty: INT, nu: Y, fk: cmplt.cmplt_id, dc: "complaint id" }
+          - { na: tag_id, ty: INT, nu: Y, fk: tag.tag_id, dc: "tag id" }
+
+  # ---------------------------------------------------------------------------- #
+  #                                      GR                                      #
+  # ---------------------------------------------------------------------------- #
+  - name: GR
+    tables:
+      - name: ff
+        title: file folder
+        desc: "Table for storing file folder records"
+        columns:
+          - { na: ff_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: section, ty: CHAR(1), dc: "R:pre-market, O: post-market" }
+          - { na: file_no, ty: VARCHAR(30), dc: "file number" }
+          - { na: ff_type, ty: VARCHAR(30), dc: "file type" }
+          - { na: file_location, ty: VARCHAR(30), dc: "file location" }
+          - { na: is_label_printed, ty: CHAR(1), dc: "indicate is label printed" }
+          - { na: is_low_priority, ty: CHAR(1), dc: "Y: yes, N: no" }
+          - { na: file_status, ty: CHAR(1), nu: Y, dc: "R: ready for scan, S: scanned, B: borrowed, A: available" }
+          - { na: remark, ty: VARCHAR(300), dc: "remark" }
+
+      - name: ff_hist
+        title: file folder history
+        desc: "Table for storing file folder borrowing history"
+        columns:
+          - { na: ff_hist_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: ff_id, ty: INT, nu: Y, fk: ff.ff_id, dc: "file folder id" }
+          - { na: borrower, ty: INT, fk: person.person_id, dc: "borrower user profile id" }
+          - { na: borrow_date, ty: DATE, dc: "borrow date" }
+          - { na: anti_return_date, ty: DATE, dc: "anticipated return date" }
+          - { na: actual_return_date, ty: DATE, dc: "actual return date" }
+          - { na: remark, ty: VARCHAR(300), dc: "remark" }
+
+  # ---------------------------------------------------------------------------- #
+  #                                   SECRETARY                                  #
+  # ---------------------------------------------------------------------------- #
+  - name: Secretary
+    tables:
+      - name: board_mtg
+        desc: "Table for storing physical board meeting records"
+        columns:
+          - { na: borad_mtg_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: mgt_date, ty: DATE, nu: Y, dc: "meeting date" }
+          - { na: start_time, ty: DATETIME }
+          - { na: end_time, ty: DATETIME }
+          - { na: mtg_type, ty: VARCHAR(5), nu: Y, dc: "lab type" }
+          - { na: venue, ty: VARCHAR(30), nu: Y, dc: "meeting venue" }
+          - { na: status, ty: VARCHAR(1), nu: Y, dc: "P: Pending, S: scheduled, C: completed" }
+          - { na: remark, ty: VARCHAR(500), dc: "meeting remark" }
+
+      - name: board_mtg_pcp
+        desc: "Table for storing meeting participant of each board meeting"
+        columns:
+          - { na: board_mtg_pcp_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: borad_mtg_id, ty: INT, nu: Y, fk: board_mtg.borad_mtg_id, dc: "meeting id" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id, dc: "user profile id" }
+          - { na: will_attend, ty: CHAR(1), nu: Y, dc: "Y: Yes, N: No" }
+          - { na: is_attend, ty: CHAR(1), nu: Y, dc: "Y: Yes, N: No" }
+
+      - name: board_mtg_doc
+        desc: "Relationship table between board meeting and doc"
+        columns:
+          - { na: board_mtg_doc_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: borad_mtg_id, ty: INT, nu: Y, fk: board_mtg.borad_mtg_id, dc: "meeting id" }
+          - { na: doc_id, ty: INT, nu: Y, fk: doc.doc_id, dc: "doc id" }
+
+      - name: workload_ratio
+        desc: "Table for storing workload ratio records"
+        columns:
+          - { na: workload_ratio_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: effect_date, ty: DATE, dc: "effective date" }
+
+      - name: workload_ratio_dtl
+        desc: "Table for storing workload ratio details"
+        columns:
+          - { na: wkload_ratio_dtl_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: workload_ratio_id, ty: INT, nu: Y, fk: workload_ratio.workload_ratio_id, dc: "workload ratio id" }
+          - { na: person_id, ty: INT, nu: Y, fk: person.person_id, dc: "user profile id" }
+          - { na: rpt_ratio, ty: INT, dc: "reporting ratio" }
+          - { na: effect_ratio, ty: INT, dc: "effective ratio" }
+
+      - name: case_ratio
+        desc: ""
+        columns:
+          - { na: case_ratio_id, ty: INT, id: Y, nu: Y, dc: "unique identifier" }
+          - { na: new_ratio, ty: INT, dc: "new case ratio" }
+          - { na: renew_ratio, ty: INT, dc: "renew case ratio" }
+          - { na: change_ratio, ty: INT, dc: "change ratio" }
+          - { na: effect_date, ty: DATE, dc: "effective date" }

@@ -10,9 +10,9 @@ import (
 	"os"
 
 	"github.com/rotisserie/eris"
+	"github.com/samber/lo"
 	"github.com/shomali11/util/xconditions"
 	"github.com/shomali11/util/xstrings"
-	"github.com/thoas/go-funk"
 )
 
 func (s *Xfmr) SaveToPlantUML(args DiagramArgs) error {
@@ -44,7 +44,7 @@ func (s *Xfmr) buildPlantUml(args DiagramArgs) (string, error) {
 	var addTable = func(builder *strings.Builder, tbNames []string) bool {
 		for _, schema := range s.Data.Schemas {
 			for _, table := range schema.Tables {
-				if funk.Contains(tbNames, strings.ToLower(table.Name)) {
+				if lo.Contains(tbNames, strings.ToLower(table.Name)) {
 					builder.WriteString(fmt.Sprintf("\nentity %s", table.Name))
 					if xstrings.IsNotBlank(table.Title) {
 						builder.WriteString(fmt.Sprintf(" as \"%s\\n<size:11>(%s)</size>\"", table.Name, table.Title))
@@ -156,11 +156,11 @@ skinparam {
 			}
 		}
 	}
-	tables = funk.UniqString(tables) // remove duplicated tables
+	tables = lo.Uniq(tables) // remove duplicated tables
 	addTable(&head, tables)
 
 	if !args.IncludeFK {
-		cards = funk.UniqString(cards)
+		cards = lo.Uniq(cards)
 	}
 	sort.Strings(cards)
 

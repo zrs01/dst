@@ -9,7 +9,6 @@ import (
 
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
-	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v2"
 )
 
@@ -73,13 +72,13 @@ func (s *Xfmr) Verify() error {
 
 	for k, columns := range tables {
 		for i, column := range columns {
-			if funk.IsEmpty(column.Name) {
+			if column.Name == "" {
 				logrus.Warnf("'%s', missing column name at line %d", k, i)
 			}
-			if funk.IsEmpty(column.DataType) {
+			if column.DataType == "" {
 				logrus.Warnf("'%s', missing data type of the column '%s' at line %d", k, column.Name, i)
 			}
-			if !funk.IsEmpty(column.ForeignKey) {
+			if column.ForeignKey != "" {
 				// check the foreign key whether exists
 				if !isFKExist(column.ForeignKey) {
 					logrus.Warnf("'%s', FK '%s' cannot be found at line %d\n", k, column.ForeignKey, i)
