@@ -49,7 +49,7 @@ func WriteTpl(data *DataDef, tplf string, out string, pattern string) error {
 
 	// output
 	var fh *os.File
-	if out == "" {
+	if out == "" || out == "stdout" {
 		fh = os.Stdout
 	} else {
 		fh, err = os.Create(out)
