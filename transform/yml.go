@@ -61,7 +61,7 @@ func WriteYml(data *DataDef, outfile string) error {
 	output = strings.ReplaceAll(output, "\"n\"", "n")
 	output = strings.ReplaceAll(output, "\"Y\"", "Y")
 	output = strings.ReplaceAll(output, "\"y\"", "y")
-	if outfile == "" {
+	if outfile == "" || outfile == "stdout" {
 		fmt.Println(output)
 	} else {
 		os.WriteFile(outfile, []byte(output), fs.FileMode(0744))

@@ -73,14 +73,14 @@ func main() {
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		data := transform.FilterData(rawData, schema, table)
-		validateResult := transform.Verify(data)
+		validateResult := transform.Verify(rawData)
 		if len(validateResult) > 0 {
 			lo.ForEach(validateResult, func(v string, _ int) {
 				fmt.Println(v)
 			})
 			return nil, tracerr.Errorf("invalid data")
 		}
+		data := transform.FilterData(rawData, schema, table)
 		return data, nil
 	}
 
