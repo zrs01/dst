@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,105 +48,148 @@ func main() {
 	/* ------------------------------ Common flags ------------------------------ */
 
 	ifileFlag := func(file *string, usage string) *cli.StringFlag {
-		return &cli.StringFlag{
-			Name:        "input",
-			Aliases:     []string{"i"},
-			Usage:       lo.Ternary(usage == "", "input file", usage),
-			Required:    true,
-			Destination: file,
-		}
+		return &cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: lo.Ternary(usage == "", "input file", usage), Required: true, Destination: file}
 	}
 	ofileFlag := func(file *string, usage string) *cli.StringFlag {
-		return &cli.StringFlag{
-			Name:        "output",
-			Aliases:     []string{"o"},
-			Usage:       lo.Ternary(usage == "", "output file", usage),
-			Destination: file,
-		}
+		return &cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: lo.Ternary(usage == "", "output file", usage), Required: false, Destination: file}
 	}
-	// validInOutFile := func(ifile string, iexts []string, ofile string, oexts []string) bool {
-	// 	iext := strings.ToLower(filepath.Ext(ifile))
-	// 	oext := strings.ToLower(filepath.Ext(ofile))
-	// 	if ifile != "" && ofile != "" {
-	// 		return lo.Contains(iexts, iext) && lo.Contains(oexts, oext)
-	// 	}
-	// 	return lo.Contains(iexts, iext)
-	// }
+	templateFlag := func(file *string) *cli.StringFlag {
+		return &cli.StringFlag{Name: "template", Aliases: []string{"t"}, Usage: "template file", Required: false, Destination: file}
+	}
+	schemaFile := func(schema *string) *cli.StringFlag {
+		return &cli.StringFlag{Name: "schema", Usage: "schema name pattern, wildcard char: * or %", Required: false, Destination: schema}
+	}
+	tableFlag := func(table *string) *cli.StringFlag {
+		return &cli.StringFlag{Name: "table", Usage: "table name pattern, wildcard char: * or %", Required: false, Destination: table}
+	}
+	simpleFlag := func(simple *bool) *cli.BoolFlag {
+		return &cli.BoolFlag{Name: "simple", Usage: "simple content", Value: false, Required: false, Destination: simple}
+	}
+	libFlag := func(lib *string) *cli.StringFlag {
+		return &cli.StringFlag{Name: "lib", Usage: "plantuml.jar file, used when output format is png", Required: false, Destination: lib}
+	}
+	srcData := func(ifile, schema, table string) (*transform.DataDef, error) {
+		rawData, err := transform.ReadYml(ifile)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+		data := transform.FilterData(rawData, schema, table)
+		validateResult := transform.Verify(data)
+		if len(validateResult) > 0 {
+			lo.ForEach(validateResult, func(v string, _ int) {
+				fmt.Println(v)
+			})
+			return nil, tracerr.Errorf("invalid data")
+		}
+		return data, nil
+	}
 
+	// convert command
+	convertCmd := &cli.Command{
+		Name:    "convert",
+		Aliases: []string{"c"},
+		Usage:   "Convert to other format",
+	}
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		var ifile, ofile, tfile, schema, table, lib string
+		return convertCmd
+	}())
+
+	// transform to text
+	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, tfile, schema, table string
 		var simple bool
 		return &cli.Command{
-			Name:    "convert",
-			Aliases: []string{"c"},
-			Usage:   "Convert to other format",
+			Name:    "text",
+			Usage:   "transform from yaml to text",
+			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, ""),
-				ofileFlag(&ofile, ""),
-
-				&cli.StringFlag{
-					Name:        "template",
-					Aliases:     []string{"t"},
-					Usage:       "template file",
-					Destination: &tfile,
-				},
-				&cli.StringFlag{
-					Name:        "schema",
-					Usage:       "schema name",
-					Destination: &schema,
-				},
-				&cli.StringFlag{
-					Name:        "table",
-					Usage:       "[-t] table name pattern, wildcard char: * or %",
-					Destination: &table,
-				},
-				&cli.BoolFlag{
-					Name:        "simple",
-					Usage:       "simple content",
-					Value:       false,
-					Destination: &simple,
-				},
-				&cli.StringFlag{
-					Name:        "lib",
-					Usage:       "plantuml.jar file",
-					Destination: &lib,
-				},
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file (text file)"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				simpleFlag(&simple),
+				templateFlag(&tfile),
 			},
 			Action: func(c *cli.Context) error {
-				iext := strings.ToLower(filepath.Ext(ifile))
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-
-				switch iext {
-				case ".yml":
-					rawData, err := transform.ReadYml(ifile)
-					if err != nil {
+				data, err := srcData(ifile, schema, table)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				if tfile != "" {
+					return transform.WriteTpl(data, tfile, ofile, table)
+				}
+				switch oext {
+				case ".yml", "":
+					if err := transform.WriteYml(data, ofile); err != nil {
 						return tracerr.Wrap(err)
 					}
-					data := transform.FilterData(rawData, schema, table)
+				}
+				return tracerr.New("Not implemented yet")
+			},
+		}
+	}())
 
-					switch oext {
-					case ".xlsx":
-						if err := transform.WriteXlsx(data, ofile, simple); err != nil {
-							return tracerr.Wrap(err)
-						}
-					case ".png":
-						if err := transform.WriteERD(data, tfile, ofile); err != nil {
-							return tracerr.Wrap(err)
-						}
-					case ".yml", "":
-						// template output
-						if tfile != "" {
-							if err := transform.WriteTpl(data, tfile, ofile, table); err != nil {
-								return tracerr.Wrap(err)
-							}
-							return nil
-						}
-						if err := transform.WriteYml(data, ofile); err != nil {
-							return tracerr.Wrap(err)
-						}
+	// transform to excel
+	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table string
+		var simple bool
+		return &cli.Command{
+			Name:    "excel",
+			Usage:   "transform from yaml to excel",
+			Aliases: []string{"e"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file (.xlsx)"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				simpleFlag(&simple),
+			},
+			Action: func(c *cli.Context) error {
+				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
+				data, err := srcData(ifile, schema, table)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				switch oext {
+				case ".xlsx":
+					if err := transform.WriteXlsx(data, ofile, simple); err != nil {
+						return tracerr.Wrap(err)
 					}
 				}
-				return nil
+				return tracerr.New("Not implemented yet")
+			},
+		}
+	}())
+
+	// transform to diagram
+	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, tfile, schema, table, lib string
+		return &cli.Command{
+			Name:    "diagram",
+			Usage:   "transform from yaml to diagram",
+			Aliases: []string{"d"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file (.png)"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				templateFlag(&tfile),
+				libFlag(&lib),
+			},
+			Action: func(c *cli.Context) error {
+				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
+				data, err := srcData(ifile, schema, table)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				switch oext {
+				case ".png":
+					if err := transform.WriteERD(data, tfile, ofile); err != nil {
+						return tracerr.Wrap(err)
+					}
+				}
+				return tracerr.New("Not implemented yet")
 			},
 		}
 	}())
