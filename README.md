@@ -4,51 +4,6 @@ Export to different format from definition file.
 
 ## Usage
 
-### Command
-
-```sh
-NAME:
-   dst - Database schema tool
-
-USAGE:
-   dst [global options] command [command options] [arguments...]
-
-VERSION:
-   development
-
-COMMANDS:
-   convert, c  Convert to other format
-   verify, v   Verify the foreign key
-   help, h     Shows a list of commands or help for one command
-
-GLOBAL OPTIONS:
-   --debug, -d    Debug mode (default: false)
-   --help, -h     show help (default: false)
-   --version, -v  print the version (default: false)
-```
-
-Use `--help` after command to show addition information, e.g.
-
-```sh
-$ dst convert --help
-
-NAME:
-   dst convert - Convert to other format
-
-USAGE:
-   dst convert command [command options] [arguments...]
-
-COMMANDS:
-   yaml, y
-   excel, e
-   text, t
-   diagram, d
-   help, h     Shows a list of commands or help for one command
-
-OPTIONS:
-   --help, -h  show help (default: false)
-```
-
 ### Example
 
 Create a definition file (e.g. sample.yml)
@@ -112,29 +67,25 @@ schemas:
 # -- YAML to Excel
 $ dst convert excel -i sample.yml -o sample.xlsx
 
-# -- Excel to YAML
-$ dst convert yaml -i sample.xlsx -o sample.yml
-
 # -- YAML to ER diagram definition file
 $ dst convert diagram -i sample.yml -o sample.puml
 
 # -- YAML to ER diagram (.png)
 # download plantuml.jar from https://plantuml.com/download
+
+# plantuml.jar can be skiped, it try to find the .jar from the PATH variable
+$ dst convert diagram -i sample.yml -o sample.puml
+# specify plantuml.jar
 $ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar
-# you may convert some of tables, select the tables starts with 'tag' pattern only, '*' can be replaced by '%'
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar -p 'tag*'
-# for simple mode, only show PK and FK in the diagram
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar --simple
-# include foreign key name in the relationship line
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar --fk
+# you may convert some of tables, select the tables starts with 'tag' only
+$ dst convert diagram -i sample.yml -o sample.puml --table 'tag%'
+# template file is used for the ER diagram
+$ dst convert diagram -i sample.yml -t template.tpl -o sample.puml
 
 # -- YAML to SQL schema file
 # generate using template.tpl
 $ dst convert text -i sample.yml -o sample.sql -t template.tpl
-# generate using template.tpl, select the tables start with 'tag' pattern only, '*' can be replaced by '%'
-$ dst convert text -i sample.yml -o sample.sql -t template.tpl -p -p 'tag*'
+# generate using template.tpl, select the tables start with 'tag' only
+$ dst convert text -i sample.yml -o sample.sql -t template.tpl --table 'tag%'
 
-# -- Verify foreign key
-# make sure the foreign table and key exist
-$ dst verify -i sample.yml
 ```

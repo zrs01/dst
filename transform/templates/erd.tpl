@@ -18,7 +18,6 @@ entity "{{ .Name }}{{ if .Title != "" }}\n<size:11>({{ .Title }})</size>{{ end }
   {{- end }}
 {{- end }}
 
-' entity of foreign table, prevent missing entity
 {{ range .Schemas }}
   {{- range .Tables }}
     {{- range .Columns }}
@@ -29,7 +28,6 @@ entity {{ parts[0] }}
     {{- end }}
   {{- end }}
 {{- end }}
-
 
 {{ range .Schemas }}
   {{- range .Tables }}

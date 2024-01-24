@@ -21,7 +21,7 @@ import (
 //
 // Return:
 // - An error if any occurred during the execution of the function.
-func WriteTpl(data *DataDef, tplf string, out string, pattern string) error {
+func WriteTpl(data *DataDef, tplf string, out string) error {
 
 	// var loader jet.Loader
 	// if _, err := os.Stat(outtpl); errors.Is(err, os.ErrNotExist) {
@@ -58,40 +58,6 @@ func WriteTpl(data *DataDef, tplf string, out string, pattern string) error {
 		}
 		defer fh.Close()
 	}
-
-	// // extract selected tables
-	// outData := &DataDef{
-	// 	Fixed:   data.Fixed,
-	// 	Schemas: []Schema{},
-	// }
-	// // function to check whether the pattern is valid
-	// var isEligibleTable = func(name string) bool {
-	// 	if pattern == "" {
-	// 		return true
-	// 	}
-	// 	parts := strings.Split(pattern, ",")
-	// 	// fmt.Printf("*** %v\n", parts)
-	// 	for i := 0; i < len(parts); i++ {
-	// 		if wildCardMatch(strings.ToLower(strings.TrimSpace(parts[i])), strings.ToLower(name)) {
-	// 			return true
-	// 		}
-	// 	}
-	// 	return false
-	// }
-
-	// for _, schema := range data.Schemas {
-	// 	tables := []Table{}
-	// 	// filter the desired tables
-	// 	for _, table := range schema.Tables {
-	// 		if isEligibleTable(table.Name) {
-	// 			tables = append(tables, table)
-	// 		}
-	// 	}
-	// 	if len(tables) > 0 {
-	// 		schema.Tables = tables
-	// 		outData.Schemas = append(outData.Schemas, schema)
-	// 	}
-	// }
 
 	// merge
 	if err := view.Execute(fh, nil, *data); err != nil {
