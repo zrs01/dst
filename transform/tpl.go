@@ -87,6 +87,6 @@ func fileLoader(data *model.DataDef, tplf string) jet.Loader {
 
 func memoryLoader(data *model.DataDef, tplf string, tplc string) jet.Loader {
 	loader := jet.NewInMemLoader()
-	loader.Set(tplf, tplc)
+	loader.Set(filepath.Base(tplf), tplc)
 	return loader
 }

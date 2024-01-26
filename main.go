@@ -70,7 +70,7 @@ func main() {
 	libFlag := func(lib *string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "lib", Usage: "plantuml.jar file, used when output format is png", Required: false, Destination: lib}
 	}
-	selectedData := func(ifile, schema, table string) (*model.DataDef, error) {
+	selectedData := func(ifile, schema, table string, column string) (*model.DataDef, error) {
 		rawData, err := transform.ReadYml(ifile)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
@@ -82,7 +82,7 @@ func main() {
 			})
 			return nil, tracerr.Errorf("invalid data")
 		}
-		data := transform.FilterData(rawData, schema, table)
+		data := transform.FilterData(rawData, schema, table, column)
 		return data, nil
 	}
 
@@ -114,7 +114,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := selectedData(ifile, schema, table)
+				data, err := selectedData(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -126,6 +126,7 @@ func main() {
 					if err := transform.WriteYml(data, ofile); err != nil {
 						return tracerr.Wrap(err)
 					}
+					return nil
 				}
 				return tracerr.New("Not implemented yet")
 			},
@@ -149,7 +150,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := selectedData(ifile, schema, table)
+				data, err := selectedData(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -158,6 +159,7 @@ func main() {
 					if err := transform.WriteXlsx(data, ofile, simple); err != nil {
 						return tracerr.Wrap(err)
 					}
+					return nil
 				}
 				return tracerr.New("Not implemented yet")
 			},
@@ -184,7 +186,7 @@ func main() {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := selectedData(ifile, schema, table)
+				data, err := selectedData(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -200,24 +202,116 @@ func main() {
 		}
 	}())
 
-	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
-		var ifile, ofile, schema, table string
+	sqlCmd := &cli.Command{
+		Name:    "sql",
+		Aliases: []string{"s"},
+		Usage:   "Convert to SQL DDL",
+	}
+	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
+		return sqlCmd
+	}())
+
+	/* -------------------------------------------------------------------------- */
+	/*                                     SQL                                    */
+	/* -------------------------------------------------------------------------- */
+
+	dbFlag := func(db *string) *cli.StringFlag {
+		return &cli.StringFlag{Name: "database", Aliases: []string{"d"}, Usage: "database (mssql)", Required: true, Destination: db}
+	}
+	colFlag := func(col *string) *cli.StringFlag {
+		return &cli.StringFlag{Name: "column", Aliases: []string{"c"}, Usage: "column", Required: false, Destination: col}
+	}
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db string
 		return &cli.Command{
-			Name:    "sql",
-			Usage:   "transform from yaml to sql",
-			Aliases: []string{"s"},
+			Name:    "create-table",
+			Usage:   "create table DDL",
+			Aliases: []string{"ct"},
 			Flags: []cli.Flag{
 				ifileFlag(&ifile, "input file (.yml)"),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
+				dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table)
+				data, err := selectedData(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
-				return sql.WriteCreateTable(data, ofile)
+				return sql.CreateTable(data, db, ofile)
+			},
+		}
+	}())
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db string
+		return &cli.Command{
+			Name:    "drop-table",
+			Usage:   "drop table DDL",
+			Aliases: []string{"dt"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, "")
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.DropTable(data, db, ofile)
+			},
+		}
+	}())
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db, col string
+		return &cli.Command{
+			Name:    "add-column",
+			Usage:   "add column DDL",
+			Aliases: []string{"ac"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+				colFlag(&col),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, "")
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.AddColumn(data, db, ofile)
+			},
+		}
+	}())
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db, col string
+		return &cli.Command{
+			Name:    "drop-column",
+			Usage:   "drop column DDL",
+			Aliases: []string{"dc"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+				colFlag(&col),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, "")
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.DropColumn(data, db, ofile)
 			},
 		}
 	}())

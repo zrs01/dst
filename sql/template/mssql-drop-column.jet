@@ -1,0 +1,33 @@
+{* ------------------------------- foreign keys ------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns}}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NOT NULL ALTER TABLE {{ table }} DROP CONSTRAINT IF EXISTS fk{{ table }}{{ .Name }};
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{* ----------------------------------- index ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns}}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{* ---------------------------------- column ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns}}
+IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NOT NULL ALTER TABLE {{ table }} DROP COLUMN {{ .Name }};
+    {{- end }}
+  {{- end }}
+{{- end }}

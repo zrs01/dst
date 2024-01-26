@@ -55,7 +55,7 @@ func wildCardMatchs(pattern []string, value string) bool {
 //
 // It takes a pointer to a DataDef struct, a schema pattern string, and a table pattern string as parameters.
 // It returns a pointer to a modified DataDef struct.
-func FilterData(data *model.DataDef, schemaPattern string, tablePattern string) *model.DataDef {
+func FilterData(data *model.DataDef, schemaPattern string, tablePattern string, columnPattern string) *model.DataDef {
 	d := &model.DataDef{
 		Fixed:   data.Fixed,
 		Schemas: make([]model.Schema, 0),
@@ -66,6 +66,16 @@ func FilterData(data *model.DataDef, schemaPattern string, tablePattern string) 
 		isSchemaMatched := schemaPattern == "" || wildCardMatchs(strings.Split(schemaPattern, ","), schema.Name)
 		if isSchemaMatched {
 			tables := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
+				// isSelectedTable := tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
+				// if isSelectedTable {
+				// 	columns := lo.Filter(t.Columns, func(c model.Column, _ int) bool {
+				// 		return columnPattern == "" || wildCardMatchs(strings.Split(columnPattern, ","), c.Name)
+				// 	})
+				// 	if len(columns) > 0 {
+				// 		t.Columns = columns
+				// 		schema.Tables[i] = t
+				// 	}
+				// }
 				return tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
 			})
 			if len(tables) > 0 {
