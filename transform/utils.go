@@ -63,21 +63,34 @@ func FilterData(data *model.DataDef, schemaPattern string, tablePattern string, 
 
 	for i := 0; i < len(data.Schemas); i++ {
 		schema := data.Schemas[i]
-		isSchemaMatched := schemaPattern == "" || wildCardMatchs(strings.Split(schemaPattern, ","), schema.Name)
-		if isSchemaMatched {
-			tables := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
-				// isSelectedTable := tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
-				// if isSelectedTable {
-				// 	columns := lo.Filter(t.Columns, func(c model.Column, _ int) bool {
-				// 		return columnPattern == "" || wildCardMatchs(strings.Split(columnPattern, ","), c.Name)
-				// 	})
-				// 	if len(columns) > 0 {
-				// 		t.Columns = columns
-				// 		schema.Tables[i] = t
-				// 	}
-				// }
+		if schemaPattern == "" || wildCardMatchs(strings.Split(schemaPattern, ","), schema.Name) {
+			var tables []model.Table
+			tbs := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
 				return tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
 			})
+			for j := 0; j < len(tbs); j++ {
+				columns := lo.Filter(tbs[j].Columns, func(c model.Column, _ int) bool {
+					return columnPattern == "" || wildCardMatchs(strings.Split(columnPattern, ","), c.Name)
+				})
+				if len(columns) > 0 {
+					tbs[j].Columns = columns
+					tables = append(tables, tbs[j])
+				}
+			}
+
+			// tables := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
+			// 	isSelectedTable := tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
+			// 	if isSelectedTable {
+			// 		columns := lo.Filter(t.Columns, func(c model.Column, _ int) bool {
+			// 			return columnPattern == "" || wildCardMatchs(strings.Split(columnPattern, ","), c.Name)
+			// 		})
+			// 		if len(columns) > 0 {
+			// 			t.Columns = columns
+			// 			schema.Tables[i] = t
+			// 		}
+			// 	}
+			// return tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
+
 			if len(tables) > 0 {
 				schema.Tables = tables
 				d.Schemas = append(d.Schemas, schema)

@@ -13,7 +13,7 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-//go:embed templates/erd.tpl
+//go:embed templates/erd.jet
 var tplERD []byte
 
 func WriteERD(data *model.DataDef, tplf string, out string) error {

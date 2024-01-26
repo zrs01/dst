@@ -283,7 +283,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := selectedData(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -307,7 +307,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := selectedData(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
