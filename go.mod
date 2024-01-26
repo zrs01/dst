@@ -1,4 +1,4 @@
-module dst
+module github.com/zrs01/dst
 
 go 1.18
 

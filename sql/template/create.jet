@@ -1,0 +1,32 @@
+{* ---------------------------------- tables ---------------------------------- *}
+{{- fixed := .Fixed }}
+{{- range .Schemas }}
+  {{- range .Tables }}
+IF OBJECT_ID(N'{{ .Name }}', N'U') IS NULL
+BEGIN
+CREATE TABLE {{ .Name }} (
+    {{- idc := "" }}
+    {{- range i := .Columns}}
+      {{- if .Identity == "Y" }}
+        {{- idc = . }}
+      {{- end }}
+      {{ .Name }} {{ .DataType }}
+      {{- if .Identity == "Y" }} IDENTITY(1,1){{- end }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
+      {{- if .NotNull == "Y" }} NOT NULL {{- end }}
+      {{- "," }}
+    {{- end }}
+    {{- fixedCount := len(fixed) }}
+    {{- range i := fixed }}
+      {{ .Name }} {{ .DataType }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
+      {{- if .NotNull == "Y" }} NOT NULL {{- end }}
+      {{- if i < fixedCount - 1 }},{{- end }}
+    {{- end }}
+    {{- if idc != "" }},
+      CONSTRAINT pk{{ .Name }}{{ idc.Name }} PRIMARY KEY ({{ idc.Name }})
+    {{- end }}
+)
+END;
+  {{- end }}
+{{- end }}

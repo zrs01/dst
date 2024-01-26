@@ -6,28 +6,29 @@ import (
 	"os"
 	"strings"
 
+	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 	"gopkg.in/yaml.v3"
 )
 
-func ReadYml(file string) (*DataDef, error) {
+func ReadYml(file string) (*model.DataDef, error) {
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 
-	var d DataDef
+	var d model.DataDef
 	if err := yaml.Unmarshal(yamlFile, &d); err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 	return &d, err
 }
 
-func WriteYml(data *DataDef, outfile string) error {
+func WriteYml(data *model.DataDef, outfile string) error {
 	// modify the columns in fixed to flow style
 	pFixed := &data.Fixed
 	for i := 0; i < len(*pFixed); i++ {
-		(*data).OutFixed = make([]OutColumn, len(*pFixed))
+		(*data).OutFixed = make([]model.OutColumn, len(*pFixed))
 		for j, column := range *pFixed {
 			(*data).OutFixed[j].Value = column
 		}
@@ -39,7 +40,7 @@ func WriteYml(data *DataDef, outfile string) error {
 	for i := 0; i < len(*pSchemas); i++ {
 		var pTables = &(*pSchemas)[i].Tables
 		for j := 0; j < len(*pTables); j++ {
-			(*pTables)[j].OutColumns = make([]OutColumn, len((*pTables)[j].Columns))
+			(*pTables)[j].OutColumns = make([]model.OutColumn, len((*pTables)[j].Columns))
 			for k, column := range (*pTables)[j].Columns {
 				(*pTables)[j].OutColumns[k].Value = column
 				(*pTables)[j].Columns = nil

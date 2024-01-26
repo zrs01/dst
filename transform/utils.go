@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
@@ -54,17 +55,17 @@ func wildCardMatchs(pattern []string, value string) bool {
 //
 // It takes a pointer to a DataDef struct, a schema pattern string, and a table pattern string as parameters.
 // It returns a pointer to a modified DataDef struct.
-func FilterData(data *DataDef, schemaPattern string, tablePattern string) *DataDef {
-	d := &DataDef{
+func FilterData(data *model.DataDef, schemaPattern string, tablePattern string) *model.DataDef {
+	d := &model.DataDef{
 		Fixed:   data.Fixed,
-		Schemas: make([]Schema, 0),
+		Schemas: make([]model.Schema, 0),
 	}
 
 	for i := 0; i < len(data.Schemas); i++ {
 		schema := data.Schemas[i]
 		isSchemaMatched := schemaPattern == "" || wildCardMatchs(strings.Split(schemaPattern, ","), schema.Name)
 		if isSchemaMatched {
-			tables := lo.Filter(schema.Tables, func(t Table, _ int) bool {
+			tables := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
 				return tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
 			})
 			if len(tables) > 0 {
@@ -113,8 +114,8 @@ func SearchPathFiles(filename string) ([]string, error) {
 	return nil, tracerr.Errorf("no matching files found")
 }
 
-func Verify(data *DataDef) []string {
-	tables := make(map[string][]Column)
+func Verify(data *model.DataDef) []string {
+	tables := make(map[string][]model.Column)
 
 	// convert to map for easy searching
 	for _, schema := range data.Schemas {

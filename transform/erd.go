@@ -9,13 +9,14 @@ import (
 
 	"github.com/codeskyblue/go-sh"
 	"github.com/rotisserie/eris"
+	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
 //go:embed templates/erd.tpl
 var tplERD []byte
 
-func WriteERD(data *DataDef, tplf string, out string) error {
+func WriteERD(data *model.DataDef, tplf string, out string) error {
 	if tplf == "" {
 		// use default template
 		fh, err := os.CreateTemp("", "dst")
@@ -32,7 +33,7 @@ func WriteERD(data *DataDef, tplf string, out string) error {
 	}
 
 	outPuml := strings.TrimSuffix(out, filepath.Ext(out)) + ".puml"
-	if err := WriteTpl(data, tplf, outPuml); err != nil {
+	if err := WriteFileTpl(data, tplf, outPuml); err != nil {
 		return tracerr.Wrap(err)
 	}
 	// if err := writePlantuml(data, tplf, outPuml); err != nil {
@@ -55,7 +56,7 @@ func WriteERD(data *DataDef, tplf string, out string) error {
 	return nil
 }
 
-// func writePlantuml(data *DataDef, tplf string, out string) error {
+// func writePlantuml(data *model.DataDef, tplf string, out string) error {
 // 	loader := jet.NewOSFileSystemLoader(filepath.Dir(tplf))
 
 // 	views := jet.NewSet(loader)

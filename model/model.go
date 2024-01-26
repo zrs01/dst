@@ -1,4 +1,4 @@
-package transform
+package model
 
 type DataDef struct {
 	Fixed    []Column    `yaml:"fixed,omitempty"`

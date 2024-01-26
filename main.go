@@ -10,7 +10,9 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/ztrue/tracerr"
 
-	"dst/transform"
+	"github.com/zrs01/dst/model"
+	"github.com/zrs01/dst/sql"
+	"github.com/zrs01/dst/transform"
 )
 
 var version = "development"
@@ -68,7 +70,7 @@ func main() {
 	libFlag := func(lib *string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "lib", Usage: "plantuml.jar file, used when output format is png", Required: false, Destination: lib}
 	}
-	selectedData := func(ifile, schema, table string) (*transform.DataDef, error) {
+	selectedData := func(ifile, schema, table string) (*model.DataDef, error) {
 		rawData, err := transform.ReadYml(ifile)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
@@ -117,7 +119,7 @@ func main() {
 					return tracerr.Wrap(err)
 				}
 				if tfile != "" {
-					return transform.WriteTpl(data, tfile, ofile)
+					return transform.WriteFileTpl(data, tfile, ofile)
 				}
 				switch oext {
 				case ".yml", "":
@@ -194,6 +196,28 @@ func main() {
 					return nil
 				}
 				return tracerr.New(fmt.Sprintf("output file extension '%s' is not supported", ofile))
+			},
+		}
+	}())
+
+	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table string
+		return &cli.Command{
+			Name:    "sql",
+			Usage:   "transform from yaml to sql",
+			Aliases: []string{"s"},
+			Flags: []cli.Flag{
+				ifileFlag(&ifile, "input file (.yml)"),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.WriteCreateTable(data, ofile)
 			},
 		}
 	}())

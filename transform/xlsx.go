@@ -6,6 +6,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/xuri/excelize/v2"
+	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
@@ -21,13 +22,13 @@ const (
 	CDesc       = 8
 )
 
-func ReadXlsx(infile string) (*DataDef, error) {
+func ReadXlsx(infile string) (*model.DataDef, error) {
 	excel, err := excelize.OpenFile(infile)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 
-	var data DataDef
+	var data model.DataDef
 
 	sheets := excel.GetSheetList()
 	for _, sheet := range sheets {
@@ -36,9 +37,9 @@ func ReadXlsx(infile string) (*DataDef, error) {
 			tracerr.Wrap(err)
 		}
 
-		schema := &Schema{Name: sheet}
+		schema := &model.Schema{Name: sheet}
 
-		var table *Table
+		var table *model.Table
 		for rowIndex, row := range rows {
 			if rowIndex == 0 {
 				// skip the heading row
@@ -52,7 +53,7 @@ func ReadXlsx(infile string) (*DataDef, error) {
 					// append last table instance
 					schema.Tables = append(schema.Tables, *table)
 				}
-				table = &Table{}
+				table = &model.Table{}
 
 				tableText := row[0]
 				parts := strings.Split(tableText, " - ")
@@ -70,7 +71,7 @@ func ReadXlsx(infile string) (*DataDef, error) {
 					table.Desc = strings.TrimSpace(parts[2])
 				}
 			} else {
-				incol := Column{}
+				incol := model.Column{}
 				for idx, cell := range row {
 					cell = strings.TrimSpace(cell)
 					if idx == CName {
@@ -98,7 +99,7 @@ func ReadXlsx(infile string) (*DataDef, error) {
 						incol.Desc = cell
 					}
 				}
-				table.OutColumns = append(table.OutColumns, OutColumn{Value: incol})
+				table.OutColumns = append(table.OutColumns, model.OutColumn{Value: incol})
 			}
 		}
 		// last table
@@ -108,14 +109,14 @@ func ReadXlsx(infile string) (*DataDef, error) {
 	return &data, err
 }
 
-func WriteXlsx(data *DataDef, out string, simple bool) error {
+func WriteXlsx(data *model.DataDef, out string, simple bool) error {
 	if simple {
 		return writeSimpleDataDict(data, out)
 	}
 	return writeDataDict(data, out)
 }
 
-func writeSimpleDataDict(data *DataDef, out string) error {
+func writeSimpleDataDict(data *model.DataDef, out string) error {
 	excel := excelize.NewFile()
 	sheet := "Tables Description"
 	excel.NewSheet(sheet)
@@ -185,7 +186,7 @@ func writeSimpleDataDict(data *DataDef, out string) error {
 	return nil
 }
 
-func writeDataDict(data *DataDef, out string) error {
+func writeDataDict(data *model.DataDef, out string) error {
 	excel := excelize.NewFile()
 
 	style, err := definedExcelStyle(excel)
@@ -212,7 +213,7 @@ func writeDataDict(data *DataDef, out string) error {
 			excel.SetColWidth(sheet, col, col, width)
 		}
 
-		var setColValue = func(rowIndex int, column Column) {
+		var setColValue = func(rowIndex int, column model.Column) {
 			excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowIndex), column.Name)
 			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.Title)
 			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.DataType)
