@@ -221,6 +221,15 @@ func main() {
 	colFlag := func(col *string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "column", Aliases: []string{"c"}, Usage: "column", Required: false, Destination: col}
 	}
+	ifileWithDefaultFlag := func(file *string) *cli.StringFlag {
+		// if schema.yml at current folder, use it as default
+		flag := ifileFlag(file, "input file (.yml)")
+		if _, err := os.Stat("schema.yml"); !os.IsNotExist(err) {
+			flag.Value = "schema.yml"
+			flag.Required = false
+		}
+		return flag
+	}
 
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
@@ -229,7 +238,7 @@ func main() {
 			Usage:   "create table DDL",
 			Aliases: []string{"ct"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				ifileWithDefaultFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -252,7 +261,7 @@ func main() {
 			Usage:   "drop table DDL",
 			Aliases: []string{"dt"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				ifileWithDefaultFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -275,7 +284,7 @@ func main() {
 			Usage:   "add column DDL",
 			Aliases: []string{"ac"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				ifileWithDefaultFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -299,7 +308,7 @@ func main() {
 			Usage:   "drop column DDL",
 			Aliases: []string{"dc"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				ifileWithDefaultFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -312,6 +321,33 @@ func main() {
 					return tracerr.Wrap(err)
 				}
 				return sql.DropColumn(data, db, ofile)
+			},
+		}
+	}())
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db, col, newcol string
+		cf := colFlag(&col)
+		cf.Required = true
+		return &cli.Command{
+			Name:    "rename-column",
+			Usage:   "rename column DDL",
+			Aliases: []string{"rc"},
+			Flags: []cli.Flag{
+				ifileWithDefaultFlag(&ifile),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+				cf,
+				&cli.StringFlag{Name: "new-column", Aliases: []string{"n"}, Usage: "new column name", Required: true, Destination: &newcol},
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, col)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.RenameColumn(data, db, ofile, newcol)
 			},
 		}
 	}())

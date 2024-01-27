@@ -1,9 +1,10 @@
 package model
 
 type DataDef struct {
-	Fixed    []Column    `yaml:"fixed,omitempty"`
-	OutFixed []OutColumn `yaml:"out_fixed,omitempty"`
-	Schemas  []Schema    `yaml:"schemas,omitempty"`
+	Fixed      []Column    `yaml:"fixed,omitempty"`
+	OutFixed   []OutColumn `yaml:"out_fixed,omitempty"`
+	Schemas    []Schema    `yaml:"schemas,omitempty"`
+	CustomData CustomData  `yaml:"omitempty"`
 }
 
 type Schema struct {
@@ -32,6 +33,10 @@ type Column struct {
 	Title       string `yaml:"tt,omitempty"`
 	Index       string `yaml:"in,omitempty"`
 	Desc        string `yaml:"dc,omitempty"`
+}
+
+type CustomData struct {
+	NewColumnName string `yaml:"omitempty"`
 }
 
 type OutColumn struct {

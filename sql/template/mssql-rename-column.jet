@@ -1,0 +1,10 @@
+{* ---------------------------------- column ---------------------------------- *}
+{{- customData := .CustomData }}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns}}
+EXEC sp_rename '{{ table }}.{{ .Name }}', '{{ customData.NewColumnName }}', 'COLUMN';
+    {{- end }}
+  {{- end }}
+{{- end }}
