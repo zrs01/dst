@@ -1,0 +1,12 @@
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range i := .Columns }}
+ALTER TABLE {{ table }} MODIFY COLUMN {{ .Name }} {{ .DataType }}
+      {{- if .NotNull == "Y" }} NOT NULL {{- end }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
+      {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
+      {{- ";" }}
+    {{- end }}
+  {{- end }}
+{{- end }}

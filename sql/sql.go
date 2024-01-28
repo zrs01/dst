@@ -9,35 +9,50 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-//go:embed template/*.jet
+//go:embed template/*/*.jet
 var fs embed.FS
 
 func CreateTable(data *model.DataDef, db string, out string) error {
-	return writeDDL(data, fmt.Sprintf("template/%s-create-table.jet", db), out)
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-create-table.jet", db, db), out)
 }
 
 func DropTable(data *model.DataDef, db string, out string) error {
-	return writeDDL(data, fmt.Sprintf("template/%s-drop-table.jet", db), out)
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-drop-table.jet", db, db), out)
 }
 
 func AddColumn(data *model.DataDef, db string, out string) error {
-	return writeDDL(data, fmt.Sprintf("template/%s-add-column.jet", db), out)
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-add-column.jet", db, db), out)
 }
 
 func DropColumn(data *model.DataDef, db string, out string) error {
-	return writeDDL(data, fmt.Sprintf("template/%s-drop-column.jet", db), out)
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-drop-column.jet", db, db), out)
 }
 
-func RenameColumn(data *model.DataDef, db string, out string, newcol string) error {
-	data.CustomData.NewColumnName = newcol
-	return writeDDL(data, fmt.Sprintf("template/%s-rename-column.jet", db), out)
+func RenameColumn(data *model.DataDef, db string, out string) error {
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-rename-column.jet", db, db), out)
 }
 
 func ModifyColumn(data *model.DataDef, db string, out string) error {
-	return writeDDL(data, fmt.Sprintf("template/%s-modify-column.jet", db), out)
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-modify-column.jet", db, db), out)
+}
+
+func CreateIndex(data *model.DataDef, db string, out string) error {
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-create-index.jet", db, db), out)
+}
+
+func DropIndex(data *model.DataDef, db string, out string) error {
+	return writeDDL(data, fmt.Sprintf("template/%s/%s-drop-index.jet", db, db), out)
 }
 
 func writeDDL(data *model.DataDef, template string, out string) error {
+	// copy fixed columns to each tables
+	for i := 0; i < len(data.Schemas); i++ {
+		schema := data.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			schema.Tables[j].Columns = append(schema.Tables[j].Columns, data.Fixed...)
+		}
+	}
+
 	b, err := fs.ReadFile(template)
 	if err != nil {
 		return tracerr.Wrap(err)

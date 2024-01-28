@@ -1,0 +1,16 @@
+{* -------------------------------- foreign key ------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT IF EXISTS fk_{{ table }}_{{ .Name }};
+      {{- end }}
+    {{- end }}
+    {{- if .Version }}
+ALTER TABLE IF EXISTS {{ .Name }} DROP SYSTEM VERSIONING;
+    {{- end }}
+DROP TABLE IF EXISTS {{ .Name }};
+  {{ end }}
+{{- end }}

@@ -6,24 +6,11 @@ Export to different format from definition file.
 
 ### Example
 
-Create a definition file (e.g. sample.yml)
+Create a schema file in yaml format (e.g. schema.yml)
 
 ```yml
-# column definition:
-#   na: column-name
-#   ty: data-type
-#   nu: not null (Y/N)
-#   id: identity (Y/N)
-#   in: index (Y/N)
-#   un: unique (Y/N)
-#   va: default value
-#   fk: foreign key hint
-#   cd: cardinality
-#   tt: title
-#   dc: description
-
 # fixed columns:
-# the columns will be appended to each table
+# the columns will be appended at the end of each table
 fixed:
   - { na: deleted, ty: int, va: 0, nu: Y, dc: "0:activated, others:deleted" }
   - { na: create_user_id, ty: int, nu: Y, dc: "record create user ID" }
@@ -64,28 +51,70 @@ schemas:
 ```
 
 ```sh
-# -- YAML to Excel
-$ dst convert excel -i sample.yml -o sample.xlsx
+# if the schema.yml is in the current directory, you can skip the -i option
+# if -o option does not exist, result will be printed to stdout
+
+# -- YAML to SQL schema file
+# generate using template.tpl
+dst convert text -i schema.yml -o sample.sql -t template.tpl
+# generate using template.tpl, select the tables start with 'tag' only
+dst convert text -i schema.yml -o sample.sql -t template.tpl --table 'tag%'
 
 # -- YAML to ER diagram definition file
-$ dst convert diagram -i sample.yml -o sample.puml
+dst convert diagram -i schema.yml -o sample.puml
 
 # -- YAML to ER diagram (.png)
 # download plantuml.jar from https://plantuml.com/download
 
 # plantuml.jar can be skiped, it try to find the .jar from the PATH variable
-$ dst convert diagram -i sample.yml -o sample.puml
+dst convert diagram -i schema.yml -o sample.puml
 # specify plantuml.jar
-$ dst convert diagram -i sample.yml -o sample.puml -j plantuml.jar
+dst convert diagram -i schema.yml -o sample.puml -j plantuml.jar
 # you may convert some of tables, select the tables starts with 'tag' only
-$ dst convert diagram -i sample.yml -o sample.puml --table 'tag%'
+dst convert diagram -i schema.yml -o sample.puml --table 'tag%'
 # template file is used for the ER diagram
-$ dst convert diagram -i sample.yml -t template.tpl -o sample.puml
-
-# -- YAML to SQL schema file
-# generate using template.tpl
-$ dst convert text -i sample.yml -o sample.sql -t template.tpl
-# generate using template.tpl, select the tables start with 'tag' only
-$ dst convert text -i sample.yml -o sample.sql -t template.tpl --table 'tag%'
+dst convert diagram -i schema.yml -t template.tpl -o sample.puml
 
 ```
+
+## Template Syntax
+https://github.com/CloudyKit/jet/blob/master/docs/syntax.md
+
+## Data Model
+
+### Root
+| Field Name | Type     | YAML Tag | Description                         |
+| ---------- | -------- | -------- | ----------------------------------- |
+| Fixed      | []Column | fixed    | Represents a list of fixed columns. |
+| Schemas    | []Schema | schemas  | Represents a list of schemas.       |
+
+### Schema
+| Field Name | Type    | YAML Tag | Description                                    |
+| ---------- | ------- | -------- | ---------------------------------------------- |
+| Name       | string  | name     | Represents the name of the schema.             |
+| Desc       | string  | desc     | Represents the description of the schema.      |
+| Tables     | []Table | tables   | Represents a list of tables within the schema. |
+
+### Table
+| Field Name | Type     | YAML Tag | Description                                    |
+| ---------- | -------- | -------- | ---------------------------------------------- |
+| Name       | string   | name     | Represents the name of the table.              |
+| Title      | string   | title    | Represents the title of the table.             |
+| Desc       | string   | desc     | Represents the description of the table.       |
+| Version    | bool     | version  | Indicates whether the table has a version.     |
+| Columns    | []Column | columns  | Represents a list of columns within the table. |
+
+### Column
+| Field Name  | Type   | YAML Tag | Description                                              |
+| ----------- | ------ | -------- | -------------------------------------------------------- |
+| Name        | string | na       | Represents the name of the column.                       |
+| DataType    | string | ty       | Represents the data type of the column.                  |
+| Identity    | string | id       | Represents the identity of the column.                   |
+| NotNull     | string | nu       | Indicates whether the column is not null (default: "N"). |
+| Unique      | string | un       | Indicates whether the column is unique.                  |
+| Value       | string | va       | Represents the value of the column.                      |
+| ForeignKey  | string | fk       | Represents the foreign key of the column.                |
+| Cardinality | string | cd       | Represents the cardinality of the column.                |
+| Title       | string | tt       | Represents the title of the column.                      |
+| Index       | string | in       | Represents the index of the column.                      |
+| Desc        | string | dc       | Represents the description of the column.                |

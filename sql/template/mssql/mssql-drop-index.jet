@@ -1,0 +1,10 @@
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- if .Index == "Y" }}
+DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

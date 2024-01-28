@@ -1,5 +1,4 @@
 {* ---------------------------------- tables ---------------------------------- *}
-{{- fixed := .Fixed }}
 {{- range .Schemas }}
   {{- range .Tables }}
 IF OBJECT_ID(N'{{ .Name }}', N'U') IS NULL
@@ -15,13 +14,6 @@ CREATE TABLE {{ .Name }} (
       {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
       {{- "," }}
-    {{- end }}
-    {{- fixedCount := len(fixed) }}
-    {{- range i := fixed }}
-      {{ .Name }} {{ .DataType }}
-      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
-      {{- if .NotNull == "Y" }} NOT NULL {{- end }}
-      {{- if i < fixedCount - 1 }},{{- end }}
     {{- end }}
     {{- if .Version }}
       ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START NOT NULL,
@@ -47,12 +39,6 @@ END;
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
 
-      {{- end }}
-    {{- end }}
-    {{- range fixed }}
-      {{- parts := split(.ForeignKey, ".") }}
-      {{- if len(parts) > 1 }}
-IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
       {{- end }}
     {{- end }}
   {{- end }}

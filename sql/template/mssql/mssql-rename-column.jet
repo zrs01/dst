@@ -1,4 +1,3 @@
-{{- customData := .CustomData }}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
@@ -7,9 +6,9 @@
 ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
     {{- end }}
     {{- range .Columns }}
-IF COL_LENGTH('{{ table }}', '{{ .Name }}') IS NOT NULL EXEC sp_rename '{{ table }}.{{ .Name }}', '{{ customData.NewColumnName }}', 'COLUMN';
+IF COL_LENGTH('{{ table }}', '{{ .Name }}') IS NOT NULL EXEC sp_rename '{{ table }}.{{ .Name }}', '{{ .Name }}', 'COLUMN';
       {{- if version }}
-IF COL_LENGTH('{{ table }}History', '{{ .Name }}') IS NOT NULL EXEC sp_rename '{{ table }}History.{{ .Name }}', '{{ customData.NewColumnName }}', 'COLUMN';
+IF COL_LENGTH('{{ table }}History', '{{ .Name }}') IS NOT NULL EXEC sp_rename '{{ table }}History.{{ .Name }}', '{{ .Name }}', 'COLUMN';
       {{- end }}
     {{- end }}
     {{- if .Version }}

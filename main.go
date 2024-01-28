@@ -237,7 +237,7 @@ func main() {
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
 		return &cli.Command{
-			Name:    "create-table",
+			Name:    "create_table",
 			Usage:   "create table DDL",
 			Aliases: []string{"ct"},
 			Flags: []cli.Flag{
@@ -260,7 +260,7 @@ func main() {
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
 		return &cli.Command{
-			Name:    "drop-table",
+			Name:    "drop_table",
 			Usage:   "drop table DDL",
 			Aliases: []string{"dt"},
 			Flags: []cli.Flag{
@@ -283,7 +283,7 @@ func main() {
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
-			Name:    "add-column",
+			Name:    "add_column",
 			Usage:   "add column DDL",
 			Aliases: []string{"ac"},
 			Flags: []cli.Flag{
@@ -307,7 +307,7 @@ func main() {
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
-			Name:    "drop-column",
+			Name:    "drop_column",
 			Usage:   "drop column DDL",
 			Aliases: []string{"dc"},
 			Flags: []cli.Flag{
@@ -329,11 +329,9 @@ func main() {
 	}())
 
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
-		var ifile, ofile, schema, table, db, col, newcol string
-		cf := colFlag(&col)
-		cf.Required = true
+		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
-			Name:    "rename-column",
+			Name:    "rename_column",
 			Usage:   "rename column DDL",
 			Aliases: []string{"rc"},
 			Flags: []cli.Flag{
@@ -342,15 +340,14 @@ func main() {
 				schemaFile(&schema),
 				tableFlag(&table),
 				dbFlag(&db),
-				cf,
-				&cli.StringFlag{Name: "new-column", Aliases: []string{"n"}, Usage: "new column name", Required: true, Destination: &newcol},
+				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := selectedData(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
-				return sql.RenameColumn(data, db, ofile, newcol)
+				return sql.RenameColumn(data, db, ofile)
 			},
 		}
 	}())
@@ -358,7 +355,7 @@ func main() {
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
-			Name:    "modify-column",
+			Name:    "modify_column",
 			Usage:   "modify column type DDL",
 			Aliases: []string{"mc"},
 			Flags: []cli.Flag{
@@ -375,6 +372,54 @@ func main() {
 					return tracerr.Wrap(err)
 				}
 				return sql.ModifyColumn(data, db, ofile)
+			},
+		}
+	}())
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db, col string
+		return &cli.Command{
+			Name:    "create_index",
+			Usage:   "create index DDL",
+			Aliases: []string{"ci"},
+			Flags: []cli.Flag{
+				ifileWithDefaultFlag(&ifile),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+				colFlag(&col),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, col)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.CreateIndex(data, db, ofile)
+			},
+		}
+	}())
+
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db, col string
+		return &cli.Command{
+			Name:    "drop_index",
+			Usage:   "drop index DDL",
+			Aliases: []string{"di"},
+			Flags: []cli.Flag{
+				ifileWithDefaultFlag(&ifile),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+				colFlag(&col),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, col)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.DropIndex(data, db, ofile)
 			},
 		}
 	}())

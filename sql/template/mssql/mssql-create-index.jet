@@ -1,0 +1,10 @@
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- if .Index == "Y" }}
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx{{ table }}{{ .Name }}' AND object_id = OBJECT_ID('{{ table }}')) CREATE{{ if .Unique == "Y" }} UNIQUE{{ end }} INDEX idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

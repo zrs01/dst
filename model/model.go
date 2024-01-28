@@ -1,15 +1,14 @@
 package model
 
 type DataDef struct {
-	Fixed      []Column    `yaml:"fixed,omitempty"`
-	OutFixed   []OutColumn `yaml:"out_fixed,omitempty"`
-	Schemas    []Schema    `yaml:"schemas,omitempty"`
-	CustomData CustomData  `yaml:"omitempty"`
+	Fixed    []Column    `yaml:"fixed,omitempty"`
+	OutFixed []OutColumn `yaml:"out_fixed,omitempty"`
+	Schemas  []Schema    `yaml:"schemas,omitempty"`
 }
 
 type Schema struct {
 	Name   string  `yaml:"name,omitempty" default:"Schema"`
-	Desc   string  `yaml:"description,omitempty"`
+	Desc   string  `yaml:"desc,omitempty"`
 	Tables []Table `yaml:"tables,omitempty"`
 }
 
@@ -34,10 +33,6 @@ type Column struct {
 	Title       string `yaml:"tt,omitempty"`
 	Index       string `yaml:"in,omitempty"`
 	Desc        string `yaml:"dc,omitempty"`
-}
-
-type CustomData struct {
-	NewColumnName string `yaml:"omitempty"`
 }
 
 type OutColumn struct {

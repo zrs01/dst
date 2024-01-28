@@ -1,0 +1,28 @@
+{* ---------------------------------- tables ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+CREATE TABLE IF NOT EXISTS {{ .Name }} (
+    {{- colCount := len(.Columns) }}
+    {{- range i := .Columns}}
+      {{ .Name }} {{ .DataType }}
+      {{- if .NotNull == "Y" }} NOT NULL {{- end }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
+      {{- if .Identity == "Y" }} AUTO_INCREMENT PRIMARY KEY {{- end }}
+      {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
+      {{- if i < colCount - 1 }},{{- end }}
+    {{- end }}
+){{- if .Version }} WITH SYSTEM VERSIONING{{- end }};
+  {{- end }}
+{{ end }}
+{* -------------------------------- foreign key ------------------------------- *}
+{{ range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 }}
+ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

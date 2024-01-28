@@ -1,4 +1,3 @@
-{{- fixed := .Fixed }}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
@@ -9,13 +8,6 @@ ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NOT NULL ALTER TABLE {{ table }} DROP CONSTRAINT IF EXISTS fk{{ table }}{{ .Name }};
-      {{- end }}
-    {{- end }}
-    {{- range fixed }}
-      {{- parts := split(.ForeignKey, ".") }}
-      {{- if len(parts) > 1 }}
-IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NOT NULL ALTER TABLE {{ table }} DROP CONSTRAINT IF EXISTS fk{{ table }}{{ .Name }};
-DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
       {{- end }}
     {{- end }}
 DROP TABLE IF EXISTS {{ .Name }};
