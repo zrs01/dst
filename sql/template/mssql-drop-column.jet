@@ -1,33 +1,23 @@
-{* ------------------------------- foreign keys ------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- version := .Version }}
+    {{- if .Version }}
+ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
+    {{- end }}
+    {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NOT NULL ALTER TABLE {{ table }} DROP CONSTRAINT IF EXISTS fk{{ table }}{{ .Name }};
       {{- end }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-{* ----------------------------------- index ---------------------------------- *}
-{{- range .Schemas }}
-  {{- range .Tables }}
-    {{- table := .Name }}
-    {{- range .Columns}}
-      {{- parts := split(.ForeignKey, ".") }}
-      {{- if len(parts) > 1 }}
 DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
+IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NOT NULL ALTER TABLE {{ table }} DROP COLUMN {{ .Name }};
+      {{- if version }}
+IF COL_LENGTH(N'{{ table }}History', N'{{ .Name }}') IS NOT NULL ALTER TABLE {{ table }}History DROP COLUMN {{ .Name }};
       {{- end }}
     {{- end }}
-  {{- end }}
-{{- end }}
-{* ---------------------------------- column ---------------------------------- *}
-{{- range .Schemas }}
-  {{- range .Tables }}
-    {{- table := .Name }}
-    {{- range .Columns}}
-IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NOT NULL ALTER TABLE {{ table }} DROP COLUMN {{ .Name }};
+    {{- if .Version }}
+ALTER TABLE {{ .Name }} SET ( SYSTEM_VERSIONING = ON (HISTORY_TABLE = {{ .Name }}History));
     {{- end }}
   {{- end }}
 {{- end }}

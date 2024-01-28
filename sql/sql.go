@@ -33,6 +33,10 @@ func RenameColumn(data *model.DataDef, db string, out string, newcol string) err
 	return writeDDL(data, fmt.Sprintf("template/%s-rename-column.jet", db), out)
 }
 
+func ModifyColumn(data *model.DataDef, db string, out string) error {
+	return writeDDL(data, fmt.Sprintf("template/%s-modify-column.jet", db), out)
+}
+
 func writeDDL(data *model.DataDef, template string, out string) error {
 	b, err := fs.ReadFile(template)
 	if err != nil {

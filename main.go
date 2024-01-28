@@ -82,7 +82,10 @@ func main() {
 			})
 			return nil, tracerr.Errorf("invalid data")
 		}
-		data := transform.FilterData(rawData, schema, table, column)
+		data, err := transform.FilterData(rawData, schema, table, column)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
 		return data, nil
 	}
 
@@ -352,7 +355,35 @@ func main() {
 		}
 	}())
 
+	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+		var ifile, ofile, schema, table, db, col string
+		return &cli.Command{
+			Name:    "modify-column",
+			Usage:   "modify column type DDL",
+			Aliases: []string{"mc"},
+			Flags: []cli.Flag{
+				ifileWithDefaultFlag(&ifile),
+				ofileFlag(&ofile, "output file"),
+				schemaFile(&schema),
+				tableFlag(&table),
+				dbFlag(&db),
+				colFlag(&col),
+			},
+			Action: func(c *cli.Context) error {
+				data, err := selectedData(ifile, schema, table, col)
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+				return sql.ModifyColumn(data, db, ofile)
+			},
+		}
+	}())
+
 	if err := cliapp.Run(os.Args); err != nil {
-		tracerr.Print(err)
+		if debug {
+			tracerr.Print(err)
+		} else {
+			fmt.Printf("Error: %s\n", err)
+		}
 	}
 }

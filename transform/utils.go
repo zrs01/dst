@@ -51,11 +51,10 @@ func wildCardMatchs(pattern []string, value string) bool {
 	return false
 }
 
-// FilterData filters the data based on the given schema and table patterns.
-//
-// It takes a pointer to a DataDef struct, a schema pattern string, and a table pattern string as parameters.
-// It returns a pointer to a modified DataDef struct.
-func FilterData(data *model.DataDef, schemaPattern string, tablePattern string, columnPattern string) *model.DataDef {
+// FilterData filters the data based on the provided schema, table, and column patterns.
+// It takes a data definition, schema pattern, table pattern, and column pattern as input
+// and returns the filtered data definition and an error if any.
+func FilterData(data *model.DataDef, schemaPattern string, tablePattern string, columnPattern string) (*model.DataDef, error) {
 	d := &model.DataDef{
 		Fixed:   data.Fixed,
 		Schemas: make([]model.Schema, 0),
@@ -78,26 +77,19 @@ func FilterData(data *model.DataDef, schemaPattern string, tablePattern string, 
 				}
 			}
 
-			// tables := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
-			// 	isSelectedTable := tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
-			// 	if isSelectedTable {
-			// 		columns := lo.Filter(t.Columns, func(c model.Column, _ int) bool {
-			// 			return columnPattern == "" || wildCardMatchs(strings.Split(columnPattern, ","), c.Name)
-			// 		})
-			// 		if len(columns) > 0 {
-			// 			t.Columns = columns
-			// 			schema.Tables[i] = t
-			// 		}
-			// 	}
-			// return tablePattern == "" || wildCardMatchs(strings.Split(tablePattern, ","), t.Name)
-
 			if len(tables) > 0 {
 				schema.Tables = tables
 				d.Schemas = append(d.Schemas, schema)
 			}
 		}
 	}
-	return d
+	tables := lo.FlatMap(d.Schemas, func(s model.Schema, _ int) []model.Table {
+		return s.Tables
+	})
+	if len(tables) == 0 {
+		return nil, tracerr.New("no schema/table/column matched")
+	}
+	return d, nil
 }
 
 // SearchPathFiles searches for files with the specified filename in directories listed in the PATH environment variable.

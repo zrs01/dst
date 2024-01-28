@@ -2,8 +2,17 @@
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- if .Version }}
+ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
+    {{- end }}
+    {{- range .Columns }}
 IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }} ADD {{ .Name }} {{ .DataType }} {{- if .NotNull == "Y" }} NOT NULL {{- end }};
+        {{- if . Version }}
+IF COL_LENGTH(N'{{ table }}History', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }}History ADD {{ .Name }} {{ .DataType }} {{- if .NotNull == "Y" }} NOT NULL {{- end }};
+        {{- end }}
+    {{- end }}
+    {{- if .Version }}
+ALTER TABLE {{ .Name }} SET ( SYSTEM_VERSIONING = ON (HISTORY_TABLE = {{ .Name }}History));
     {{- end }}
   {{- end }}
 {{- end }}
@@ -11,7 +20,7 @@ IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }} AD
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
@@ -24,7 +33,7 @@ IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} 
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx{{ table }}{{ .Name }}' AND object_id = OBJECT_ID('{{ table }}')) CREATE INDEX idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});

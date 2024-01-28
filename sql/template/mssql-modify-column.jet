@@ -7,9 +7,9 @@
 ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
     {{- end }}
     {{- range .Columns }}
-IF COL_LENGTH('{{ table }}', '{{ .Name }}') IS NOT NULL EXEC sp_rename '{{ table }}.{{ .Name }}', '{{ customData.NewColumnName }}', 'COLUMN';
+IF COL_LENGTH('{{ table }}', '{{ .Name }}') IS NOT NULL ALTER TABLE {{ table }} ALTER COLUMN {{ .Name }} {{ .DataType }};
       {{- if version }}
-IF COL_LENGTH('{{ table }}History', '{{ .Name }}') IS NOT NULL EXEC sp_rename '{{ table }}History.{{ .Name }}', '{{ customData.NewColumnName }}', 'COLUMN';
+IF COL_LENGTH('{{ table }}History', '{{ .Name }}') IS NOT NULL ALTER TABLE {{ table }}History ALTER COLUMN {{ .Name }} {{ .DataType }};
       {{- end }}
     {{- end }}
     {{- if .Version }}

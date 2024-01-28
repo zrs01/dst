@@ -17,6 +17,7 @@ type Table struct {
 	Name       string      `yaml:"name,omitempty"`
 	Title      string      `yaml:"title,omitempty"`
 	Desc       string      `yaml:"desc,omitempty"`
+	Version    bool        `yaml:"version,omitempty"`
 	Columns    []Column    `yaml:"columns,omitempty"`
 	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
 }

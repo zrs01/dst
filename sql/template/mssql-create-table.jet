@@ -6,7 +6,7 @@ IF OBJECT_ID(N'{{ .Name }}', N'U') IS NULL
 BEGIN
 CREATE TABLE {{ .Name }} (
     {{- idc := "" }}
-    {{- range i := .Columns}}
+    {{- range i := .Columns }}
       {{- if .Identity == "Y" }}
         {{- idc = . }}
       {{- end }}
@@ -23,8 +23,16 @@ CREATE TABLE {{ .Name }} (
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
       {{- if i < fixedCount - 1 }},{{- end }}
     {{- end }}
+    {{- if .Version }}
+      ValidFrom DATETIME2 GENERATED ALWAYS AS ROW START NOT NULL,
+      ValidTo DATETIME2 GENERATED ALWAYS AS ROW END NOT NULL,
+      PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
+    {{- end }}
     {{- if idc != "" }},
       CONSTRAINT pk{{ .Name }}{{ idc.Name }} PRIMARY KEY ({{ idc.Name }})
+    {{- end }}
+    {{- if .Version }}
+      WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = {{ .Name }}History));
     {{- end }}
 )
 END;
@@ -34,7 +42,7 @@ END;
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
@@ -53,7 +61,7 @@ IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} 
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- range .Columns}}
+    {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx{{ table }}{{ .Name }}' AND object_id = OBJECT_ID('{{ table }}')) CREATE INDEX idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
