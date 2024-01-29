@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 	"gopkg.in/yaml.v3"
@@ -22,6 +23,35 @@ func ReadYml(file string) (*model.DataDef, error) {
 		return nil, tracerr.Wrap(err)
 	}
 	return &d, err
+}
+
+func FilterYml(ifile, schema, table string, column string) (*model.DataDef, error) {
+	rawData, err := ReadYml(ifile)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	// copy fixed columns to each tables
+	for i := 0; i < len(rawData.Schemas); i++ {
+		schema := rawData.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			schema.Tables[j].Columns = append(schema.Tables[j].Columns, rawData.Fixed...)
+		}
+	}
+	// clean the fixed column
+	rawData.Fixed = []model.Column{}
+
+	validateResult := model.Verify(rawData)
+	if len(validateResult) > 0 {
+		lo.ForEach(validateResult, func(v string, _ int) {
+			fmt.Println(v)
+		})
+		return nil, tracerr.Errorf("invalid data")
+	}
+	data, err := model.FilterData(rawData, schema, table, column)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	return data, nil
 }
 
 func WriteYml(data *model.DataDef, outfile string) error {

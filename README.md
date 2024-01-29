@@ -85,7 +85,6 @@ https://github.com/CloudyKit/jet/blob/master/docs/syntax.md
 ### Root
 | Field Name | Type     | YAML Tag | Description                         |
 | ---------- | -------- | -------- | ----------------------------------- |
-| Fixed      | []Column | fixed    | Represents a list of fixed columns. |
 | Schemas    | []Schema | schemas  | Represents a list of schemas.       |
 
 ### Schema

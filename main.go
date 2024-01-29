@@ -85,14 +85,14 @@ func main() {
 		// clean the fixed column
 		rawData.Fixed = []model.Column{}
 
-		validateResult := transform.Verify(rawData)
+		validateResult := model.Verify(rawData)
 		if len(validateResult) > 0 {
 			lo.ForEach(validateResult, func(v string, _ int) {
 				fmt.Println(v)
 			})
 			return nil, tracerr.Errorf("invalid data")
 		}
-		data, err := transform.FilterData(rawData, schema, table, column)
+		data, err := model.FilterData(rawData, schema, table, column)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/codeskyblue/go-sh"
 	"github.com/rotisserie/eris"
 	"github.com/zrs01/dst/model"
+	"github.com/zrs01/dst/utils"
 	"github.com/ztrue/tracerr"
 )
 
@@ -40,7 +41,7 @@ func WriteERD(data *model.DataDef, tplf string, out string) error {
 	// 	return tracerr.Wrap(err)
 	// }
 	if out != "" {
-		lib, err := SearchPathFiles("plantuml*.jar")
+		lib, err := utils.SearchPathFiles("plantuml*.jar")
 		if err != nil {
 			return tracerr.Wrap(err)
 		}
