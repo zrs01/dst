@@ -1,0 +1,10 @@
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- if .Index == "Y" }}
+CREATE{{ if .Unique == "Y" }} UNIQUE{{ end }} INDEX IF NOT EXISTS idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
