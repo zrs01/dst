@@ -45,14 +45,6 @@ func DropIndex(data *model.DataDef, db string, out string) error {
 }
 
 func writeDDL(data *model.DataDef, template string, out string) error {
-	// copy fixed columns to each tables
-	for i := 0; i < len(data.Schemas); i++ {
-		schema := data.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			schema.Tables[j].Columns = append(schema.Tables[j].Columns, data.Fixed...)
-		}
-	}
-
 	b, err := fs.ReadFile(template)
 	if err != nil {
 		return tracerr.Wrap(err)

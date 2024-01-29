@@ -75,6 +75,16 @@ func main() {
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
+		// copy fixed columns to each tables
+		for i := 0; i < len(rawData.Schemas); i++ {
+			schema := rawData.Schemas[i]
+			for j := 0; j < len(schema.Tables); j++ {
+				schema.Tables[j].Columns = append(schema.Tables[j].Columns, rawData.Fixed...)
+			}
+		}
+		// clean the fixed column
+		rawData.Fixed = []model.Column{}
+
 		validateResult := transform.Verify(rawData)
 		if len(validateResult) > 0 {
 			lo.ForEach(validateResult, func(v string, _ int) {
