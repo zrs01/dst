@@ -2,14 +2,14 @@
 {{- range .Schemas }}
   {{- range .Tables }}
 CREATE TABLE IF NOT EXISTS {{ .Name }} (
-    {{- colCount := len(.Columns) }}
+    {{- colcnt := len(.Columns) }}
     {{- range i := .Columns}}
       {{ .Name }} {{ .DataType }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
       {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
       {{- if .Identity == "Y" }} AUTO_INCREMENT PRIMARY KEY {{- end }}
       {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
-      {{- if i < colCount - 1 }},{{- end }}
+      {{- if i < colcnt - 1 }},{{- end }}
     {{- end }}
 ){{- if .Version }} WITH SYSTEM VERSIONING{{- end }};
   {{- end }}
