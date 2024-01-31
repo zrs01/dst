@@ -26,3 +26,15 @@ ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FORE
     {{- end }}
   {{- end }}
 {{- end }}
+{* ----------------------------------- index ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 || .Index == "Y" }}
+CREATE{{ if .Unique == "Y" }} UNIQUE{{ end }} INDEX IF NOT EXISTS idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

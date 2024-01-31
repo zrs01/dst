@@ -1,6 +1,7 @@
 {* ---------------------------------- tables ---------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}
+
 IF OBJECT_ID(N'{{ .Name }}', N'U') IS NULL
 BEGIN
 CREATE TABLE {{ .Name }} (
@@ -54,10 +55,7 @@ IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} 
     {{- table := .Name }}
     {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
-      {{- if len(parts) > 1 }}
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx{{ table }}{{ .Name }}' AND object_id = OBJECT_ID('{{ table }}')) CREATE INDEX idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
-      {{- end }}
-      {{- if .Index == "Y" }}
+      {{- if len(parts) > 1 || .Index == "Y" }}
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx{{ table }}{{ .Name }}' AND object_id = OBJECT_ID('{{ table }}')) CREATE{{ if .Unique == "Y" }} UNIQUE{{ end }} INDEX idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
       {{- end }}
     {{- end }}

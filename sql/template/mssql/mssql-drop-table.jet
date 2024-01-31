@@ -1,18 +1,35 @@
+{* ----------------------------------- index ---------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
-    {{- if .Version }}
-ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 || .Index == "Y" }}
+DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
+      {{- end }}
     {{- end }}
+  {{- end }}
+{{- end }}
+{* ------------------------------- foreign keys ------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
     {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NOT NULL ALTER TABLE {{ table }} DROP CONSTRAINT IF EXISTS fk{{ table }}{{ .Name }};
       {{- end }}
     {{- end }}
-DROP TABLE IF EXISTS {{ .Name }};
+  {{- end }}
+{{- end }}
+{* ---------------------------------- tables ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
     {{- if .Version }}
+ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
 DROP TABLE IF EXISTS {{ .Name }}History;
     {{- end }}
+DROP TABLE IF EXISTS {{ .Name }};
   {{- end }}
 {{- end }}

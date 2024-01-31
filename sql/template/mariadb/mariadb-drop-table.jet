@@ -1,3 +1,15 @@
+{* ----------------------------------- index ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
+    {{- range .Columns }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 || .Index == "Y" }}
+DROP INDEX IF EXISTS idx{{ table }}{{ .Name }};
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {* -------------------------------- foreign key ------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}
@@ -8,9 +20,15 @@
 ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT IF EXISTS fk_{{ table }}_{{ .Name }};
       {{- end }}
     {{- end }}
+  {{ end }}
+{{- end }}
+{* ---------------------------------- tables ---------------------------------- *}
+{{- range .Schemas }}
+  {{- range .Tables }}
+    {{- table := .Name }}
     {{- if .Version }}
 ALTER TABLE IF EXISTS {{ .Name }} DROP SYSTEM VERSIONING;
     {{- end }}
 DROP TABLE IF EXISTS {{ .Name }};
-  {{ end }}
+  {{- end }}
 {{- end }}
