@@ -9,7 +9,9 @@ import (
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
-	"gopkg.in/yaml.v3"
+
+	// "gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
 
 func ReadYml(file string) (*model.DataDef, error) {
@@ -21,6 +23,42 @@ func ReadYml(file string) (*model.DataDef, error) {
 	var d model.DataDef
 	if err := yaml.Unmarshal(yamlFile, &d); err != nil {
 		return nil, tracerr.Wrap(err)
+	}
+
+	/* ------------------------- update reference tables ------------------------ */
+	findTable := func(table string) *model.Table {
+		for i := 0; i < len(d.Schemas); i++ {
+			for j := 0; j < len(d.Schemas[i].Tables); j++ {
+				if d.Schemas[i].Tables[j].Name == table {
+					return &d.Schemas[i].Tables[j]
+				}
+			}
+		}
+		return nil
+	}
+
+	for i := 0; i < len(d.Schemas); i++ {
+		for j := 0; j < len(d.Schemas[i].Tables); j++ {
+			for k := 0; k < len(d.Schemas[i].Tables[j].Columns); k++ {
+				if d.Schemas[i].Tables[j].Columns[k].ForeignKey != "" {
+					fkTableName, fkColumnName, found := strings.Cut(d.Schemas[i].Tables[j].Columns[k].ForeignKey, ".")
+					if found {
+						fkTable := findTable(fkTableName)
+						if fkTable != nil {
+							fkTable.References = append(d.Schemas[i].Tables[j].References, model.Reference{
+								ColumnName: fkColumnName,
+								Source: []model.ReferenceTable{
+									{
+										TableName:  d.Schemas[i].Tables[j].Name,
+										ColumnName: d.Schemas[i].Tables[j].Columns[k].Name,
+									},
+								},
+							})
+						}
+					}
+				}
+			}
+		}
 	}
 	return &d, err
 }
@@ -92,6 +130,32 @@ func WriteYml(data *model.DataDef, outfile string) error {
 	output = strings.ReplaceAll(output, "\"n\"", "n")
 	output = strings.ReplaceAll(output, "\"Y\"", "Y")
 	output = strings.ReplaceAll(output, "\"y\"", "y")
+
+	// sb := strings.Builder{}
+	// lines := strings.Split(output, "\n")
+	// // proc := false
+	// count := 0
+	// for count < len(lines) {
+	// 	if strings.Contains(lines[count], "[") {
+	// 		ary := strings.Builder{}
+	// 		for j := count; !strings.Contains(lines[j], "]"); j++ {
+	// 			s := lines[j]
+	// 			// keep indentation for first line
+	// 			if !strings.Contains(lines[j], "[") {
+	// 				s = strings.TrimSpace(s)
+	// 			}
+	// 			ary.WriteString(s)
+	// 			count = j
+	// 		}
+	// 		ary.WriteString(strings.TrimSpace(lines[count+1]))
+	// 		sb.WriteString(fmt.Sprintf("%s\n", strings.ReplaceAll(ary.String(), "\n", "")))
+	// 	} else {
+	// 		sb.WriteString(fmt.Sprintf("%s\n", lines[count]))
+	// 	}
+	// 	count++
+	// }
+	// output = sb.String()
+
 	if outfile == "" || outfile == "stdout" {
 		fmt.Println(output)
 	} else {

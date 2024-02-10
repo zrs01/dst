@@ -18,11 +18,12 @@ type Table struct {
 	Desc       string      `yaml:"desc,omitempty"`
 	Version    bool        `yaml:"version,omitempty"`
 	Columns    []Column    `yaml:"columns,omitempty"`
+	References []Reference `yaml:"references,flow,omitempty"`
 	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
 }
 
 type Column struct {
-	Name        string `yaml:"na,omitempty"`
+	Name        string `yaml:"na,flow,omitempty"`
 	DataType    string `yaml:"ty,omitempty"`
 	Identity    string `yaml:"id,omitempty"`
 	NotNull     string `yaml:"nu,omitempty" default:"N"`
@@ -34,6 +35,16 @@ type Column struct {
 	Index       string `yaml:"in,omitempty"`
 	Desc        string `yaml:"dc,omitempty"`
 	Computed    string `yaml:"cm,omitempty"`
+}
+
+type Reference struct {
+	ColumnName string           `yaml:"columnName,omitempty"`
+	Source     []ReferenceTable `yaml:"source,omitempty"`
+}
+
+type ReferenceTable struct {
+	TableName  string `yaml:"tableName,omitempty"`
+	ColumnName string `yaml:"columnName,omitempty"`
 }
 
 type OutColumn struct {
