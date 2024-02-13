@@ -79,15 +79,15 @@ func Verify(data *DataDef) []string {
 	for k, columns := range tables {
 		for i, column := range columns {
 			if column.Name == "" {
-				result = append(result, fmt.Sprintf("[TB: %s] missing column name at line %d", k, i))
+				result = append(result, fmt.Sprintf("[Table: %s] missing column name at line %d", k, i))
 			}
 			if column.DataType == "" {
-				result = append(result, fmt.Sprintf("[TB: %s] missing data type of the column '%s' at line %d", k, column.Name, i))
+				result = append(result, fmt.Sprintf("[Table: %s] missing data type of the column '%s' at line %d", k, column.Name, i))
 			}
 			if column.ForeignKey != "" {
 				// check the foreign key whether exists
 				if !isFKExist(column.ForeignKey) {
-					result = append(result, fmt.Sprintf("[TB: %s] [FK: %s] cannot be found at line %d", k, column.ForeignKey, i))
+					result = append(result, fmt.Sprintf("[Table: %s] [FK: %s] cannot be found at line %d", k, column.ForeignKey, i))
 				}
 			}
 		}

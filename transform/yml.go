@@ -131,31 +131,6 @@ func WriteYml(data *model.DataDef, outfile string) error {
 	output = strings.ReplaceAll(output, "\"Y\"", "Y")
 	output = strings.ReplaceAll(output, "\"y\"", "y")
 
-	// sb := strings.Builder{}
-	// lines := strings.Split(output, "\n")
-	// // proc := false
-	// count := 0
-	// for count < len(lines) {
-	// 	if strings.Contains(lines[count], "[") {
-	// 		ary := strings.Builder{}
-	// 		for j := count; !strings.Contains(lines[j], "]"); j++ {
-	// 			s := lines[j]
-	// 			// keep indentation for first line
-	// 			if !strings.Contains(lines[j], "[") {
-	// 				s = strings.TrimSpace(s)
-	// 			}
-	// 			ary.WriteString(s)
-	// 			count = j
-	// 		}
-	// 		ary.WriteString(strings.TrimSpace(lines[count+1]))
-	// 		sb.WriteString(fmt.Sprintf("%s\n", strings.ReplaceAll(ary.String(), "\n", "")))
-	// 	} else {
-	// 		sb.WriteString(fmt.Sprintf("%s\n", lines[count]))
-	// 	}
-	// 	count++
-	// }
-	// output = sb.String()
-
 	if outfile == "" || outfile == "stdout" {
 		fmt.Println(output)
 	} else {
