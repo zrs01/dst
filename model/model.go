@@ -38,13 +38,13 @@ type Column struct {
 }
 
 type Reference struct {
-	ColumnName string           `yaml:"columnName,omitempty"`
-	Source     []ReferenceTable `yaml:"source,omitempty"`
+	ColumnName string         `yaml:"column,omitempty"`
+	Foreign    []ForeignTable `yaml:"foreign,omitempty"`
 }
 
-type ReferenceTable struct {
-	TableName  string `yaml:"tableName,omitempty"`
-	ColumnName string `yaml:"columnName,omitempty"`
+type ForeignTable struct {
+	TableName  string `yaml:"table,omitempty"`
+	ColumnName string `yaml:"column,omitempty"`
 }
 
 type OutColumn struct {

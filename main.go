@@ -52,6 +52,15 @@ func main() {
 	ifileFlag := func(file *string, usage string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: lo.Ternary(usage == "", "input file", usage), Required: true, Destination: file}
 	}
+	iSchemaFileFlag := func(file *string) *cli.StringFlag {
+		// if schema.yml at current folder, use it as default
+		flag := ifileFlag(file, "input file (.yml)")
+		if _, err := os.Stat("schema.yml"); !os.IsNotExist(err) {
+			flag.Value = "schema.yml"
+			flag.Required = false
+		}
+		return flag
+	}
 	ofileFlag := func(file *string, usage string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: lo.Ternary(usage == "", "output file", usage), Required: false, Destination: file}
 	}
@@ -118,7 +127,7 @@ func main() {
 			Usage:   "transform from yaml to text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file (text file)"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -155,7 +164,7 @@ func main() {
 			Usage:   "transform from yaml to excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file (.xlsx)"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -187,7 +196,7 @@ func main() {
 			Usage:   "transform from yaml to diagram",
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
-				ifileFlag(&ifile, "input file (.yml)"),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file (.png)"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -234,15 +243,6 @@ func main() {
 	colFlag := func(col *string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "column", Aliases: []string{"c"}, Usage: "column", Required: false, Destination: col}
 	}
-	ifileWithDefaultFlag := func(file *string) *cli.StringFlag {
-		// if schema.yml at current folder, use it as default
-		flag := ifileFlag(file, "input file (.yml)")
-		if _, err := os.Stat("schema.yml"); !os.IsNotExist(err) {
-			flag.Value = "schema.yml"
-			flag.Required = false
-		}
-		return flag
-	}
 
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
@@ -251,7 +251,7 @@ func main() {
 			Usage:   "create table DDL",
 			Aliases: []string{"ct"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -274,7 +274,7 @@ func main() {
 			Usage:   "drop table DDL",
 			Aliases: []string{"dt"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -297,7 +297,7 @@ func main() {
 			Usage:   "add column DDL",
 			Aliases: []string{"ac"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -321,7 +321,7 @@ func main() {
 			Usage:   "drop column DDL",
 			Aliases: []string{"dc"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -345,7 +345,7 @@ func main() {
 			Usage:   "rename column DDL",
 			Aliases: []string{"rc"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -369,7 +369,7 @@ func main() {
 			Usage:   "modify column type DDL",
 			Aliases: []string{"mc"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -393,7 +393,7 @@ func main() {
 			Usage:   "create index DDL",
 			Aliases: []string{"ci"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),
@@ -417,7 +417,7 @@ func main() {
 			Usage:   "drop index DDL",
 			Aliases: []string{"di"},
 			Flags: []cli.Flag{
-				ifileWithDefaultFlag(&ifile),
+				iSchemaFileFlag(&ifile),
 				ofileFlag(&ofile, "output file"),
 				schemaFile(&schema),
 				tableFlag(&table),

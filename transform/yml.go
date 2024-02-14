@@ -6,12 +6,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
-
-	// "gopkg.in/yaml.v3"
-	"github.com/goccy/go-yaml"
 )
 
 func ReadYml(file string) (*model.DataDef, error) {
@@ -47,7 +45,7 @@ func ReadYml(file string) (*model.DataDef, error) {
 						if fkTable != nil {
 							fkTable.References = append(d.Schemas[i].Tables[j].References, model.Reference{
 								ColumnName: fkColumnName,
-								Source: []model.ReferenceTable{
+								Foreign: []model.ForeignTable{
 									{
 										TableName:  d.Schemas[i].Tables[j].Name,
 										ColumnName: d.Schemas[i].Tables[j].Columns[k].Name,
