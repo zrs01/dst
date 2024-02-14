@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/ztrue/tracerr"
 
+	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/sql"
 	"github.com/zrs01/dst/transform"
@@ -34,7 +35,7 @@ func main() {
 	cliapp.Version = version
 	cliapp.Commands = []*cli.Command{}
 
-	debug := false
+	// debug := false
 
 	// global options
 	cliapp.Flags = []cli.Flag{
@@ -43,7 +44,7 @@ func main() {
 			Aliases:     []string{"d"},
 			Usage:       "Debug mode",
 			Required:    false,
-			Destination: &debug,
+			Destination: &config.Debug,
 		},
 	}
 
@@ -435,7 +436,7 @@ func main() {
 	}())
 
 	if err := cliapp.Run(os.Args); err != nil {
-		if debug {
+		if config.Debug {
 			tracerr.Print(err)
 		} else {
 			fmt.Printf("Error: %s\n", err)

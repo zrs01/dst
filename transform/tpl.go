@@ -3,10 +3,14 @@ package transform
 import (
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // WriteFileTpl generates a template using the provided data and template file,
@@ -57,6 +61,7 @@ func WriteMemoryTpl(data *model.DataDef, tplf, tplc string, out string) error {
 
 func writeTpl(data *model.DataDef, loader jet.Loader, tplf string, out string) error {
 	views := jet.NewSet(loader)
+	setJetFunc(views)
 	view, err := views.GetTemplate(filepath.Base(tplf))
 	if err != nil {
 		return tracerr.Wrap(err)
@@ -89,4 +94,16 @@ func memoryLoader(data *model.DataDef, tplf string, tplc string) jet.Loader {
 	loader := jet.NewInMemLoader()
 	loader.Set(filepath.Base(tplf), tplc)
 	return loader
+}
+
+func setJetFunc(views *jet.Set) {
+	views.AddGlobalFunc("camelCase", jetCamelCase)
+}
+
+func jetCamelCase(args jet.Arguments) reflect.Value {
+	value := args.Get(0).Interface().(string)
+	value = cases.Lower(language.Und).String(value)
+	value = cases.Title(language.Und).String(value)
+	value = strings.Replace(value, " ", "", -1)
+	return reflect.ValueOf(value)
 }

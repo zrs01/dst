@@ -11,6 +11,7 @@ require (
 	github.com/urfave/cli/v2 v2.5.0
 	github.com/xuri/excelize/v2 v2.6.0
 	github.com/ztrue/tracerr v0.4.0
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )
 
 require (

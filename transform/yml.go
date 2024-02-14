@@ -6,10 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/goccy/go-yaml"
+	yamlOut "github.com/goccy/go-yaml"
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
+	yamlIn "gopkg.in/yaml.v3"
 )
 
 func ReadYml(file string) (*model.DataDef, error) {
@@ -19,7 +20,7 @@ func ReadYml(file string) (*model.DataDef, error) {
 	}
 
 	var d model.DataDef
-	if err := yaml.Unmarshal(yamlFile, &d); err != nil {
+	if err := yamlIn.Unmarshal(yamlFile, &d); err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 
@@ -113,7 +114,7 @@ func WriteYml(data *model.DataDef, outfile string) error {
 		}
 	}
 
-	bytes, err := yaml.Marshal(data)
+	bytes, err := yamlOut.Marshal(data)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
