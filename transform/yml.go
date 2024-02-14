@@ -24,34 +24,33 @@ func ReadYml(file string) (*model.DataDef, error) {
 	}
 
 	/* ------------------------- update reference tables ------------------------ */
-	findTable := func(table string) *model.Table {
-		for i := 0; i < len(d.Schemas); i++ {
-			for j := 0; j < len(d.Schemas[i].Tables); j++ {
-				if d.Schemas[i].Tables[j].Name == table {
-					return &d.Schemas[i].Tables[j]
-				}
-			}
+	// the map table to speed up the lookup process
+	var tableMap = make(map[string]*model.Table)
+	for i := 0; i < len(d.Schemas); i++ {
+		schema := &d.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			table := &schema.Tables[j]
+			tableMap[table.Name] = table
 		}
-		return nil
 	}
 
 	for i := 0; i < len(d.Schemas); i++ {
-		for j := 0; j < len(d.Schemas[i].Tables); j++ {
-			for k := 0; k < len(d.Schemas[i].Tables[j].Columns); k++ {
-				if d.Schemas[i].Tables[j].Columns[k].ForeignKey != "" {
-					fkTableName, fkColumnName, found := strings.Cut(d.Schemas[i].Tables[j].Columns[k].ForeignKey, ".")
+		schema := &d.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			table := &schema.Tables[j]
+			for k := 0; k < len(table.Columns); k++ {
+				column := &table.Columns[k]
+				if column.ForeignKey != "" {
+					fkTableName, fkColumnName, found := strings.Cut(column.ForeignKey, ".")
 					if found {
-						fkTable := findTable(fkTableName)
-						if fkTable != nil {
-							fkTable.References = append(d.Schemas[i].Tables[j].References, model.Reference{
+						fkTable, ok := tableMap[fkTableName]
+						if ok {
+							fkTable.References = append(fkTable.References, model.Reference{
 								ColumnName: fkColumnName,
-								Foreign: []model.ForeignTable{
-									{
-										TableName:  d.Schemas[i].Tables[j].Name,
-										ColumnName: d.Schemas[i].Tables[j].Columns[k].Name,
-									},
-								},
+								Foreign:    []model.ForeignTable{{Table: table.Name, Column: column.Name}},
 							})
+						} else {
+							fmt.Printf("failed to find table '%s'", fkTableName)
 						}
 					}
 				}

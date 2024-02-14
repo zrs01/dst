@@ -43,8 +43,8 @@ type Reference struct {
 }
 
 type ForeignTable struct {
-	TableName  string `yaml:"table,omitempty"`
-	ColumnName string `yaml:"column,omitempty"`
+	Table  string `yaml:"table,omitempty"`
+	Column string `yaml:"column,omitempty"`
 }
 
 type OutColumn struct {
