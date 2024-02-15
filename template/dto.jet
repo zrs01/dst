@@ -1,0 +1,57 @@
+{{- range .Schemas }}
+  {{- range .Tables }}
+public class {{ toLowerCamel(.Name) }}DTO extends {{ toLowerCamel(.Name) }} {
+    {{- range .Columns }}
+        {{- if .ForeignKey != "" }}
+           {{- parts := split(.ForeignKey, ".") }}
+    private {{ toCamel(parts[0]) }}DTO {{ toLowerCamel(parts[0]) }};
+        {{- end }}
+    {{- end }}
+    {{- range .References }}
+        {{- col := .ColumnName }}
+        {{- range .Foreign }}
+    private List<{{ toCamel(.Table) }}DTO>
+            {{- if col == .Column }}
+                {{- " " + toLowerCamel(.Table) }};
+            {{- else }}
+                {{- " " + toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }};
+            {{- end }}
+        {{- end }}
+    {{- end }}
+
+    {* ----------------------------- set/get functions ---------------------------- *}
+    {{- range .Columns }}
+        {{- if .ForeignKey != "" }}
+           {{- parts := split(.ForeignKey, ".") }}
+           {{- lf := toLowerCamel(parts[0]) }}
+           {{- uf := toCamel(parts[0]) }}
+    public {{ uf }}DTO get{{ uf }}() {
+        return {{ lf }};
+    }
+    public void set{{ uf }}({{ uf }}DTO {{ lf }}) {
+        this.{{ lf }} = {{ lf }};
+    }
+        {{- end }}
+    {{- end }}
+    {{- range .References }}
+        {{- col := .ColumnName }}
+        {{- range .Foreign }}
+            {{- field := "" }}
+            {{- if col == .Column }}
+                {{- field = toLowerCamel(.Table) }}
+            {{- else }}
+                {{- field = toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }}
+            {{- end }}
+            {{- lf := toLowerCamel(field) }}
+            {{- uf := toCamel(field) }}
+    public {{ uf }}DTO get{{ uf }}() {
+        return {{ lf }}
+    }
+    public void set{{ uf }}({{ uf }}DTO {{ lf }}) {
+        this.{{ lf }} = {{ lf }};
+    }
+        {{- end }}
+    {{- end }}
+}
+  {{- end }}
+{{- end }}

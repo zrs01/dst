@@ -4,13 +4,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 
 	"github.com/CloudyKit/jet/v6"
+	"github.com/iancoleman/strcase"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 // WriteFileTpl generates a template using the provided data and template file,
@@ -97,13 +95,18 @@ func memoryLoader(data *model.DataDef, tplf string, tplc string) jet.Loader {
 }
 
 func setJetFunc(views *jet.Set) {
-	views.AddGlobalFunc("camelCase", jetCamelCase)
+	jetToLowerCamel(views)
+	jetToCamel(views)
 }
 
-func jetCamelCase(args jet.Arguments) reflect.Value {
-	value := args.Get(0).Interface().(string)
-	value = cases.Lower(language.Und).String(value)
-	value = cases.Title(language.Und).String(value)
-	value = strings.Replace(value, " ", "", -1)
-	return reflect.ValueOf(value)
+func jetToLowerCamel(views *jet.Set) {
+	views.AddGlobalFunc("toLowerCamel", func(args jet.Arguments) reflect.Value {
+		return reflect.ValueOf(strcase.ToLowerCamel(args.Get(0).Interface().(string)))
+	})
+}
+
+func jetToCamel(views *jet.Set) {
+	views.AddGlobalFunc("toCamel", func(args jet.Arguments) reflect.Value {
+		return reflect.ValueOf(strcase.ToCamel(args.Get(0).Interface().(string)))
+	})
 }

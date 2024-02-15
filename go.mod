@@ -6,6 +6,7 @@ require (
 	github.com/CloudyKit/jet/v6 v6.1.0
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/goccy/go-yaml v1.11.3
+	github.com/iancoleman/strcase v0.3.0
 	github.com/rotisserie/eris v0.5.4
 	github.com/samber/lo v1.39.0
 	github.com/urfave/cli/v2 v2.5.0
