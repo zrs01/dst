@@ -7,9 +7,19 @@
 ALTER TABLE {{ .Name }}History SET ( SYSTEM_VERSIONING = OFF);
     {{- end }}
     {{- range .Columns }}
-IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }} ADD {{ .Name }} {{ .DataType }} {{- if .NotNull == "Y" }} NOT NULL {{- end }};
+IF COL_LENGTH(N'{{ table }}', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }} ADD {{ .Name }} {{ .DataType }}
+        {{- if .Compute != "" }}
+            {{- "AS " + .Compute }}
+        {{- else }}
+            {{- if .NotNull == "Y" }} NOT NULL {{ end }};
+        {{- end }}
         {{- if version }}
-IF COL_LENGTH(N'{{ table }}History', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }}History ADD {{ .Name }} {{ .DataType }} {{- if .NotNull == "Y" }} NOT NULL {{- end }};
+IF COL_LENGTH(N'{{ table }}History', N'{{ .Name }}') IS NULL ALTER TABLE {{ table }}History ADD {{ .Name }} {{ .DataType }}
+            {{- if .Compute != "" }}
+                {{- "AS " + .Compute }}
+            {{- else }}
+                {{- if .NotNull == "Y" }} NOT NULL {{ end }};
+            {{- end }}
         {{- end }}
     {{- end }}
     {{- if .Version }}

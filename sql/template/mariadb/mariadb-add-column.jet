@@ -4,9 +4,10 @@
     {{- lastColumn := "" }}
     {{- range i := .Columns }}
 ALTER TABLE {{ table }} ADD COLUMN IF NOT EXISTS {{ .Name }} {{ .DataType }}
+      {{- if .Compute != "" }} AS ({{ .Compute }}){{ end }}
       {{- if .NotNull == "Y" }} NOT NULL {{- end }}
-      {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
-      {{- if .Desc != "" }} COMMENT '{{ .Desc }}' {{- end }}
+      {{- if .Value != "" }} DEFAULT '{{ .Value }}'{{ end }}
+      {{- if .Desc != "" }} COMMENT '{{ .Desc }}'{{ end }}
       {{- if i != 0 }} AFTER {{ lastColumn }}{{ end }}
       {{- ";" }}
       {{- lastColumn = .Name }}

@@ -34,7 +34,7 @@ type Column struct {
 	Title       string `yaml:"tt,omitempty"`
 	Index       string `yaml:"in,omitempty"`
 	Desc        string `yaml:"dc,omitempty"`
-	Computed    string `yaml:"cm,omitempty"`
+	Compute     string `yaml:"cm,omitempty"`
 }
 
 type Reference struct {

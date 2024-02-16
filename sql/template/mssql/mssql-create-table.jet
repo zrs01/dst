@@ -9,12 +9,10 @@ CREATE TABLE {{ .Name }} (
     {{- colcnt := len(.Columns) }}
     {{- range i := .Columns }}
         {{- if i != 0 }},{{- end }}
-        {{- if .Computed != "" }}
-    {{- .Name }} AS {{- .Computed }}
+        {{- if .Compute != "" }}
+    {{- .Name }} AS {{ .Compute }}
         {{- else }}
-            {{- if .Identity == "Y" }}
-                {{- idc = . }}
-            {{- end }}
+            {{- if .Identity == "Y" }}{{ idc = . }}{{ end }}
     {{ .Name }} {{ .DataType }}
             {{- if .Identity == "Y" }} IDENTITY(1,1){{- end }}
             {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
