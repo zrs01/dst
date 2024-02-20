@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/CloudyKit/jet/v6"
+	pluralize "github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
@@ -24,6 +25,7 @@ import (
 //
 // Return:
 // - An error if any occurred during the execution of the function.
+
 func WriteFileTpl(data *model.DataDef, tplf string, out string) error {
 	return writeTpl(data, fileLoader(data, tplf), tplf, out)
 
@@ -97,6 +99,8 @@ func memoryLoader(data *model.DataDef, tplf string, tplc string) jet.Loader {
 func setJetFunc(views *jet.Set) {
 	jetToLowerCamel(views)
 	jetToCamel(views)
+	jetPlural(views)
+	jetSingular(views)
 }
 
 func jetToLowerCamel(views *jet.Set) {
@@ -108,5 +112,19 @@ func jetToLowerCamel(views *jet.Set) {
 func jetToCamel(views *jet.Set) {
 	views.AddGlobalFunc("toCamel", func(args jet.Arguments) reflect.Value {
 		return reflect.ValueOf(strcase.ToCamel(args.Get(0).Interface().(string)))
+	})
+}
+
+func jetPlural(view *jet.Set) {
+	view.AddGlobalFunc("plural", func(args jet.Arguments) reflect.Value {
+		pluralize := pluralize.NewClient()
+		return reflect.ValueOf(pluralize.Plural(args.Get(0).Interface().(string)))
+	})
+}
+
+func jetSingular(view *jet.Set) {
+	view.AddGlobalFunc("singular", func(args jet.Arguments) reflect.Value {
+		pluralize := pluralize.NewClient()
+		return reflect.ValueOf(pluralize.Singular(args.Get(0).Interface().(string)))
 	})
 }

@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/CloudyKit/jet/v6 v6.1.0
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/goccy/go-yaml v1.11.3
 	github.com/iancoleman/strcase v0.3.0
 	github.com/rotisserie/eris v0.5.4

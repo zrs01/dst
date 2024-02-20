@@ -12,9 +12,9 @@ public class {{ toLowerCamel(.Name) }}DTO extends {{ toLowerCamel(.Name) }} {
         {{- range .Foreign }}
     private List<{{ toCamel(.Table) }}DTO>
             {{- if col == .Column }}
-                {{- " " + toLowerCamel(.Table) }};
+                {{- " " + plural(toLowerCamel(.Table)) }};
             {{- else }}
-                {{- " " + toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }};
+                {{- " " + plural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }};
             {{- end }}
         {{- end }}
     {{- end }}
@@ -38,9 +38,9 @@ public class {{ toLowerCamel(.Name) }}DTO extends {{ toLowerCamel(.Name) }} {
         {{- range .Foreign }}
             {{- field := "" }}
             {{- if col == .Column }}
-                {{- field = toLowerCamel(.Table) }}
+                {{- field = plural(toLowerCamel(.Table)) }}
             {{- else }}
-                {{- field = toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }}
+                {{- field = plural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }}
             {{- end }}
             {{- lf := toLowerCamel(field) }}
             {{- uf := toCamel(field) }}
