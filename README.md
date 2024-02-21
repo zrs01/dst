@@ -95,13 +95,14 @@ https://github.com/CloudyKit/jet/blob/master/docs/syntax.md
 | Tables     | []Table | tables   | Represents a list of tables within the schema. |
 
 ### Table
-| Field Name | Type     | YAML Tag | Description                                    |
-| ---------- | -------- | -------- | ---------------------------------------------- |
-| Name       | string   | name     | Represents the name of the table.              |
-| Title      | string   | title    | Represents the title of the table.             |
-| Desc       | string   | desc     | Represents the description of the table.       |
-| Version    | bool     | version  | Indicates whether the table has a version.     |
-| Columns    | []Column | columns  | Represents a list of columns within the table. |
+| Field Name | Type     | YAML Tag   | Description                                       |
+| ---------- | -------- | ---------- | ------------------------------------------------- |
+| Name       | string   | name       | Represents the name of the table.                 |
+| Title      | string   | title      | Represents the title of the table.                |
+| Desc       | string   | desc       | Represents the description of the table.          |
+| Version    | bool     | version    | Indicates whether the table has a version.        |
+| Columns    | []Column | columns    | Represents a list of columns within the table.    |
+| References | []Ref    | references | Represents a list of references within the table. |
 
 ### Column
 | Field Name  | Type   | YAML Tag | Description                                              |
@@ -117,3 +118,16 @@ https://github.com/CloudyKit/jet/blob/master/docs/syntax.md
 | Title       | string | tt       | Represents the title of the column.                      |
 | Index       | string | in       | Represents the index of the column.                      |
 | Desc        | string | dc       | Represents the description of the column.                |
+| Compute     | string | cm       | Represents the compute column.                           |
+
+### Ref
+| Field Name | Type           | YAML Tag | Description                        |
+| ---------- | -------------- | -------- | ---------------------------------- |
+| ColumnName | string         | column   | Represents the name of the column. |
+| ForeignKey | []ForeignTable | foreign  | Represents the foreign keys.       |
+
+### ForeignTable
+| Field Name | Type   | YAML Tag | Description                        |
+| ---------- | ------ | -------- | ---------------------------------- |
+| Table      | string | table    | Represents the name of the table.  |
+| Column     | string | column   | Represents the name of the column. |

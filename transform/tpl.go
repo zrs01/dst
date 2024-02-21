@@ -28,31 +28,6 @@ import (
 
 func WriteFileTpl(data *model.DataDef, tplf string, out string) error {
 	return writeTpl(data, fileLoader(data, tplf), tplf, out)
-
-	// views := jet.NewSet(loader, jet.InDevelopmentMode())
-	// views := jet.NewSet(loader)
-	// view, err := views.GetTemplate(filepath.Base(tplf))
-	// if err != nil {
-	// 	return tracerr.Wrap(err)
-	// }
-
-	// // output
-	// var fh *os.File
-	// if out == "" || out == "stdout" {
-	// 	fh = os.Stdout
-	// } else {
-	// 	fh, err = os.Create(out)
-	// 	if err != nil {
-	// 		return tracerr.Wrap(err)
-	// 	}
-	// 	defer fh.Close()
-	// }
-
-	// // merge
-	// if err := view.Execute(fh, nil, *data); err != nil {
-	// 	return tracerr.Wrap(err)
-	// }
-	// return nil
 }
 
 func WriteMemoryTpl(data *model.DataDef, tplf, tplc string, out string) error {

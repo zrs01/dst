@@ -106,6 +106,15 @@ func WriteYml(data *model.DataDef, outfile string) error {
 	for i := 0; i < len(*pSchemas); i++ {
 		var pTables = &(*pSchemas)[i].Tables
 		for j := 0; j < len(*pTables); j++ {
+			// references is a runtime content, should not show in output
+			(*pTables)[j].References = nil
+
+			// lowercase the column type
+			for k := 0; k < len((*pTables)[j].Columns); k++ {
+				(*pTables)[j].Columns[k].DataType = strings.ToLower((*pTables)[j].Columns[k].DataType)
+			}
+
+			// move columns to out_columns for flow style output
 			(*pTables)[j].OutColumns = make([]model.OutColumn, len((*pTables)[j].Columns))
 			for k, column := range (*pTables)[j].Columns {
 				(*pTables)[j].OutColumns[k].Value = column
@@ -124,6 +133,7 @@ func WriteYml(data *model.DataDef, outfile string) error {
 	output = strings.ReplaceAll(output, "out_fixed", "fixed")
 	output = strings.ReplaceAll(output, "out_columns", "columns")
 	output = strings.ReplaceAll(output, "_column_values: ", "")
+	// remove the quote for boolean
 	output = strings.ReplaceAll(output, "\"N\"", "N")
 	output = strings.ReplaceAll(output, "\"n\"", "n")
 	output = strings.ReplaceAll(output, "\"Y\"", "Y")
