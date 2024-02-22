@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"reflect"
 	"strings"
 
 	yamlOut "github.com/goccy/go-yaml"
@@ -91,6 +92,8 @@ func FilterYml(ifile, schema, table string, column string) (*model.DataDef, erro
 }
 
 func WriteYml(data *model.DataDef, outfile string) error {
+	// restoreFixColumns(data)
+
 	// modify the columns in fixed to flow style
 	pFixed := &data.Fixed
 	for i := 0; i < len(*pFixed); i++ {
@@ -145,4 +148,55 @@ func WriteYml(data *model.DataDef, outfile string) error {
 		os.WriteFile(outfile, []byte(output), fs.FileMode(0744))
 	}
 	return nil
+}
+
+func restoreFixColumns(data *model.DataDef) {
+	// Map to store column attributes as keys and a list of tables as values
+	columnMap := make(map[string][]string)
+
+	// Iterate over schemas
+	for _, schema := range data.Schemas {
+		// Iterate over tables
+		for _, table := range schema.Tables {
+			// Iterate over columns
+			for _, column := range table.Columns {
+				// Generate a unique key based on column attributes
+				key := generateColumnKey(column)
+
+				// Append the current table to the list of tables with the same attributes
+				columnMap[key] = append(columnMap[key], table.Name)
+			}
+		}
+	}
+
+	// Print tables with the same column attributes
+	for key, tables := range columnMap {
+		if len(tables) == lo.Reduce(data.Schemas, func(acc int, schema model.Schema, _ int) int { return acc + len(schema.Tables) }, 0) {
+			fmt.Printf("Tables with the same column attributes [%s]: %v\n", key, tables)
+		}
+
+	}
+}
+
+func generateColumnKey(column model.Column) string {
+	// Use reflection to get the column attributes
+	v := reflect.ValueOf(column)
+	numFields := v.NumField()
+
+	// Slice to store attribute values
+	attributes := make([]interface{}, numFields)
+
+	fieldNames := []string{"Name", "DataType", "Identity", "NotNull", "Unique", "Value", "ForeignKey", "Cardinality", "Title", "Index", "Compute"}
+	for i := 0; i < len(fieldNames); i++ {
+		attributes[i] = v.FieldByName(fieldNames[i])
+	}
+
+	// Iterate over struct fields
+	// for i := 0; i < numFields; i++ {
+	// 	fmt.Println(v.Field(i))
+	// 	attributes[i] = v.Field(i).Interface()
+	// }
+
+	// Format the attributes as a string and return
+	return fmt.Sprintf("%v", attributes)
 }
