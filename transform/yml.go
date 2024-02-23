@@ -36,6 +36,7 @@ func ReadYml(file string) (*model.DataDef, error) {
 		}
 	}
 
+	// update the reference table
 	for i := 0; i < len(d.Schemas); i++ {
 		schema := &d.Schemas[i]
 		for j := 0; j < len(schema.Tables); j++ {
@@ -62,7 +63,7 @@ func ReadYml(file string) (*model.DataDef, error) {
 	return &d, err
 }
 
-func FilterYml(ifile, schema, table string, column string) (*model.DataDef, error) {
+func SelectedYml(ifile, schema, tablePattern string, columnPattern string) (*model.DataDef, error) {
 	rawData, err := ReadYml(ifile)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
@@ -84,7 +85,7 @@ func FilterYml(ifile, schema, table string, column string) (*model.DataDef, erro
 		})
 		return nil, tracerr.Errorf("invalid data")
 	}
-	data, err := model.FilterData(rawData, schema, table, column)
+	data, err := model.FilterData(rawData, schema, tablePattern, columnPattern)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
@@ -105,23 +106,23 @@ func WriteYml(data *model.DataDef, outfile string) error {
 	data.Fixed = nil
 
 	// modify the columns to flow style
-	pSchemas := &data.Schemas
-	for i := 0; i < len(*pSchemas); i++ {
-		var pTables = &(*pSchemas)[i].Tables
-		for j := 0; j < len(*pTables); j++ {
+	schemas := &data.Schemas
+	for i := 0; i < len(*schemas); i++ {
+		var tables = &(*schemas)[i].Tables
+		for j := 0; j < len(*tables); j++ {
 			// references is a runtime content, should not show in output
-			(*pTables)[j].References = nil
+			(*tables)[j].References = nil
 
 			// lowercase the column type
-			for k := 0; k < len((*pTables)[j].Columns); k++ {
-				(*pTables)[j].Columns[k].DataType = strings.ToLower((*pTables)[j].Columns[k].DataType)
+			for k := 0; k < len((*tables)[j].Columns); k++ {
+				(*tables)[j].Columns[k].DataType = strings.ToLower((*tables)[j].Columns[k].DataType)
 			}
 
 			// move columns to out_columns for flow style output
-			(*pTables)[j].OutColumns = make([]model.OutColumn, len((*pTables)[j].Columns))
-			for k, column := range (*pTables)[j].Columns {
-				(*pTables)[j].OutColumns[k].Value = column
-				(*pTables)[j].Columns = nil
+			(*tables)[j].OutColumns = make([]model.OutColumn, len((*tables)[j].Columns))
+			for k, column := range (*tables)[j].Columns {
+				(*tables)[j].OutColumns[k].Value = column
+				(*tables)[j].Columns = nil
 			}
 		}
 	}
@@ -151,28 +152,57 @@ func WriteYml(data *model.DataDef, outfile string) error {
 }
 
 func restoreFixColumns(data *model.DataDef) {
+	type tb struct {
+		tableName  string
+		columnName string
+	}
 	// Map to store column attributes as keys and a list of tables as values
-	columnMap := make(map[string][]string)
+	tbMap := make(map[string][]tb)
 
-	// Iterate over schemas
-	for _, schema := range data.Schemas {
-		// Iterate over tables
-		for _, table := range schema.Tables {
-			// Iterate over columns
-			for _, column := range table.Columns {
+	// create a list of tables with the same column attributes
+	for i := 0; i < len(data.Schemas); i++ {
+		schema := &data.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			table := &schema.Tables[j]
+			for k := 0; k < len(table.Columns); k++ {
+				column := &table.Columns[k]
 				// Generate a unique key based on column attributes
-				key := generateColumnKey(column)
-
+				key := generateColumnKey(*column)
 				// Append the current table to the list of tables with the same attributes
-				columnMap[key] = append(columnMap[key], table.Name)
+				tbMap[key] = append(tbMap[key], tb{tableName: table.Name, columnName: column.Name})
 			}
 		}
 	}
 
-	// Print tables with the same column attributes
-	for key, tables := range columnMap {
-		if len(tables) == lo.Reduce(data.Schemas, func(acc int, schema model.Schema, _ int) int { return acc + len(schema.Tables) }, 0) {
-			fmt.Printf("Tables with the same column attributes [%s]: %v\n", key, tables)
+	// Check if all tables have the same column attributes
+	for _, items := range tbMap {
+		if len(items) == lo.Reduce(data.Schemas, func(acc int, schema model.Schema, _ int) int { return acc + len(schema.Tables) }, 0) {
+
+			// Remove the column from the table
+			for _, item := range items {
+				for j := 0; j < len(data.Schemas); j++ {
+					schema := &data.Schemas[j]
+					for k := 0; k < len(schema.Tables); k++ {
+						table := &schema.Tables[k]
+						if table.Name == item.tableName {
+							for l := 0; l < len(table.Columns); l++ {
+								if table.Columns[l].Name == item.columnName {
+
+									// add to fixed columns if it is not duplicated
+									if !lo.Contains(data.Fixed, table.Columns[l]) {
+										data.Fixed = append(data.Fixed, table.Columns[l])
+									}
+
+									// remove the column
+									table.Columns = append(table.Columns[:l], table.Columns[l+1:]...)
+									break
+								}
+							}
+							break
+						}
+					}
+				}
+			}
 		}
 
 	}

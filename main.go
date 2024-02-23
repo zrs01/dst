@@ -11,7 +11,6 @@ import (
 	"github.com/ztrue/tracerr"
 
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/sql"
 	"github.com/zrs01/dst/transform"
 )
@@ -80,34 +79,6 @@ func main() {
 	libFlag := func(lib *string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "lib", Usage: "plantuml.jar file, used when output format is png", Required: false, Destination: lib}
 	}
-	selectedData := func(ifile, schema, table string, column string) (*model.DataDef, error) {
-		rawData, err := transform.ReadYml(ifile)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-		// copy fixed columns to each tables
-		for i := 0; i < len(rawData.Schemas); i++ {
-			schema := rawData.Schemas[i]
-			for j := 0; j < len(schema.Tables); j++ {
-				schema.Tables[j].Columns = append(schema.Tables[j].Columns, rawData.Fixed...)
-			}
-		}
-		// clean the fixed column
-		rawData.Fixed = []model.Column{}
-
-		validateResult := model.Verify(rawData)
-		if len(validateResult) > 0 {
-			lo.ForEach(validateResult, func(v string, _ int) {
-				fmt.Println(v)
-			})
-			return nil, tracerr.Errorf("invalid data")
-		}
-		data, err := model.FilterData(rawData, schema, table, column)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-		return data, nil
-	}
 
 	// convert command
 	convertCmd := &cli.Command{
@@ -137,7 +108,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := transform.SelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -173,7 +144,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := transform.SelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -209,7 +180,7 @@ func main() {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := transform.SelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -259,7 +230,7 @@ func main() {
 				dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := transform.SelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -282,7 +253,7 @@ func main() {
 				dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, "")
+				data, err := transform.SelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -306,7 +277,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, col)
+				data, err := transform.SelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -330,7 +301,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, col)
+				data, err := transform.SelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -354,7 +325,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, col)
+				data, err := transform.SelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -378,7 +349,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, col)
+				data, err := transform.SelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -402,7 +373,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, col)
+				data, err := transform.SelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -426,7 +397,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := selectedData(ifile, schema, table, col)
+				data, err := transform.SelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
