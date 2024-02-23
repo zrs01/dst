@@ -60,53 +60,71 @@ func ReadYml(file string) (*model.DataDef, error) {
 			}
 		}
 	}
-	return &d, err
-}
 
-func SelectedYml(ifile, schema, tablePattern string, columnPattern string) (*model.DataDef, error) {
-	rawData, err := ReadYml(ifile)
-	if err != nil {
-		return nil, tracerr.Wrap(err)
-	}
-	// copy fixed columns to each tables
-	for i := 0; i < len(rawData.Schemas); i++ {
-		schema := rawData.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			schema.Tables[j].Columns = append(schema.Tables[j].Columns, rawData.Fixed...)
-		}
-	}
-	// clean the fixed column
-	rawData.Fixed = []model.Column{}
+	expandFixColumns(&d)
 
-	validateResult := model.Verify(rawData)
+	// validate	data
+	validateResult := model.Verify(&d)
 	if len(validateResult) > 0 {
 		lo.ForEach(validateResult, func(v string, _ int) {
 			fmt.Println(v)
 		})
 		return nil, tracerr.Errorf("invalid data")
 	}
-	data, err := model.FilterData(rawData, schema, tablePattern, columnPattern)
+
+	return &d, err
+}
+
+func ReadPatternYml(ifile, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
+	dataDef, err := ReadYml(ifile)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	return PatternDataDef(dataDef, schemaPattern, tablePattern, columnPattern)
+}
+
+func PatternDataDef(dataDef *model.DataDef, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
+	data, err := model.FilterData(dataDef, schemaPattern, tablePattern, columnPattern)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 	return data, nil
 }
 
-func WriteYml(data *model.DataDef, outfile string) error {
-	// restoreFixColumns(data)
-
-	// modify the columns in fixed to flow style
-	pFixed := &data.Fixed
-	for i := 0; i < len(*pFixed); i++ {
-		(*data).OutFixed = make([]model.OutColumn, len(*pFixed))
-		for j, column := range *pFixed {
-			(*data).OutFixed[j].Value = column
+// Expand fixed columns to each tables.
+func expandFixColumns(dataDef *model.DataDef) {
+	// copy fixed columns to each tables
+	for i := 0; i < len(dataDef.Schemas); i++ {
+		schema := dataDef.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			schema.Tables[j].Columns = append(schema.Tables[j].Columns, dataDef.Fixed...)
 		}
 	}
-	data.Fixed = nil
+	// clean the fixed column
+	dataDef.Fixed = []model.Column{}
+}
+
+// WriteYml writes data to yml file with pattern
+func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
+	restoreFixColumns(dataDef)
+
+	patternDataDef, err := PatternDataDef(dataDef, schemaPattern, tablePattern, "")
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+
+	// modify the columns in fixed to flow style
+	fixed := &patternDataDef.Fixed
+	for i := 0; i < len(*fixed); i++ {
+		(*patternDataDef).OutFixed = make([]model.OutColumn, len(*fixed))
+		for j, column := range *fixed {
+			(*patternDataDef).OutFixed[j].Value = column
+		}
+	}
+	patternDataDef.Fixed = nil
 
 	// modify the columns to flow style
-	schemas := &data.Schemas
+	schemas := &patternDataDef.Schemas
 	for i := 0; i < len(*schemas); i++ {
 		var tables = &(*schemas)[i].Tables
 		for j := 0; j < len(*tables); j++ {
@@ -127,7 +145,7 @@ func WriteYml(data *model.DataDef, outfile string) error {
 		}
 	}
 
-	bytes, err := yamlOut.Marshal(data)
+	bytes, err := yamlOut.Marshal(patternDataDef)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -146,7 +164,9 @@ func WriteYml(data *model.DataDef, outfile string) error {
 	if outfile == "" || outfile == "stdout" {
 		fmt.Println(output)
 	} else {
-		os.WriteFile(outfile, []byte(output), fs.FileMode(0744))
+		if err := os.WriteFile(outfile, []byte(output), fs.FileMode(0744)); err != nil {
+			return tracerr.Wrap(err)
+		}
 	}
 	return nil
 }
