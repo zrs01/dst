@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS {{ .Name }} (
         {{- if .Identity == "Y" }} AUTO_INCREMENT PRIMARY KEY{{ end }}
         {{- if .Desc != "" }} COMMENT '{{ .Desc }}'{{ end }}
         {{- if i < colcnt - 1 }},{{ end }}
-      {{ - end }}
+      {{- end }}
     {{- end }}
 ){{- if .Version }} WITH SYSTEM VERSIONING{{- end }};
   {{- end }}

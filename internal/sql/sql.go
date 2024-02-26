@@ -4,12 +4,12 @@ import (
 	"embed"
 	"fmt"
 
+	"github.com/zrs01/dst/internal/tpl"
 	"github.com/zrs01/dst/model"
-	"github.com/zrs01/dst/transform"
 	"github.com/ztrue/tracerr"
 )
 
-//go:embed template/*/*.jet
+//go:embed templates/*/*.jet
 var fs embed.FS
 
 func CreateTable(data *model.DataDef, db string, out string) error {
@@ -49,7 +49,7 @@ func writeDDL(data *model.DataDef, template string, out string) error {
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	if err := transform.WriteMemoryTpl(data, template, string(b), out); err != nil {
+	if err := tpl.WriteMemoryTpl(data, template, string(b), out); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil

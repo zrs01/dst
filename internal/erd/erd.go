@@ -1,4 +1,4 @@
-package transform
+package erd
 
 import (
 	_ "embed"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/codeskyblue/go-sh"
 	"github.com/rotisserie/eris"
+	"github.com/zrs01/dst/internal/tpl"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/utils"
 	"github.com/ztrue/tracerr"
@@ -34,7 +35,7 @@ func WriteERD(data *model.DataDef, tplf string, out string) error {
 	}
 
 	outPuml := strings.TrimSuffix(out, filepath.Ext(out)) + ".puml"
-	if err := WriteFileTpl(data, tplf, outPuml); err != nil {
+	if err := tpl.WriteFileTpl(data, tplf, outPuml); err != nil {
 		return tracerr.Wrap(err)
 	}
 	// if err := writePlantuml(data, tplf, outPuml); err != nil {
