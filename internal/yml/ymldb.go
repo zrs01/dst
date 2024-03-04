@@ -3,6 +3,7 @@ package yml
 import (
 	"strings"
 
+	"github.com/go-sqlx/sqlx"
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
@@ -16,5 +17,62 @@ func readFromDb(in string) (*model.DataDef, error) {
 }
 
 func readMSSQL(in string) (*model.DataDef, error) {
-	return nil, nil
+	var dataDef = model.DataDef{}
+
+	db, err := sqlx.Connect("sqlserver", in)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+
+	mSchemas, err := mssqlSchemas(db)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	dataDef.Schemas = *mSchemas
+	return &dataDef, nil
+}
+
+func mssqlSchemas(db *sqlx.DB) (*[]model.Schema, error) {
+	mSchemas := []model.Schema{}
+	dSchemas := []model.MSSQLSchema{}
+	if err := db.Select(&dSchemas, "select * from INFORMATION_SCHEMA.SCHEMATA where SCHEMA_NAME = 'dbo"); err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	for _, dSchema := range dSchemas {
+		mTables, err := mssqlTable(db, dSchema)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+		mSchemas = append(mSchemas, model.Schema{
+			Name:   dSchema.SchemaName,
+			Tables: *mTables,
+		})
+	}
+	return &mSchemas, nil
+}
+
+func mssqlTable(db *sqlx.DB, dSchema model.MSSQLSchema) (*[]model.Table, error) {
+	mTables := []model.Table{}
+
+	dTables := []model.MSSQLTable{}
+	if err := db.Select(&dTables, "select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE = 'BASE TABLE' order by TABLE_SCHEMA,TABLE_NAME"); err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	for _, dTable := range dTables {
+		mColumns, err := mssqlColumn(db, dTable)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+		mTables = append(mTables, model.Table{
+			Name:    dTable.TableName,
+			Columns: *mColumns,
+		})
+	}
+	return &mTables, nil
+}
+
+func mssqlColumn(db *sqlx.DB, dTable model.MSSQLTable) (*[]model.Column, error) {
+	mColumns := []model.Column{}
+
+	return &mColumns, nil
 }
