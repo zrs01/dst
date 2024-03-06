@@ -1,6 +1,7 @@
 package yml
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/go-sqlx/sqlx"
@@ -35,7 +36,7 @@ func readMSSQL(in string) (*model.DataDef, error) {
 func mssqlSchemas(db *sqlx.DB) (*[]model.Schema, error) {
 	mSchemas := []model.Schema{}
 	dSchemas := []model.MSSQLSchema{}
-	if err := db.Select(&dSchemas, "select * from INFORMATION_SCHEMA.SCHEMATA where SCHEMA_NAME = 'dbo"); err != nil {
+	if err := db.Select(&dSchemas, "select * from INFORMATION_SCHEMA.SCHEMATA where SCHEMA_NAME = 'dbo'"); err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 	for _, dSchema := range dSchemas {
@@ -74,5 +75,22 @@ func mssqlTable(db *sqlx.DB, dSchema model.MSSQLSchema) (*[]model.Table, error) 
 func mssqlColumn(db *sqlx.DB, dTable model.MSSQLTable) (*[]model.Column, error) {
 	mColumns := []model.Column{}
 
+	dColumns := []model.MSSQLColumn{}
+	if err := db.Select(&dColumns, fmt.Sprintf("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '%s' order by ORDINAL_POSITION", dTable.TableName)); err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	for _, dColumn := range dColumns {
+		mColumn := model.Column{
+			Name:     dColumn.ColumnName,
+			DataType: dColumn.DataType,
+		}
+		if dColumn.NumericPrecision != nil && *dColumn.NumericPrecision > 0 {
+			mColumn.DataType = fmt.Sprintf("%s(%d)", dColumn.DataType, *dColumn.NumericPrecision)
+			if dColumn.NumericScale != nil && *dColumn.NumericScale > 0 {
+				mColumn.DataType = fmt.Sprintf("%s(%d,%d)", dColumn.DataType, *dColumn.NumericPrecision, *dColumn.NumericScale)
+			}
+		}
+		mColumns = append(mColumns, mColumn)
+	}
 	return &mColumns, nil
 }
