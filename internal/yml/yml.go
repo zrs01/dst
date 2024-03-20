@@ -49,6 +49,38 @@ func expandFixColumns(dataDef *model.DataDef) {
 	dataDef.Fixed = []model.Column{}
 }
 
+func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
+	patternDataDef, err := PatternDataDef(dataDef, schemaPattern, tablePattern, "")
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+
+	// modify the columns to flow style
+	schemas := &patternDataDef.Schemas
+	for i := 0; i < len(*schemas); i++ {
+		tables := &(*schemas)[i].Tables
+		for j := 0; j < len(*tables); j++ {
+			(*tables)[j].OutColumns = outColumns(&(*tables)[j].Columns)
+			(*tables)[j].Columns = nil
+			(*tables)[j].OutReferences = outReferences(&(*tables)[j].References)
+			(*tables)[j].References = nil
+		}
+	}
+
+	bytes, err := yamlOut.Marshal(patternDataDef)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	output := string(bytes)
+	// correct the names
+	output = strings.ReplaceAll(output, "out_columns", "columns")
+	output = strings.ReplaceAll(output, "_column: ", "")
+	output = strings.ReplaceAll(output, "out_references", "references")
+	output = strings.ReplaceAll(output, "_reference: ", "")
+	fmt.Println(output)
+	return nil
+}
+
 // WriteYml writes data to yml file with pattern
 func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
 	restoreFixColumns(dataDef)
@@ -59,34 +91,18 @@ func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePatter
 	}
 
 	// modify the columns in fixed to flow style
-	fixed := &patternDataDef.Fixed
-	for i := 0; i < len(*fixed); i++ {
-		(*patternDataDef).OutFixed = make([]model.OutColumn, len(*fixed))
-		for j, column := range *fixed {
-			(*patternDataDef).OutFixed[j].Value = column
-		}
-	}
+	(*patternDataDef).OutFixed = outColumns(&patternDataDef.Fixed)
 	patternDataDef.Fixed = nil
 
 	// modify the columns to flow style
 	schemas := &patternDataDef.Schemas
 	for i := 0; i < len(*schemas); i++ {
-		var tables = &(*schemas)[i].Tables
+		tables := &(*schemas)[i].Tables
 		for j := 0; j < len(*tables); j++ {
 			// references is a runtime content, should not show in output
 			(*tables)[j].References = nil
-
-			// lowercase the column type
-			for k := 0; k < len((*tables)[j].Columns); k++ {
-				(*tables)[j].Columns[k].DataType = strings.ToLower((*tables)[j].Columns[k].DataType)
-			}
-
-			// move columns to out_columns for flow style output
-			(*tables)[j].OutColumns = make([]model.OutColumn, len((*tables)[j].Columns))
-			for k, column := range (*tables)[j].Columns {
-				(*tables)[j].OutColumns[k].Value = column
-				(*tables)[j].Columns = nil
-			}
+			(*tables)[j].OutColumns = outColumns(&(*tables)[j].Columns)
+			(*tables)[j].Columns = nil
 		}
 	}
 
@@ -99,7 +115,7 @@ func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePatter
 	// correct the names
 	output = strings.ReplaceAll(output, "out_fixed", "fixed")
 	output = strings.ReplaceAll(output, "out_columns", "columns")
-	output = strings.ReplaceAll(output, "_column_values: ", "")
+	output = strings.ReplaceAll(output, "_column: ", "")
 	// remove the quote for boolean
 	output = strings.ReplaceAll(output, "\"N\"", "N")
 	output = strings.ReplaceAll(output, "\"n\"", "n")
@@ -109,11 +125,32 @@ func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePatter
 	if outfile == "" || outfile == "stdout" {
 		fmt.Println(output)
 	} else {
-		if err := os.WriteFile(outfile, []byte(output), fs.FileMode(0744)); err != nil {
+		if err := os.WriteFile(outfile, []byte(output), fs.FileMode(0o744)); err != nil {
 			return tracerr.Wrap(err)
 		}
 	}
 	return nil
+}
+
+func outColumns(columns *[]model.Column) []model.OutColumn {
+	// lowercase the column type
+	for k := 0; k < len(*columns); k++ {
+		(*columns)[k].DataType = strings.ToLower((*columns)[k].DataType)
+	}
+
+	outColumns := make([]model.OutColumn, len(*columns))
+	for k, column := range *columns {
+		outColumns[k].Value = column
+	}
+	return outColumns
+}
+
+func outReferences(references *[]model.Reference) []model.OutReference {
+	outReferences := make([]model.OutReference, len(*references))
+	for k, reference := range *references {
+		outReferences[k].Value = reference
+	}
+	return outReferences
 }
 
 func restoreFixColumns(data *model.DataDef) {
@@ -142,7 +179,6 @@ func restoreFixColumns(data *model.DataDef) {
 	// Check if all tables have the same column attributes
 	for _, items := range tbMap {
 		if len(items) == lo.Reduce(data.Schemas, func(acc int, schema model.Schema, _ int) int { return acc + len(schema.Tables) }, 0) {
-
 			// Remove the column from the table
 			for _, item := range items {
 				for j := 0; j < len(data.Schemas); j++ {
@@ -169,7 +205,6 @@ func restoreFixColumns(data *model.DataDef) {
 				}
 			}
 		}
-
 	}
 }
 

@@ -30,7 +30,6 @@ var version = "development"
 // dbase   yaml     orginal yaml
 
 func main() {
-
 	cliapp := cli.NewApp()
 	cliapp.Name = "dst"
 	cliapp.Usage = "Database schema tool"
@@ -82,6 +81,9 @@ func main() {
 	libFlag := func(lib *string) *cli.StringFlag {
 		return &cli.StringFlag{Name: "lib", Usage: "plantuml.jar file, used when output format is png", Required: false, Destination: lib}
 	}
+	dumpFlag := func(dump *bool) *cli.BoolFlag {
+		return &cli.BoolFlag{Name: "dump", Usage: "dump content", Value: false, Required: false, Destination: dump}
+	}
 
 	// convert command
 	convertCmd := &cli.Command{
@@ -96,7 +98,7 @@ func main() {
 	// transform to text
 	convertCmd.Subcommands = append(convertCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, tfile, schema, table string
-		var simple bool
+		var dump bool
 		return &cli.Command{
 			Name:    "text",
 			Usage:   "transform from yaml to text",
@@ -106,21 +108,36 @@ func main() {
 				ofileFlag(&ofile, "output file (text file)"),
 				schemaFile(&schema),
 				tableFlag(&table),
-				simpleFlag(&simple),
 				templateFlag(&tfile),
+				dumpFlag(&dump),
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				patternData, err := yml.ReadPatternYml(ifile, schema, table, "")
+
+				// read .yml to DataDef
+				data, err := yml.ReadYml(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
+				}
+
+				// filter the data with pattern
+				patternData, err := yml.PatternDataDef(data, schema, table, "")
+				if err != nil {
+					return tracerr.Wrap(err)
+				}
+
+				// dump the original content in .yml format to console
+				if dump {
+					if err := yml.DumpYml(data, ofile, schema, table); err != nil {
+						return tracerr.Wrap(err)
+					}
+					return nil
 				}
 				if tfile != "" {
 					return tpl.WriteFileTpl(patternData, tfile, ofile)
 				}
 				switch oext {
 				case ".yml", "":
-					data, err := yml.ReadYml(ifile)
 					if err != nil {
 						return tracerr.Wrap(err)
 					}

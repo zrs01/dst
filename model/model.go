@@ -13,13 +13,14 @@ type Schema struct {
 }
 
 type Table struct {
-	Name       string      `yaml:"name,omitempty"`
-	Title      string      `yaml:"title,omitempty"`
-	Desc       string      `yaml:"desc,omitempty"`
-	Version    bool        `yaml:"version,omitempty"`
-	Columns    []Column    `yaml:"columns,omitempty"`
-	References []Reference `yaml:"references,flow,omitempty"`
-	OutColumns []OutColumn `yaml:"out_columns,omitempty"`
+	Name          string         `yaml:"name,omitempty"`
+	Title         string         `yaml:"title,omitempty"`
+	Desc          string         `yaml:"desc,omitempty"`
+	Version       bool           `yaml:"version,omitempty"`
+	Columns       []Column       `yaml:"columns,omitempty"`
+	OutColumns    []OutColumn    `yaml:"out_columns,omitempty"`
+	References    []Reference    `yaml:"references,flow,omitempty"`
+	OutReferences []OutReference `yaml:"out_references,omitempty"`
 }
 
 type Column struct {
@@ -48,5 +49,9 @@ type ForeignTable struct {
 }
 
 type OutColumn struct {
-	Value Column `yaml:"_column_values,flow,omitempty"`
+	Value Column `yaml:"_column,flow,omitempty"`
+}
+
+type OutReference struct {
+	Value Reference `yaml:"_reference,flow,omitempty"`
 }

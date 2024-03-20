@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/CloudyKit/jet/v6"
 	pluralize "github.com/gertd/go-pluralize"
@@ -76,6 +77,7 @@ func setJetFunc(views *jet.Set) {
 	jetToCamel(views)
 	jetPlural(views)
 	jetSingular(views)
+	jetJavaType(views)
 }
 
 func jetToLowerCamel(views *jet.Set) {
@@ -101,5 +103,53 @@ func jetSingular(view *jet.Set) {
 	view.AddGlobalFunc("singular", func(args jet.Arguments) reflect.Value {
 		pluralize := pluralize.NewClient()
 		return reflect.ValueOf(pluralize.Singular(args.Get(0).Interface().(string)))
+	})
+}
+
+func jetJavaType(view *jet.Set) {
+	view.AddGlobalFunc("javaType", func(args jet.Arguments) reflect.Value {
+		srcType := strings.ToLower(args.Get(0).Interface().(string))
+		switch {
+		case strings.Contains(srcType, "bigint"):
+			return reflect.ValueOf("Long")
+		case strings.Contains(srcType, "bit"):
+			return reflect.ValueOf("Boolean")
+		case strings.Contains(srcType, "date"):
+			return reflect.ValueOf("LocalDate")
+		case strings.Contains(srcType, "datetime"):
+			return reflect.ValueOf("LocalDateTime")
+		case strings.Contains(srcType, "decimal"):
+			return reflect.ValueOf("BigDecimal")
+		case strings.Contains(srcType, "float"):
+			return reflect.ValueOf("Double")
+		case strings.Contains(srcType, "int"):
+			return reflect.ValueOf("Integer")
+		case strings.Contains(srcType, "longtext"):
+			return reflect.ValueOf("String")
+		case strings.Contains(srcType, "mediumint"):
+			return reflect.ValueOf("Integer")
+		case strings.Contains(srcType, "mediumtext"):
+			return reflect.ValueOf("String")
+		case strings.Contains(srcType, "smallint"):
+			return reflect.ValueOf("Short")
+		case strings.Contains(srcType, "text"):
+			return reflect.ValueOf("String")
+		case strings.Contains(srcType, "time"):
+			return reflect.ValueOf("LocalTime")
+		case strings.Contains(srcType, "timestamp"):
+			return reflect.ValueOf("Timestamp")
+		case strings.Contains(srcType, "tinyint"):
+			return reflect.ValueOf("Byte")
+		case strings.Contains(srcType, "tinytext"):
+			return reflect.ValueOf("String")
+		case strings.Contains(srcType, "varbinary"):
+			return reflect.ValueOf("byte[]")
+		case strings.Contains(srcType, "varchar"):
+			return reflect.ValueOf("String")
+		case strings.Contains(srcType, "char"):
+			return reflect.ValueOf("String")
+		default:
+			return reflect.ValueOf("Unknown Type: " + srcType)
+		}
 	})
 }
