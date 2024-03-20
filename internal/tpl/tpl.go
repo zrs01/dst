@@ -93,21 +93,21 @@ func jetToCamel(views *jet.Set) {
 }
 
 func jetPlural(view *jet.Set) {
-	view.AddGlobalFunc("plural", func(args jet.Arguments) reflect.Value {
+	view.AddGlobalFunc("toPlural", func(args jet.Arguments) reflect.Value {
 		pluralize := pluralize.NewClient()
 		return reflect.ValueOf(pluralize.Plural(args.Get(0).Interface().(string)))
 	})
 }
 
 func jetSingular(view *jet.Set) {
-	view.AddGlobalFunc("singular", func(args jet.Arguments) reflect.Value {
+	view.AddGlobalFunc("toSingular", func(args jet.Arguments) reflect.Value {
 		pluralize := pluralize.NewClient()
 		return reflect.ValueOf(pluralize.Singular(args.Get(0).Interface().(string)))
 	})
 }
 
 func jetJavaType(view *jet.Set) {
-	view.AddGlobalFunc("javaType", func(args jet.Arguments) reflect.Value {
+	view.AddGlobalFunc("toJavaType", func(args jet.Arguments) reflect.Value {
 		srcType := strings.ToLower(args.Get(0).Interface().(string))
 		switch {
 		case strings.Contains(srcType, "bigint"):
