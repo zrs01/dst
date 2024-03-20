@@ -12,6 +12,7 @@ require (
 	github.com/microsoft/go-mssqldb v1.7.0
 	github.com/rotisserie/eris v0.5.4
 	github.com/samber/lo v1.39.0
+	github.com/sanity-io/litter v1.5.5
 	github.com/urfave/cli/v2 v2.5.0
 	github.com/xuri/excelize/v2 v2.6.0
 	github.com/ztrue/tracerr v0.4.0

@@ -5,10 +5,12 @@ import (
 	"io/fs"
 	"os"
 	"reflect"
+	"regexp"
 	"strings"
 
 	yamlOut "github.com/goccy/go-yaml"
 	"github.com/samber/lo"
+	"github.com/sanity-io/litter"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
@@ -54,30 +56,34 @@ func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
+	litter.Config.StripPackageNames = true
+	litter.Config.FieldExclusions = regexp.MustCompile(`^(Out.*)$`)
+	litter.Dump(patternDataDef)
+	// spew.Dump(patternDataDef)
 
-	// modify the columns to flow style
-	schemas := &patternDataDef.Schemas
-	for i := 0; i < len(*schemas); i++ {
-		tables := &(*schemas)[i].Tables
-		for j := 0; j < len(*tables); j++ {
-			(*tables)[j].OutColumns = outColumns(&(*tables)[j].Columns)
-			(*tables)[j].Columns = nil
-			(*tables)[j].OutReferences = outReferences(&(*tables)[j].References)
-			(*tables)[j].References = nil
-		}
-	}
+	// // modify the columns to flow style
+	// schemas := &patternDataDef.Schemas
+	// for i := 0; i < len(*schemas); i++ {
+	// 	tables := &(*schemas)[i].Tables
+	// 	for j := 0; j < len(*tables); j++ {
+	// 		(*tables)[j].OutColumns = outColumns(&(*tables)[j].Columns)
+	// 		(*tables)[j].Columns = nil
+	// 		(*tables)[j].OutReferences = outReferences(&(*tables)[j].References)
+	// 		(*tables)[j].References = nil
+	// 	}
+	// }
 
-	bytes, err := yamlOut.Marshal(patternDataDef)
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
-	output := string(bytes)
-	// correct the names
-	output = strings.ReplaceAll(output, "out_columns", "columns")
-	output = strings.ReplaceAll(output, "_column: ", "")
-	output = strings.ReplaceAll(output, "out_references", "references")
-	output = strings.ReplaceAll(output, "_reference: ", "")
-	fmt.Println(output)
+	// bytes, err := yamlOut.Marshal(patternDataDef)
+	// if err != nil {
+	// 	return tracerr.Wrap(err)
+	// }
+	// output := string(bytes)
+	// // correct the names
+	// output = strings.ReplaceAll(output, "out_columns", "columns")
+	// output = strings.ReplaceAll(output, "_column: ", "")
+	// output = strings.ReplaceAll(output, "out_references", "references")
+	// output = strings.ReplaceAll(output, "_reference: ", "")
+	// fmt.Println(output)
 	return nil
 }
 
