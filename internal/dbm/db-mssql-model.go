@@ -1,6 +1,6 @@
-package model
+package dbm
 
-type MSSQLSchema struct {
+type MsSqlSchema struct {
 	CatalogName                string  `db:"CATALOG_NAME"`
 	SchemaName                 string  `db:"SCHEMA_NAME"`
 	SchemaOwner                string  `db:"SCHEMA_OWNER"`
@@ -9,14 +9,14 @@ type MSSQLSchema struct {
 	DefaultCharacterSetName    *string `db:"DEFAULT_CHARACTER_SET_NAME"`
 }
 
-type MSSQLTable struct {
+type MsSqlTable struct {
 	TableCatalog string `db:"TABLE_CATALOG"`
 	TableSchema  string `db:"TABLE_SCHEMA"`
 	TableName    string `db:"TABLE_NAME"`
 	TableType    string `db:"TABLE_TYPE"`
 }
 
-type MSSQLColumn struct {
+type MsSqlColumn struct {
 	TableCatalog           string  `db:"TABLE_CATALOG"`
 	TableSchema            string  `db:"TABLE_SCHEMA"`
 	TableName              string  `db:"TABLE_NAME"`
