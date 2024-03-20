@@ -80,3 +80,28 @@ type MySqlKeyColumnUsage struct {
 	ReferencedTableName        string `db:"REFERENCED_TABLE_NAME"`
 	ReferencedColumnName       string `db:"REFERENCED_COLUMN_NAME"`
 }
+
+// select * from information_schema.TABLE_CONSTRAINTS;
+type MySqlTableConstraints struct {
+	ConstraintCatalog string `db:"CONSTRAINT_CATALOG"`
+	ConstraintSchema  string `db:"CONSTRAINT_SCHEMA"`
+	ConstraintName    string `db:"CONSTRAINT_NAME"`
+	TableSchema       string `db:"TABLE_SCHEMA"`
+	TableName         string `db:"TABLE_NAME"`
+	ConstraintType    string `db:"CONSTRAINT_TYPE"`
+}
+
+// select * from information_schema.views;
+type MySqlViews struct {
+	TableCatalog        string `db:"TABLE_CATALOG"`
+	TableSchema         string `db:"TABLE_SCHEMA"`
+	TableName           string `db:"TABLE_NAME"`
+	ViewDefinition      string `db:"VIEW_DEFINITION"`
+	CheckOption         string `db:"CHECK_OPTION"`
+	IsUpdatable         string `db:"IS_UPDATABLE"`
+	Definer             string `db:"DEFINER"`
+	SecurityType        string `db:"SECURITY_TYPE"`
+	CharacterSetClient  string `db:"CHARACTER_SET_CLIENT"`
+	CollationConnection string `db:"COLLATION_CONNECTION"`
+	Algorithm           string `db:"ALGORITHM"`
+}
