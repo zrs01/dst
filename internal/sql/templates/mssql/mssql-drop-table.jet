@@ -1,15 +1,5 @@
 {* ----------------------------------- index ---------------------------------- *}
-{{- range .Schemas }}
-  {{- range .Tables }}
-    {{- table := .Name }}
-    {{- range .Columns }}
-      {{- parts := split(.ForeignKey, ".") }}
-      {{- if len(parts) > 1 || .Index == "Y" }}
-DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
-      {{- end }}
-    {{- end }}
-  {{- end }}
-{{- end }}
+{{ include "./mssql-drop-index.jet" }}
 {* ------------------------------- foreign keys ------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}

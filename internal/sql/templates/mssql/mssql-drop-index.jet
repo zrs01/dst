@@ -2,7 +2,8 @@
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns }}
-      {{- if .Index == "Y" }}
+      {{- parts := split(.ForeignKey, ".") }}
+      {{- if len(parts) > 1 || .Index == "Y" }}
 DROP INDEX IF EXISTS idx{{ table }}{{ .Name }} ON {{ table }};
       {{- end }}
     {{- end }}
