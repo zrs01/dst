@@ -1,6 +1,7 @@
 package tpl
 
 import (
+	"embed"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -28,11 +29,19 @@ import (
 // - An error if any occurred during the execution of the function.
 
 func WriteFileTpl(data *model.DataDef, tplf string, out string) error {
-	return writeTpl(data, fileLoader(data, tplf), tplf, out)
+	loader := jet.NewOSFileSystemLoader(filepath.Dir(tplf))
+	return writeTpl(data, loader, tplf, out)
+}
+
+func WriteEmbedFSTpl(fs embed.FS, data *model.DataDef, tplf string, out string) error {
+	loader := NewVSFileSystemLoader(fs, filepath.Dir(tplf))
+	return writeTpl(data, loader, tplf, out)
 }
 
 func WriteMemoryTpl(data *model.DataDef, tplf, tplc string, out string) error {
-	return writeTpl(data, memoryLoader(data, tplf, tplc), tplf, out)
+	loader := jet.NewInMemLoader()
+	loader.Set(filepath.Base(tplf), tplc)
+	return writeTpl(data, loader, tplf, out)
 }
 
 func writeTpl(data *model.DataDef, loader jet.Loader, tplf string, out string) error {
@@ -60,16 +69,6 @@ func writeTpl(data *model.DataDef, loader jet.Loader, tplf string, out string) e
 		return tracerr.Wrap(err)
 	}
 	return nil
-}
-
-func fileLoader(data *model.DataDef, tplf string) jet.Loader {
-	return jet.NewOSFileSystemLoader(filepath.Dir(tplf))
-}
-
-func memoryLoader(data *model.DataDef, tplf string, tplc string) jet.Loader {
-	loader := jet.NewInMemLoader()
-	loader.Set(filepath.Base(tplf), tplc)
-	return loader
 }
 
 func setJetFunc(views *jet.Set) {

@@ -138,9 +138,6 @@ func main() {
 				}
 				switch oext {
 				case ".yml", "":
-					if err != nil {
-						return tracerr.Wrap(err)
-					}
 					if err := yml.WriteYml(data, ofile, schema, table); err != nil {
 						return tracerr.Wrap(err)
 					}
