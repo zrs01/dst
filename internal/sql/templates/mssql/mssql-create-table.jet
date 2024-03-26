@@ -5,14 +5,13 @@
 IF OBJECT_ID(N'{{ .Name }}', N'U') IS NULL
 BEGIN
 CREATE TABLE {{ .Name }} (
-    {{- idc := "" }}
-    {{- colcnt := len(.Columns) }}
+    {{- identityColumn := "" }}
     {{- range i := .Columns }}
         {{- if i != 0 }},{{- end }}
         {{- if .Compute != "" }}
-    {{- .Name }} AS {{ .Compute }}
+            {{- .Name }} AS {{ .Compute }}
         {{- else }}
-            {{- if .Identity == "Y" }}{{ idc = . }}{{ end }}
+            {{- if .Identity == "Y" }}{{ identityColumn = . }}{{ end }}
     {{ .Name }} {{ .DataType }}
             {{- if .Identity == "Y" }} IDENTITY(1,1){{- end }}
             {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
@@ -24,8 +23,8 @@ CREATE TABLE {{ .Name }} (
     ValidTo DATETIME2 GENERATED ALWAYS AS ROW END NOT NULL,
     PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
     {{- end }}
-    {{- if idc != "" }},
-    CONSTRAINT pk{{ .Name }}{{ idc.Name }} PRIMARY KEY ({{ idc.Name }})
+    {{- if identityColumn != "" }},
+    CONSTRAINT pk{{ .Name }}{{ identityColumn.Name }} PRIMARY KEY ({{ identityColumn.Name }})
     {{- end }}
     {{- if .Version }}
     WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = {{ .Name }}History));
