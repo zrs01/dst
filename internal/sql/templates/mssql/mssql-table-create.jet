@@ -5,13 +5,12 @@
 IF OBJECT_ID(N'{{ .Name }}', N'U') IS NULL
 BEGIN
 CREATE TABLE {{ .Name }} (
-    {{- identityColumn := "" }}
+    {{- table := . }}
     {{- range i := .Columns }}
         {{- if i != 0 }},{{- end }}
         {{- if .Compute != "" }}
             {{- .Name }} AS {{ .Compute }}
         {{- else }}
-            {{- if .Identity == "Y" }}{{ identityColumn = . }}{{ end }}
     {{ .Name }} {{ .DataType }}
             {{- if .Identity == "Y" }} IDENTITY(1,1){{- end }}
             {{- if .Value != "" }} DEFAULT '{{ .Value }}' {{- end }}
@@ -23,9 +22,12 @@ CREATE TABLE {{ .Name }} (
     ValidTo DATETIME2 GENERATED ALWAYS AS ROW END NOT NULL,
     PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
     {{- end }}
-    {{- if identityColumn != "" }},
-    CONSTRAINT pk{{ .Name }}{{ identityColumn.Name }} PRIMARY KEY ({{ identityColumn.Name }})
-    {{- end }}
+    {{- range pkIndex := .PrimaryKeyColumns() }}
+        {{- if pkIndex == 0 }}
+    CONSTRAINT pk{{ table.Name }}{{ .Name }} PRIMARY KEY (
+        {{- end }}
+        {{- if pkIndex != 0 }},{{- end }}{{ .Name }}
+    {{- end }})
     {{- if .Version }}
     WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = {{ .Name }}History));
     {{- end }}
@@ -41,7 +43,6 @@ END;
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
 IF OBJECT_ID(N'fk{{ table }}{{ .Name }}', N'F') IS NULL ALTER TABLE {{ table }} ADD CONSTRAINT fk{{ table }}{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
-
       {{- end }}
     {{- end }}
   {{- end }}

@@ -1,5 +1,5 @@
 {* ----------------------------------- index ---------------------------------- *}
-{{ include "./mssql-drop-index.jet" }}
+{{ include "./mssql-index-drop.jet" }}
 {* ------------------------------- foreign keys ------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}

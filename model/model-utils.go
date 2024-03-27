@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/samber/lo"
@@ -10,8 +12,6 @@ import (
 )
 
 // FilterData filters the data based on the provided schema, table, and column patterns.
-// It takes a data definition, schema pattern, table pattern, and column pattern as input
-// and returns the filtered data definition and an error if any.
 func FilterData(data *DataDef, schemaPattern string, tablePattern string, columnPattern string) (*DataDef, error) {
 	d := &DataDef{
 		Fixed:   data.Fixed,
@@ -50,6 +50,7 @@ func FilterData(data *DataDef, schemaPattern string, tablePattern string, column
 	return d, nil
 }
 
+// Verify checks the integrity of the data in the DataDef struct.
 func Verify(data *DataDef) []string {
 	tables := make(map[string][]Column)
 
@@ -93,4 +94,16 @@ func Verify(data *DataDef) []string {
 		}
 	}
 	return result
+}
+
+func isNumeric(word string) bool {
+	return regexp.MustCompile(`\d`).MatchString(word)
+}
+
+func toInt(value string) int {
+	i, err := strconv.Atoi(value)
+	if err != nil {
+		return 0
+	}
+	return i
 }
