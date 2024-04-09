@@ -14,8 +14,8 @@ import (
 	"github.com/zrs01/dst/internal/erd"
 	"github.com/zrs01/dst/internal/sql"
 	"github.com/zrs01/dst/internal/tpl"
+	"github.com/zrs01/dst/internal/txt"
 	"github.com/zrs01/dst/internal/xlsx"
-	"github.com/zrs01/dst/internal/yml"
 )
 
 var version = "development"
@@ -112,36 +112,33 @@ func main() {
 				dumpFlag(&dump),
 			},
 			Action: func(c *cli.Context) error {
-				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
+				// extension of output file
+				// oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
 
 				// read .yml to DataDef
-				data, err := yml.ReadYml(ifile)
+				data, err := txt.ReadYml(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 
 				// filter the data with pattern
-				patternData, err := yml.PatternDataDef(data, schema, table, "")
+				selectedData, err := txt.SelectedDataDef(data, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 
 				// dump the original content in .yml format to console
 				if dump {
-					if err := yml.DumpYml(data, ofile, schema, table); err != nil {
+					if err := txt.DumpYml(data, ofile, schema, table); err != nil {
 						return tracerr.Wrap(err)
 					}
 					return nil
 				}
 				if tfile != "" {
-					return tpl.WriteFileTpl(patternData, tfile, ofile)
+					return tpl.WriteFileTpl(selectedData, tfile, ofile)
 				}
-				switch oext {
-				case ".yml", "":
-					if err := yml.WriteYml(data, ofile, schema, table); err != nil {
-						return tracerr.Wrap(err)
-					}
-					return nil
+				if err := txt.WriteYml(data, ofile, schema, table); err != nil {
+					return tracerr.Wrap(err)
 				}
 				return tracerr.New("Not implemented yet")
 			},
@@ -165,7 +162,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := yml.ReadPatternYml(ifile, schema, table, "")
+				data, err := txt.ReadSelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -201,7 +198,7 @@ func main() {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := yml.ReadPatternYml(ifile, schema, table, "")
+				data, err := txt.ReadSelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -251,7 +248,7 @@ func main() {
 				dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, "")
+				data, err := txt.ReadSelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -274,7 +271,7 @@ func main() {
 				dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, "")
+				data, err := txt.ReadSelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -298,7 +295,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, col)
+				data, err := txt.ReadSelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -322,7 +319,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, col)
+				data, err := txt.ReadSelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -346,7 +343,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, col)
+				data, err := txt.ReadSelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -370,7 +367,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, col)
+				data, err := txt.ReadSelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -394,7 +391,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, col)
+				data, err := txt.ReadSelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -418,7 +415,7 @@ func main() {
 				colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadPatternYml(ifile, schema, table, col)
+				data, err := txt.ReadSelectedYml(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

@@ -4,14 +4,15 @@ import (
 	"fmt"
 
 	"github.com/go-sqlx/sqlx"
+	_ "github.com/microsoft/go-mssqldb"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
-func ReadMSSQL(in string) (*model.DataDef, error) {
+func ReadMSSQL(dataSourceName string) (*model.DataDef, error) {
 	dataDef := model.DataDef{}
 
-	db, err := sqlx.Connect("sqlserver", in)
+	db, err := sqlx.Connect("sqlserver", dataSourceName)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}

@@ -1,4 +1,4 @@
-package yml
+package txt
 
 import (
 	"fmt"
@@ -22,15 +22,15 @@ func ReadYml(in string) (*model.DataDef, error) {
 	return readFromFile(in)
 }
 
-func ReadPatternYml(ifile, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
+func ReadSelectedYml(ifile, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
 	dataDef, err := ReadYml(ifile)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
-	return PatternDataDef(dataDef, schemaPattern, tablePattern, columnPattern)
+	return SelectedDataDef(dataDef, schemaPattern, tablePattern, columnPattern)
 }
 
-func PatternDataDef(dataDef *model.DataDef, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
+func SelectedDataDef(dataDef *model.DataDef, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
 	data, err := model.FilterData(dataDef, schemaPattern, tablePattern, columnPattern)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
@@ -52,7 +52,7 @@ func expandFixColumns(dataDef *model.DataDef) {
 }
 
 func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
-	patternDataDef, err := PatternDataDef(dataDef, schemaPattern, tablePattern, "")
+	patternDataDef, err := SelectedDataDef(dataDef, schemaPattern, tablePattern, "")
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -91,7 +91,7 @@ func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern
 func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
 	restoreFixColumns(dataDef)
 
-	patternDataDef, err := PatternDataDef(dataDef, schemaPattern, tablePattern, "")
+	patternDataDef, err := SelectedDataDef(dataDef, schemaPattern, tablePattern, "")
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

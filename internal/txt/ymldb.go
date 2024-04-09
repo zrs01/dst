@@ -1,4 +1,4 @@
-package yml
+package txt
 
 import (
 	"strings"

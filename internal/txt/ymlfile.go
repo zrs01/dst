@@ -1,4 +1,4 @@
-package yml
+package txt
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func readFromFile(file string) (*model.DataDef, error) {
 
 	/* ------------------------- update reference tables ------------------------ */
 	// the map table to speed up the lookup process
-	var tableMap = make(map[string]*model.Table)
+	tableMap := make(map[string]*model.Table)
 	for i := 0; i < len(d.Schemas); i++ {
 		schema := &d.Schemas[i]
 		for j := 0; j < len(schema.Tables); j++ {
