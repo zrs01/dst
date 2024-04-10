@@ -3,6 +3,7 @@ package txt
 import (
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"reflect"
 	"regexp"
@@ -18,18 +19,15 @@ import (
 
 func ReadYml(in string) (*model.DataDef, error) {
 	if strings.HasPrefix(in, "mysql://") {
-		dataSource := in[8:]
-		re := regexp.MustCompile(`\w+:\w+@/(\w+)`)
-		match := re.FindStringSubmatch(dataSource)
-		if len(match) > 1 {
-			schemaName := match[1]
-			result, err := dbm.ReadMYSQL(dataSource, schemaName)
-			if err != nil {
-				return nil, tracerr.Wrap(err)
-			}
-			return result, nil
+		u, err := url.Parse(in)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
 		}
-		return nil, tracerr.New("invalid mysql data source")
+		result, err := dbm.ReadMYSQL(in[8:], strings.Replace(u.Path, "/", "", -1))
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+		return result, nil
 	}
 	return readFromFile(in)
 }
