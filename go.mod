@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/CloudyKit/jet/v6 v6.2.0
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
+	github.com/davecgh/go-spew v1.1.1
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/go-sqlx/sqlx v1.3.7

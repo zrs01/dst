@@ -112,17 +112,8 @@ func main() {
 				dumpFlag(&dump),
 			},
 			Action: func(c *cli.Context) error {
-				// extension of output file
-				// oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-
 				// read .yml to DataDef
 				data, err := txt.ReadYml(ifile)
-				if err != nil {
-					return tracerr.Wrap(err)
-				}
-
-				// filter the data with pattern
-				selectedData, err := txt.SelectedDataDef(data, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -135,12 +126,17 @@ func main() {
 					return nil
 				}
 				if tfile != "" {
+					// filter the data with pattern
+					selectedData, err := txt.SelectedDataDef(data, schema, table, "")
+					if err != nil {
+						return tracerr.Wrap(err)
+					}
 					return tpl.WriteFileTpl(selectedData, tfile, ofile)
 				}
 				if err := txt.WriteYml(data, ofile, schema, table); err != nil {
 					return tracerr.Wrap(err)
 				}
-				return tracerr.New("Not implemented yet")
+				return nil
 			},
 		}
 	}())
@@ -221,7 +217,7 @@ func main() {
 	sqlCmd := &cli.Command{
 		Name:    "sql",
 		Aliases: []string{"s"},
-		Usage:   "Convert to SQL DDL",
+		Usage:   "Generate SQL DDL",
 	}
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
 		return sqlCmd

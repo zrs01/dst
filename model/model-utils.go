@@ -22,16 +22,16 @@ func FilterData(data *DataDef, schemaPattern string, tablePattern string, column
 		schema := data.Schemas[i]
 		if schemaPattern == "" || utils.WildCardMatchs(strings.Split(schemaPattern, ","), schema.Name) {
 			var tables []Table
-			tbs := lo.Filter(schema.Tables, func(t Table, _ int) bool {
+			filteredTables := lo.Filter(schema.Tables, func(t Table, _ int) bool {
 				return tablePattern == "" || utils.WildCardMatchs(strings.Split(tablePattern, ","), t.Name)
 			})
-			for j := 0; j < len(tbs); j++ {
-				columns := lo.Filter(tbs[j].Columns, func(c Column, _ int) bool {
+			for j := 0; j < len(filteredTables); j++ {
+				columns := lo.Filter(filteredTables[j].Columns, func(c Column, _ int) bool {
 					return columnPattern == "" || utils.WildCardMatchs(strings.Split(columnPattern, ","), c.Name)
 				})
 				if len(columns) > 0 {
-					tbs[j].Columns = columns
-					tables = append(tables, tbs[j])
+					filteredTables[j].Columns = columns
+					tables = append(tables, filteredTables[j])
 				}
 			}
 

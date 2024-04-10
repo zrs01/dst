@@ -11,13 +11,25 @@ import (
 	yamlOut "github.com/goccy/go-yaml"
 	"github.com/samber/lo"
 	"github.com/sanity-io/litter"
+	"github.com/zrs01/dst/internal/dbm"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
 func ReadYml(in string) (*model.DataDef, error) {
-	if strings.Contains(in, "://") {
-		return readFromDb(in)
+	if strings.HasPrefix(in, "mysql://") {
+		dataSource := in[8:]
+		re := regexp.MustCompile(`\w+:\w+@/(\w+)`)
+		match := re.FindStringSubmatch(dataSource)
+		if len(match) > 1 {
+			schemaName := match[1]
+			result, err := dbm.ReadMYSQL(dataSource, schemaName)
+			if err != nil {
+				return nil, tracerr.Wrap(err)
+			}
+			return result, nil
+		}
+		return nil, tracerr.New("invalid mysql data source")
 	}
 	return readFromFile(in)
 }
