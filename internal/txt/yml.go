@@ -17,13 +17,17 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-func ReadYml(in string) (*model.DataDef, error) {
-	if strings.HasPrefix(in, "mysql://") {
+const (
+	MYSQL_PREFIX = "mysql://"
+)
+
+func LoadData(in string) (*model.DataDef, error) {
+	if strings.HasPrefix(in, MYSQL_PREFIX) {
 		u, err := url.Parse(in)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		result, err := dbm.ReadMYSQL(in[8:], strings.Replace(u.Path, "/", "", -1))
+		result, err := dbm.ReadMYSQL(in[len(MYSQL_PREFIX):], strings.Replace(u.Path, "/", "", -1))
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
@@ -33,7 +37,7 @@ func ReadYml(in string) (*model.DataDef, error) {
 }
 
 func ReadSelectedYml(ifile, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
-	dataDef, err := ReadYml(ifile)
+	dataDef, err := LoadData(ifile)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}

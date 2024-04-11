@@ -113,7 +113,7 @@ func main() {
 			},
 			Action: func(c *cli.Context) error {
 				// read .yml to DataDef
-				data, err := txt.ReadYml(ifile)
+				data, err := txt.LoadData(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
