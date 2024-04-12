@@ -135,11 +135,9 @@ func getSchemas(db *sqlx.DB, schemaName string) (*[]MySqlSchema, error) {
 func getTables(db *sqlx.DB, schemas *[]MySqlSchema) (*[]MySqlTable, error) {
 	dTables := []MySqlTable{}
 	dSchemaNames := lo.Map(*schemas, func(dSchema MySqlSchema, _ int) string { return *dSchema.SchemaName })
-	query, args, err := sqlx.In(`select *
-		from INFORMATION_SCHEMA.TABLES
-		where TABLE_TYPE = 'BASE TABLE'
-		and TABLE_SCHEMA in (?)
-		order by TABLE_NAME`, dSchemaNames)
+	query, args, err := sqlx.In(`
+		select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE = 'BASE TABLE' and TABLE_SCHEMA in (?) order by TABLE_NAME`,
+		dSchemaNames)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
