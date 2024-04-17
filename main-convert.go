@@ -9,8 +9,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/zrs01/dst/internal/erd"
 	"github.com/zrs01/dst/internal/tpl"
-	"github.com/zrs01/dst/internal/txt"
 	"github.com/zrs01/dst/internal/xlsx"
+	"github.com/zrs01/dst/internal/yml"
 	"github.com/ztrue/tracerr"
 )
 
@@ -43,27 +43,27 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				// read .yml to DataDef
-				data, err := txt.LoadData(ifile)
+				data, err := yml.LoadData(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 
 				// dump the original content in .yml format to console
 				if dump {
-					if err := txt.DumpYml(data, ofile, schema, table); err != nil {
+					if err := yml.DumpYml(data, ofile, schema, table); err != nil {
 						return tracerr.Wrap(err)
 					}
 					return nil
 				}
 				if tfile != "" {
 					// filter the data with pattern
-					selectedData, err := txt.SelectedDataDef(data, schema, table, "")
+					selectedData, err := yml.SelectedDataDef(data, schema, table, "")
 					if err != nil {
 						return tracerr.Wrap(err)
 					}
 					return tpl.WriteFileTpl(selectedData, tfile, ofile)
 				}
-				if err := txt.WriteYml(data, ofile, schema, table); err != nil {
+				if err := yml.WriteYml(data, ofile, schema, table); err != nil {
 					return tracerr.Wrap(err)
 				}
 				return nil
@@ -88,7 +88,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := txt.ReadSelectedYml(ifile, schema, table, "")
+				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -124,7 +124,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := txt.ReadSelectedYml(ifile, schema, table, "")
+				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
