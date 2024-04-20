@@ -1,6 +1,7 @@
 package dbm
 
-// type MetaData interface {
-// 	Tables(schemaName string) any
-// 	Columns(tableName string) any
-// }
+import "github.com/zrs01/dst/model"
+
+type DatabaseService interface {
+	Read(dataSourceName string, schemaName string) (*model.DataDef, error)
+}

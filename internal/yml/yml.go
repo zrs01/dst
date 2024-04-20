@@ -27,7 +27,8 @@ func LoadData(in string) (*model.DataDef, error) {
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		result, err := dbm.ReadMYSQL(in[len(MYSQL_PREFIX):], strings.Replace(u.Path, "/", "", -1))
+		dbs := dbm.NewMySQLService()
+		result, err := dbs.Read(in[len(MYSQL_PREFIX):], strings.Replace(u.Path, "/", "", -1))
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
