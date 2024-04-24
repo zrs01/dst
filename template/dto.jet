@@ -1,6 +1,6 @@
 {{- range .Schemas }}
   {{- range .Tables }}
-public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
+public class {{ toLowerCamel(.Name) }}DTO extends {{ toLowerCamel(.Name) }} {
     {{- range .Columns }}
         {{- if .ForeignKey != "" }}
            {{- parts := split(.ForeignKey, ".") }}
@@ -12,9 +12,9 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
         {{- range .Foreign }}
     private List<{{ toCamel(.Table) }}DTO>
             {{- if col == .Column }}
-                {{- " " + toLowerCamel(.Table) }};
+                {{- " " + toPlural(toLowerCamel(.Table)) }};
             {{- else }}
-                {{- " " + toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }};
+                {{- " " + toPlural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }};
             {{- end }}
         {{- end }}
     {{- end }}
@@ -38,16 +38,16 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
         {{- range .Foreign }}
             {{- field := "" }}
             {{- if col == .Column }}
-                {{- field = toLowerCamel(.Table) }}
+                {{- field = toPlural(toLowerCamel(.Table)) }}
             {{- else }}
-                {{- field = toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }}
+                {{- field = toPlural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }}
             {{- end }}
             {{- lf := toLowerCamel(field) }}
             {{- uf := toCamel(field) }}
-    public {{ uf }}DTO get{{ uf }}() {
-        return {{ lf }};
+    public List<{{ toCamel(.Table) }}DTO> get{{ uf }}() {
+        return {{ lf }}
     }
-    public void set{{ uf }}({{ uf }}DTO {{ lf }}) {
+    public void set{{ uf }}(List<{{ toCamel(.Table) }}DTO> {{ lf }}) {
         this.{{ lf }} = {{ lf }};
     }
         {{- end }}
