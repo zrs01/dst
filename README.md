@@ -59,6 +59,14 @@ schemas:
 dst convert text -i schema.yml -o sample.sql -t template.tpl
 # generate using template.tpl, select the tables start with 'tag' only
 dst convert text -i schema.yml -o sample.sql -t template.tpl --table 'tag%'
+# generate using MySQL database source
+# reference: https://github.com/go-sql-driver/mysql
+# DSN: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
+dst convert text -i ./dst c t -i 'mysql://username:password@tcp(localhost)/dbname'
+# generate using SqlServer database source
+# reference: https://github.com/microsoft/go-mssqldb
+# DSN: sqlserver://username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
+dst convert text -i ./dst c t -i 'sqlserver://username:password@localhost?database=dbname'
 
 # -- YAML to ER diagram definition file
 dst convert diagram -i schema.yml -o sample.puml

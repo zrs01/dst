@@ -11,13 +11,13 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type MySQLService struct{}
+type MysqlService struct{}
 
-func NewMySQLService() DatabaseService {
-	return &MySQLService{}
+func NewMysqlService() DataSource {
+	return &MysqlService{}
 }
 
-func (s *MySQLService) Read(dataSourceName string, schemaName string) (*model.DataDef, error) {
+func (s *MysqlService) Read(dataSourceName string, schemaName string) (*model.DataDef, error) {
 	dataDef := model.DataDef{}
 
 	fmt.Println("Connecting to MySQL ...")
@@ -51,7 +51,7 @@ func (s *MySQLService) Read(dataSourceName string, schemaName string) (*model.Da
 	return &dataDef, nil
 }
 
-func (s *MySQLService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Schema, error) {
+func (s *MysqlService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Schema, error) {
 	mSchemas := make([]model.Schema, len(*dSchemas))
 	for index, dSchema := range *dSchemas {
 		schemaTables := lo.Filter(*dTables, func(dTable MySqlTable, _ int) bool {
@@ -72,7 +72,7 @@ func (s *MySQLService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTab
 	return &mSchemas, nil
 }
 
-func (s *MySQLService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Table, error) {
+func (s *MysqlService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Table, error) {
 	mTables := make([]model.Table, len(*dTables))
 	for index, dTable := range *dTables {
 		tableColumns := lo.Filter(*dColumns, func(dColumn MySqlColumn, _ int) bool {
@@ -90,7 +90,7 @@ func (s *MySQLService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dC
 	return &mTables, nil
 }
 
-func (s *MySQLService) buildColumn(dTable MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Column, error) {
+func (s *MysqlService) buildColumn(dTable MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Column, error) {
 	mColumns := make([]model.Column, len(*dColumns))
 	for index, dColumn := range *dColumns {
 		mColumn := model.Column{
@@ -130,7 +130,7 @@ func (s *MySQLService) buildColumn(dTable MySqlTable, dColumns *[]MySqlColumn, d
 	return &mColumns, nil
 }
 
-func (s *MySQLService) getSchemas(db *sqlx.DB, schemaName string) (*[]MySqlSchema, error) {
+func (s *MysqlService) getSchemas(db *sqlx.DB, schemaName string) (*[]MySqlSchema, error) {
 	dSchemas := []MySqlSchema{}
 	if err := db.Select(&dSchemas, "select * from INFORMATION_SCHEMA.SCHEMATA where SCHEMA_NAME = ?", schemaName); err != nil {
 		return nil, tracerr.Wrap(err)
@@ -138,7 +138,7 @@ func (s *MySQLService) getSchemas(db *sqlx.DB, schemaName string) (*[]MySqlSchem
 	return &dSchemas, nil
 }
 
-func (s *MySQLService) getTables(db *sqlx.DB, schemas *[]MySqlSchema) (*[]MySqlTable, error) {
+func (s *MysqlService) getTables(db *sqlx.DB, schemas *[]MySqlSchema) (*[]MySqlTable, error) {
 	dTables := []MySqlTable{}
 	dSchemaNames := lo.Map(*schemas, func(dSchema MySqlSchema, _ int) string { return *dSchema.SchemaName })
 	query, args, err := sqlx.In(`
@@ -154,7 +154,7 @@ func (s *MySQLService) getTables(db *sqlx.DB, schemas *[]MySqlSchema) (*[]MySqlT
 	return &dTables, nil
 }
 
-func (s *MySQLService) getColumns(db *sqlx.DB, schemas *[]MySqlSchema, tables *[]MySqlTable) (*[]MySqlColumn, error) {
+func (s *MysqlService) getColumns(db *sqlx.DB, schemas *[]MySqlSchema, tables *[]MySqlTable) (*[]MySqlColumn, error) {
 	dColumns := []MySqlColumn{}
 	dSchemaNames := lo.Map(*schemas, func(dSchema MySqlSchema, _ int) string { return *dSchema.SchemaName })
 	dTableNames := lo.Map(*tables, func(dTable MySqlTable, _ int) string { return *dTable.TableName })
@@ -171,7 +171,7 @@ func (s *MySQLService) getColumns(db *sqlx.DB, schemas *[]MySqlSchema, tables *[
 	return &dColumns, nil
 }
 
-func (s *MySQLService) getKeyColumnUsages(db *sqlx.DB, schemas *[]MySqlSchema, tables *[]MySqlTable) (*[]MySqlKeyColumnUsage, error) {
+func (s *MysqlService) getKeyColumnUsages(db *sqlx.DB, schemas *[]MySqlSchema, tables *[]MySqlTable) (*[]MySqlKeyColumnUsage, error) {
 	dColumnUsages := []MySqlKeyColumnUsage{}
 	dSchemaNames := lo.Map(*schemas, func(dSchema MySqlSchema, _ int) string { return *dSchema.SchemaName })
 	dTableNames := lo.Map(*tables, func(dTable MySqlTable, _ int) string { return *dTable.TableName })

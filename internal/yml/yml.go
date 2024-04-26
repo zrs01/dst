@@ -3,7 +3,6 @@ package yml
 import (
 	"fmt"
 	"io/fs"
-	"net/url"
 	"os"
 	"reflect"
 	"regexp"
@@ -19,16 +18,42 @@ import (
 
 const (
 	MYSQL_PREFIX = "mysql://"
+	MSSQL_PREFIX = "sqlserver://"
 )
 
 func LoadData(in string) (*model.DataDef, error) {
+	var dataSource dbm.DataSource
+	var dataSourceName string
+	var path string
+
 	if strings.HasPrefix(in, MYSQL_PREFIX) {
-		u, err := url.Parse(in)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
+		// in: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
+		regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(in)
+		if len(regex) == 0 {
+			return nil, tracerr.Errorf("Failed to parse %s", in)
 		}
-		dbs := dbm.NewMySQLService()
-		result, err := dbs.Read(in[len(MYSQL_PREFIX):], strings.Replace(u.Path, "/", "", -1))
+		path = regex[1]
+		dataSource = dbm.NewMysqlService()
+		dataSourceName = in[len(MYSQL_PREFIX):]
+	} else if strings.HasPrefix(in, MSSQL_PREFIX) {
+		// in: sqlserver: //username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
+		parts := strings.Split(in, "?")
+		for _, part := range parts {
+			pair := strings.Split(part, "=")
+			if (len(pair) == 2) && (pair[0] == "database") {
+				path = pair[1]
+			}
+		}
+		if path == "" {
+			return nil, tracerr.Errorf("Failed to parse %s", in)
+		}
+
+		dataSource = dbm.NewMssqlService()
+		dataSourceName = in
+	}
+	if dataSource != nil {
+		fmt.Printf("Read from %s\n", dataSourceName)
+		result, err := dataSource.Read(dataSourceName, strings.Replace(path, "/", "", -1))
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}

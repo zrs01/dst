@@ -1,30 +1,30 @@
 package dbm
 
 type MsSqlSchema struct {
-	CatalogName                string  `db:"CATALOG_NAME"`
-	SchemaName                 string  `db:"SCHEMA_NAME"`
-	SchemaOwner                string  `db:"SCHEMA_OWNER"`
+	CatalogName                *string `db:"CATALOG_NAME"`
+	SchemaName                 *string `db:"SCHEMA_NAME"`
+	SchemaOwner                *string `db:"SCHEMA_OWNER"`
 	DefaultCharacterSetCatalog *string `db:"DEFAULT_CHARACTER_SET_CATALOG"`
 	DefaultCharacterSetSchema  *string `db:"DEFAULT_CHARACTER_SET_SCHEMA"`
 	DefaultCharacterSetName    *string `db:"DEFAULT_CHARACTER_SET_NAME"`
 }
 
 type MsSqlTable struct {
-	TableCatalog string `db:"TABLE_CATALOG"`
-	TableSchema  string `db:"TABLE_SCHEMA"`
-	TableName    string `db:"TABLE_NAME"`
-	TableType    string `db:"TABLE_TYPE"`
+	TableCatalog *string `db:"TABLE_CATALOG"`
+	TableSchema  *string `db:"TABLE_SCHEMA"`
+	TableName    *string `db:"TABLE_NAME"`
+	TableType    *string `db:"TABLE_TYPE"`
 }
 
 type MsSqlColumn struct {
-	TableCatalog           string  `db:"TABLE_CATALOG"`
-	TableSchema            string  `db:"TABLE_SCHEMA"`
-	TableName              string  `db:"TABLE_NAME"`
-	ColumnName             string  `db:"COLUMN_NAME"`
-	OrdinalPosition        int     `db:"ORDINAL_POSITION"`
+	TableCatalog           *string `db:"TABLE_CATALOG"`
+	TableSchema            *string `db:"TABLE_SCHEMA"`
+	TableName              *string `db:"TABLE_NAME"`
+	ColumnName             *string `db:"COLUMN_NAME"`
+	OrdinalPosition        *int    `db:"ORDINAL_POSITION"`
 	ColumnDefault          *string `db:"COLUMN_DEFAULT"`
-	IsNullable             string  `db:"IS_NULLABLE"`
-	DataType               string  `db:"DATA_TYPE"`
+	IsNullable             *string `db:"IS_NULLABLE"`
+	DataType               *string `db:"DATA_TYPE"`
 	CharacterMaximumLength *int    `db:"CHARACTER_MAXIMUM_LENGTH"`
 	CharacterOctetLength   *int    `db:"CHARACTER_OCTET_LENGTH"`
 	NumericPrecision       *int    `db:"NUMERIC_PRECISION"`
@@ -40,4 +40,15 @@ type MsSqlColumn struct {
 	DomainCatalog          *string `db:"DOMAIN_CATALOG"`
 	DomainSchema           *string `db:"DOMAIN_SCHEMA"`
 	DomainName             *string `db:"DOMAIN_NAME"`
+}
+
+type MsSqlKeyColumnUsage struct {
+	ConstraintCatalog *string `db:"CONSTRAINT_CATALOG"`
+	ConstraintSchema  *string `db:"CONSTRAINT_SCHEMA"`
+	ConstraintName    *string `db:"CONSTRAINT_NAME"`
+	TableCatalog      *string `db:"TABLE_CATALOG"`
+	TableSchema       *string `db:"TABLE_SCHEMA"`
+	TableName         *string `db:"TABLE_NAME"`
+	ColumnName        *string `db:"COLUMN_NAME"`
+	OrdinalPosition   *int64  `db:"ORDINAL_POSITION"`
 }
