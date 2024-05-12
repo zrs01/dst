@@ -23,6 +23,8 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     {{- range .References }}
         {{- col := .ColumnName }}
         {{- range .Foreign }}
+            {{- yield baseGetSet(type="reference-getset", columnName=col, foreignTableName=.Table, foreignColumnName=.Column ) }}
+            {*
             {{- field := "" }}
             {{- if col == .Column }}
                 {{- field = toLowerCamel(.Table) }}
@@ -37,6 +39,7 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     public void set{{ upperCaseFT }}(List<{{ toCamel(.Table) }}DTO> {{ lowerCaseFT }}) {
         this.{{ lowerCaseFT }} = {{ lowerCaseFT }};
     }
+            *}
         {{- end }}
     {{- end }}
 }
@@ -69,6 +72,7 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     public {{ upperCaseFT }}DTO get{{ upperCaseFD }}() {
         return {{ lowerCaseFD }};
     }
+
     public void set{{ upperCaseFD }}({{ upperCaseFT }}DTO {{ lowerCaseFD }}) {
         this.{{ lowerCaseFD }} = {{ lowerCaseFD }};
     }
@@ -76,8 +80,7 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
 
 
     {{- if type == "reference-field" }}
-    private List<{{ toCamel(foreignTableName) }}DTO>
-        {{- " " + referenceField }}
+    private List<{{ toCamel(foreignTableName) }}DTO> {{referenceField }};    // {{ foreignTableName + "." + foreignColumnName }}
     {{- end }}
 
 
@@ -85,6 +88,7 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     public List<{{ lowerCaseFT }}DTO> get{{ upperCaseReferenceField }}() {
         return {{ lowerCaseReferenceField }}
     }
+
     public void set{{ upperCaseReferenceField }}(List<{{ upperCaseFT }}DTO> {{ lowerCaseReferenceField }}) {
         this.{{ lowerCaseReferenceField }} = {{ lowerCaseReferenceField }};
     }
