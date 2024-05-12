@@ -3,12 +3,16 @@
 public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     {{- range .Columns }}
         {{- if .ForeignKey != "" }}
-          {{- foreignTable:= split(.ForeignKey, ".")[0] }}
-          {{- field := .Name }}
-          {{- if hasSuffix(field, "_id") }}
-            {{- field = replace(field, "_id", "", -1) }}
-          {{- end }}
-    private {{ toCamel(foreignTable) }}DTO {{ toLowerCamel(field) }}; // {{ .Name }}
+            {{- foreignTable:= split(.ForeignKey, ".")[0] }}
+            {{- field := .Name }}
+            {{- if hasSuffix(field, "_id") }}
+                {{- field = replace(field, "_id", "", -1) }}
+            {{- end }}
+            {{- lowerCaseFT := toLowerCamel(foreignTable) }}
+            {{- upperCaseFT := toCamel(foreignTable) }}
+            {{- lowerCaseFD := toLowerCamel(field) }}
+            {{- upperCaseFD := toCamel(field) }}
+    private {{ upperCaseFT }}DTO {{ lowerCaseFD }}; // {{ .Name }}
         {{- end }}
     {{- end }}
     {{- range .References }}
@@ -26,14 +30,20 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     {* ----------------------------- set/get functions ---------------------------- *}
     {{- range .Columns }}
         {{- if .ForeignKey != "" }}
-           {{- parts := split(.ForeignKey, ".") }}
-           {{- lf := toLowerCamel(parts[0]) }}
-           {{- uf := toCamel(parts[0]) }}
-    public {{ uf }}DTO get{{ uf }}() {
-        return {{ lf }};
+            {{- foreignTable := split(.ForeignKey, ".")[0] }}
+            {{- field := .Name }}
+            {{- if hasSuffix(field, "_id") }}
+                {{- field = replace(field, "_id", "", -1) }}
+            {{- end }}
+            {{- lowerCaseFT := toLowerCamel(foreignTable) }}
+            {{- upperCaseFT := toCamel(foreignTable) }}
+            {{- lowerCaseFD := toLowerCamel(field) }}
+            {{- upperCaseFD := toCamel(field) }}
+    public {{ upperCaseFT }}DTO get{{ upperCaseFD }}() {
+        return {{ lowerCaseFD }};
     }
-    public void set{{ uf }}({{ uf }}DTO {{ lf }}) {
-        this.{{ lf }} = {{ lf }};
+    public void set{{ upperCaseFD }}({{ upperCaseFT }}DTO {{ lowerCaseFD }}) {
+        this.{{ lowerCaseFD }} = {{ lowerCaseFD }};
     }
         {{- end }}
     {{- end }}
@@ -46,13 +56,13 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
             {{- else }}
                 {{- field = toPlural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }}
             {{- end }}
-            {{- lf := toLowerCamel(field) }}
-            {{- uf := toCamel(field) }}
-    public List<{{ toCamel(.Table) }}DTO> get{{ uf }}() {
-        return {{ lf }}
+            {{- lowerCaseFT := toLowerCamel(field) }}
+            {{- upperCaseFT := toCamel(field) }}
+    public List<{{ toCamel(.Table) }}DTO> get{{ upperCaseFT }}() {
+        return {{ lowerCaseFT }}
     }
-    public void set{{ uf }}(List<{{ toCamel(.Table) }}DTO> {{ lf }}) {
-        this.{{ lf }} = {{ lf }};
+    public void set{{ upperCaseFT }}(List<{{ toCamel(.Table) }}DTO> {{ lowerCaseFT }}) {
+        this.{{ lowerCaseFT }} = {{ lowerCaseFT }};
     }
         {{- end }}
     {{- end }}
