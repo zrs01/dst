@@ -1,10 +1,14 @@
 {{- range .Schemas }}
   {{- range .Tables }}
-public class {{ toLowerCamel(.Name) }}DTO extends {{ toLowerCamel(.Name) }} {
+public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     {{- range .Columns }}
         {{- if .ForeignKey != "" }}
-           {{- parts := split(.ForeignKey, ".") }}
-    private {{ toCamel(parts[0]) }}DTO {{ toLowerCamel(parts[0]) }};
+          {{- foreignTable:= split(.ForeignKey, ".")[0] }}
+          {{- field := .Name }}
+          {{- if hasSuffix(field, "_id") }}
+            {{- field = replace(field, "_id", "", -1) }}
+          {{- end }}
+    private {{ toCamel(foreignTable) }}DTO {{ toLowerCamel(field) }}; // {{ .Name }}
         {{- end }}
     {{- end }}
     {{- range .References }}
