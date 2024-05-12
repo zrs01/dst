@@ -97,33 +97,37 @@ func (s *MysqlService) buildColumn(dTable MySqlTable, dColumns *[]MySqlColumn, d
 			Name:     *dColumn.ColumnName,
 			DataType: *dColumn.DataType,
 		}
+		// compu field
+		if strings.Contains(*dColumn.Extra, "GENERATED") {
+			mColumn.Compute = *dColumn.GenerationExpression
+		} else {
 
-		if *dColumn.IsNullable != "YES" {
-			mColumn.NotNull = "Y"
+			if *dColumn.IsNullable != "YES" {
+				mColumn.NotNull = "Y"
+			}
+
+			if _, ok := lo.Find(*dKeyColumnUsages, func(dKeyColumnUsage MySqlKeyColumnUsage) bool {
+				return *dKeyColumnUsage.ConstraintName == "PRIMARY" && *dKeyColumnUsage.ColumnName == *dColumn.ColumnName
+			}); ok {
+				mColumn.Identity = "Y"
+			}
+
+			if usage, ok := lo.Find(*dKeyColumnUsages, func(dKeyColumnUsage MySqlKeyColumnUsage) bool {
+				return *dKeyColumnUsage.ConstraintName != "PRIMARY" && *dKeyColumnUsage.ColumnName == *dColumn.ColumnName
+			}); ok {
+				mColumn.ForeignKey = fmt.Sprintf("%s.%s", *usage.ReferencedTableName, *usage.ReferencedColumnName)
+			}
+
+			if strings.Contains(strings.ToLower(*dColumn.DataType), "char") {
+				mColumn.DataType = fmt.Sprintf("%s(%d)", *dColumn.DataType, *dColumn.CharacterMaximumLength)
+			} else if strings.Contains(strings.ToLower(*dColumn.DataType), "decimal") {
+				if dColumn.NumericScale != nil && *dColumn.NumericScale > 0 {
+					mColumn.DataType = fmt.Sprintf("%s(%d,%d)", *dColumn.DataType, *dColumn.NumericPrecision, *dColumn.NumericScale)
+				}
+			}
 		}
-
-		if _, ok := lo.Find(*dKeyColumnUsages, func(dKeyColumnUsage MySqlKeyColumnUsage) bool {
-			return *dKeyColumnUsage.ConstraintName == "PRIMARY" && *dKeyColumnUsage.ColumnName == *dColumn.ColumnName
-		}); ok {
-			mColumn.Identity = "Y"
-		}
-
-		if usage, ok := lo.Find(*dKeyColumnUsages, func(dKeyColumnUsage MySqlKeyColumnUsage) bool {
-			return *dKeyColumnUsage.ConstraintName != "PRIMARY" && *dKeyColumnUsage.ColumnName == *dColumn.ColumnName
-		}); ok {
-			mColumn.ForeignKey = fmt.Sprintf("%s.%s", *usage.ReferencedTableName, *usage.ReferencedColumnName)
-		}
-
 		if *dColumn.ColumnComment != "" {
 			mColumn.Desc = *dColumn.ColumnComment
-		}
-
-		if strings.Contains(strings.ToLower(*dColumn.DataType), "char") {
-			mColumn.DataType = fmt.Sprintf("%s(%d)", *dColumn.DataType, *dColumn.CharacterMaximumLength)
-		} else if strings.Contains(strings.ToLower(*dColumn.DataType), "decimal") {
-			if dColumn.NumericScale != nil && *dColumn.NumericScale > 0 {
-				mColumn.DataType = fmt.Sprintf("%s(%d,%d)", *dColumn.DataType, *dColumn.NumericPrecision, *dColumn.NumericScale)
-			}
 		}
 		mColumns[index] = mColumn
 	}
