@@ -1,50 +1,23 @@
-{{- range .Schemas }}
+import java.util.List;
+{{ range .Schemas }}
   {{- range .Tables }}
 public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
     {{- range .Columns }}
         {{- if .ForeignKey != "" }}
-            {{- foreignTable:= split(.ForeignKey, ".")[0] }}
-            {{- field := .Name }}
-            {{- if hasSuffix(field, "_id") }}
-                {{- field = replace(field, "_id", "", -1) }}
-            {{- end }}
-            {{- lowerCaseFT := toLowerCamel(foreignTable) }}
-            {{- upperCaseFT := toCamel(foreignTable) }}
-            {{- lowerCaseFD := toLowerCamel(field) }}
-            {{- upperCaseFD := toCamel(field) }}
-    private {{ upperCaseFT }}DTO {{ lowerCaseFD }}; // {{ .Name }}
+            {{- yield baseGetSet(type="field", columnName=.Name, foreignTableName=split(.ForeignKey, ".")[0] ) }}
         {{- end }}
     {{- end }}
     {{- range .References }}
         {{- col := .ColumnName }}
         {{- range .Foreign }}
-    private List<{{ toCamel(.Table) }}DTO>
-            {{- if col == .Column }}
-                {{- " " + toPlural(toLowerCamel(.Table)) }};
-            {{- else }}
-                {{- " " + toPlural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }};
-            {{- end }}
+            {{- yield baseGetSet(type="reference-field", columnName=col, foreignTableName=.Table, foreignColumnName=.Column ) }}
         {{- end }}
     {{- end }}
 
     {* ----------------------------- set/get functions ---------------------------- *}
     {{- range .Columns }}
         {{- if .ForeignKey != "" }}
-            {{- foreignTable := split(.ForeignKey, ".")[0] }}
-            {{- field := .Name }}
-            {{- if hasSuffix(field, "_id") }}
-                {{- field = replace(field, "_id", "", -1) }}
-            {{- end }}
-            {{- lowerCaseFT := toLowerCamel(foreignTable) }}
-            {{- upperCaseFT := toCamel(foreignTable) }}
-            {{- lowerCaseFD := toLowerCamel(field) }}
-            {{- upperCaseFD := toCamel(field) }}
-    public {{ upperCaseFT }}DTO get{{ upperCaseFD }}() {
-        return {{ lowerCaseFD }};
-    }
-    public void set{{ upperCaseFD }}({{ upperCaseFT }}DTO {{ lowerCaseFD }}) {
-        this.{{ lowerCaseFD }} = {{ lowerCaseFD }};
-    }
+            {{- yield baseGetSet(type="getset", columnName=.Name, foreignTableName=split(.ForeignKey, ".")[0] ) }}
         {{- end }}
     {{- end }}
     {{- range .References }}
@@ -52,9 +25,9 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
         {{- range .Foreign }}
             {{- field := "" }}
             {{- if col == .Column }}
-                {{- field = toPlural(toLowerCamel(.Table)) }}
+                {{- field = toLowerCamel(.Table) }}
             {{- else }}
-                {{- field = toPlural(toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1))) }}
+                {{- field = toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }}
             {{- end }}
             {{- lowerCaseFT := toLowerCamel(field) }}
             {{- upperCaseFT := toCamel(field) }}
@@ -69,3 +42,52 @@ public class {{ toCamel(.Name) }}DTO extends {{ toCamel(.Name) }} {
 }
   {{- end }}
 {{- end }}
+
+{{- block baseGetSet(type="", columnName="", foreignTableName="", foreignColumnName="") }}
+    {{- modColumnName := replace(columnName, "_id", "", -1) }}
+    {{- lowerCaseFT := toLowerCamel(foreignTableName) }}
+    {{- upperCaseFT := toCamel(foreignTableName) }}
+    {{- lowerCaseFD := toLowerCamel(modColumnName) }}
+    {{- upperCaseFD := toCamel(modColumnName) }}
+
+    {{- referenceField := "" }}
+    {{- if columnName == foreignColumnName }}
+        {{- referenceField = toLowerCamel(foreignTableName) }}
+    {{- else }}
+        {{- referenceField = toLowerCamel(foreignTableName + "_" + replace(replace(foreignColumnName, "_" + columnName, "", -1), "_id", "", -1)) }}
+    {{- end }}
+    {{- lowerCaseReferenceField := toLowerCamel(referenceField) }}
+    {{- upperCaseReferenceField := toCamel(referenceField) }}
+
+
+    {{- if type == "field" }}
+    private {{ upperCaseFT }}DTO {{ lowerCaseFD }}; // {{ columnName }}
+    {{- end }}
+
+
+    {{- if type == "getset" }}
+    public {{ upperCaseFT }}DTO get{{ upperCaseFD }}() {
+        return {{ lowerCaseFD }};
+    }
+    public void set{{ upperCaseFD }}({{ upperCaseFT }}DTO {{ lowerCaseFD }}) {
+        this.{{ lowerCaseFD }} = {{ lowerCaseFD }};
+    }
+    {{- end }}
+
+
+    {{- if type == "reference-field" }}
+    private List<{{ toCamel(foreignTableName) }}DTO>
+        {{- " " + referenceField }}
+    {{- end }}
+
+
+    {{- if type == "reference-getset" }}
+    public List<{{ lowerCaseFT }}DTO> get{{ upperCaseReferenceField }}() {
+        return {{ lowerCaseReferenceField }}
+    }
+    public void set{{ upperCaseReferenceField }}(List<{{ upperCaseFT }}DTO> {{ lowerCaseReferenceField }}) {
+        this.{{ lowerCaseReferenceField }} = {{ lowerCaseReferenceField }};
+    }
+    {{- end }}
+{{- end }}
+
