@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/go-sqlx/sqlx"
+	// "github.com/go-sqlx/sqlx"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
@@ -154,19 +155,26 @@ func (s *MssqlService) getColumns(db *sqlx.DB, schemas *[]MsSqlSchema, tables *[
 	dColumns := []MsSqlColumn{}
 	dSchemaNames := lo.Map(*schemas, func(dSchema MsSqlSchema, _ int) string { return *dSchema.SchemaName })
 	dTableNames := lo.Map(*tables, func(dTable MsSqlTable, _ int) string { return *dTable.TableName })
-	query, args, err := sqlx.In(
-		`select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA in (@SCHEMAS) and TABLE_NAME in (@TABLES) order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION`,
-		sql.Named("SCHEMAS", strings.Join(dSchemaNames, `,`)), sql.Named("TABLES", strings.Join(dTableNames, `,`)))
-	if err != nil {
+	// query, args, err := sqlx.In(
+	// 	`select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA in (@SCHEMAS) and TABLE_NAME in (@TABLES) order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION`,
+	// 	sql.Named("SCHEMAS", strings.Join(dSchemaNames, `,`)), sql.Named("TABLES", strings.Join(dTableNames, `,`)))
+	// if err != nil {
+	// 	return nil, tracerr.Wrap(err)
+	// }
+	// fmt.Println(query)
+	// query = db.Rebind(query)
+	// if err := db.Select(&dColumns, query, args...); err != nil {
+	// 	return nil, tracerr.Wrap(err)
+	// }
+	if err := db.Select(&dColumns,
+		`select * from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA in ($1) and TABLE_NAME in ($2) order by TABLE_SCHEMA, TABLE_NAME, ORDINAL_POSITION`,
+		strings.Join(dSchemaNames, `,`), strings.Join(dTableNames, `,`)); err != nil {
 		return nil, tracerr.Wrap(err)
 	}
-	query = db.Rebind(query)
-	if err := db.Select(&dColumns, query, args...); err != nil {
-		return nil, tracerr.Wrap(err)
-	}
-	spew.Dump(args)
-	spew.Dump(dSchemaNames)
-	spew.Dump(dTableNames)
+
+	// spew.Dump(args)
+	// spew.Dump(dSchemaNames)
+	// spew.Dump(dTableNames)
 	spew.Dump(dColumns)
 	return &dColumns, nil
 }

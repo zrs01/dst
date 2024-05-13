@@ -1,0 +1,46 @@
+{{ range .Schemas }}
+  {{- range .Tables }}
+export interface {{ .Name }} {
+    {{- range .Columns }}
+      {{- yield field(array="", columnName=.Name, dataType=.DataType) }}
+    {{- end }}
+
+    {{- range .Columns }}
+      {{- if .ForeignKey != "" }}
+        {{- yield field(array="", columnName=replace(.Name, "_id", "", -1), dataType=toCamel(split(.ForeignKey, ".")[0])) }}
+      {{- end }}
+    {{- end }}
+
+    {{- range .References }}
+      {{- col := .ColumnName }}
+      {{- range .Foreign }}
+        {{- columnName := "" }}
+        {{- if col == .Column }}
+          {{- columnName = toLowerCamel(.Table) }}
+        {{- else }}
+          {{- columnName = toLowerCamel(.Table + "_" + replace(.Column, "_" + col, "", -1)) }}
+        {{- end }}
+        {{- yield field(array="[]",columnName=columnName, dataType=toCamel(.Table) ) }}
+      {{- end }}
+    {{- end }}
+}
+  {{- end }}
+{{- end }}
+
+
+{{- block field(array="", columnName="", dataType="") }}
+  {{- if columnName != "" }}
+    {{- upperDataType := upper(dataType) }}
+  {{ toLowerCamel(columnName) + "?: " }}
+    {{- if hasPrefix(upperDataType, "VARCHAR" ) || hasPrefix(upperDataType, "CHAR") || hasPrefix(upperDataType, "LONGTEXT") || hasPrefix(upperDataType, "TEXT") }}
+      {{- "string" + array }}
+    {{- else if hasPrefix(upperDataType, "INT") || hasPrefix(upperDataType, "DECIMAL") }}
+      {{- "number" + array }}
+    {{- else if hasPrefix(upperDataType, "DATE") || hasPrefix(upperDataType, "TIMESTAMP") }}
+      {{- "Date" + array }}
+    {{- else }}
+      {{- dataType + array }}
+    {{- end }}
+    {{- ";" }}
+  {{- end }}
+{{- end }}
