@@ -128,7 +128,7 @@ https://github.com/CloudyKit/jet/blob/master/docs/syntax.md
 | Desc        | string | dc       | Represents the description of the column.                |
 | Compute     | string | cm       | Represents the compute column.                           |
 
-### Ref
+### Ref (Reference)
 | Field Name | Type           | YAML Tag | Description                        |
 | ---------- | -------------- | -------- | ---------------------------------- |
 | ColumnName | string         | column   | Represents the name of the column. |
@@ -139,3 +139,15 @@ https://github.com/CloudyKit/jet/blob/master/docs/syntax.md
 | ---------- | ------ | -------- | ---------------------------------- |
 | Table      | string | table    | Represents the name of the table.  |
 | Column     | string | column   | Represents the name of the column. |
+
+
+## Add-on function
+Below functions are added to the template
+
+| Function             | description                                 | example                   | Output   |
+| -------------------- | ------------------------------------------- | ------------------------- | -------- |
+| toCamel(string)      | Transform snake case to camel case          | toCamel("user_name")      | UserName |
+| toLowerCamel(string) | Lowercase first letter version of toCamel() | toLowerCamel("user_name") | userName |
+| toPlural(string)     | Transform word to plural form               | toPlural("user")          | users    |
+| toSingular(string)   | Transform word to singlar form              | toSingular("users")       | user     |
+| toJavaType(string)   | Transform database type to Java type        | toJavaType("int")         | Integer  |

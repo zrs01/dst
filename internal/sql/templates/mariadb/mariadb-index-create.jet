@@ -1,9 +1,10 @@
+{{- import "./mariadb-blocks.jet" }}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns }}
       {{- if .Index == "Y" }}
-CREATE{{ if .Unique == "Y" }} UNIQUE{{ end }} INDEX IF NOT EXISTS idx{{ table }}{{ .Name }} ON {{ table }} ({{ .Name }});
+{{- yield createIndex(tableName=table, columnName=.Name, isUnique=.Unique) }}
       {{- end }}
     {{- end }}
   {{- end }}

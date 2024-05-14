@@ -1,10 +1,11 @@
+{{- import "./mariadb-blocks.jet" }}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT IF EXISTS fk_{{ table }}_{{ .Name }};
+{{- yield dropConstraint(tableName=table, columnName=.Name) }}
       {{- end }}
 ALTER TABLE {{ table }} DROP COLUMN IF EXISTS {{ .Name }}
     {{- end }}

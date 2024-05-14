@@ -1,3 +1,4 @@
+{{- import "./mariadb-blocks.jet" }}
 {* ----------------------------------- index ---------------------------------- *}
 {{- range .Schemas }}
   {{- range .Tables }}
@@ -5,7 +6,7 @@
     {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 || .Index == "Y" }}
-DROP INDEX IF EXISTS idx{{ table }}{{ .Name }};
+{{- yield dropIndex(tableName=table, columnName=.Name) }}
       {{- end }}
     {{- end }}
   {{- end }}
@@ -17,7 +18,7 @@ DROP INDEX IF EXISTS idx{{ table }}{{ .Name }};
     {{- range .Columns }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE IF EXISTS {{ table }} DROP CONSTRAINT IF EXISTS fk_{{ table }}_{{ .Name }};
+{{- yield dropConstraint(tableName=table, columnName=.Name) }}
       {{- end }}
     {{- end }}
   {{ end }}

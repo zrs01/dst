@@ -1,3 +1,4 @@
+{{- import "./mariadb-blocks.jet" }}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
@@ -13,7 +14,7 @@ ALTER TABLE {{ table }} ADD COLUMN IF NOT EXISTS {{ .Name }} {{ .DataType }}
       {{- lastColumn = .Name }}
       {{- parts := split(.ForeignKey, ".") }}
       {{- if len(parts) > 1 }}
-ALTER TABLE IF EXISTS {{ table }} ADD CONSTRAINT fk_{{ table }}_{{ .Name }} FOREIGN KEY ({{ .Name }}) REFERENCES {{ parts[0] }} ({{ parts[1] }});
+{{- yield createForeignKey(tableName=table, columnName=.Name, foreignTableName=parts[0], foreignColumnName=parts[1]) }}
       {{- end }}
     {{- end }}
   {{- end }}

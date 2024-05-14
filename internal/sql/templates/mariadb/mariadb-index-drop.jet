@@ -1,9 +1,10 @@
+{{- import "./mariadb-blocks.jet" }}
 {{- range .Schemas }}
   {{- range .Tables }}
     {{- table := .Name }}
     {{- range .Columns }}
       {{- if .Index == "Y" }}
-DROP INDEX IF EXISTS idx{{ table }}{{ .Name }};
+{{- yield dropIndex(tableName=table, columnName=.Name) }}
       {{- end }}
     {{- end }}
   {{- end }}

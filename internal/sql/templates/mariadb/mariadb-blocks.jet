@@ -1,0 +1,20 @@
+{{- block createIndex(tableName="", columnName="", isUnique="N") }}
+CREATE
+    {{- if isUnique == "Y" }}
+        {{- " UNIQUE" }}
+    {{- end }}
+    {{- " INDEX IF NOT EXISTS" }} idx{{ tableName }}{{ columnName }} ON {{ tableName }} ({{ columnName }});
+{{- end }}
+
+{{- block dropIndex(tableName="", columnName="") }}
+DROP INDEX IF EXISTS idx{{ tableName }}{{ columnName }};
+{{- end }}
+
+{{- block createForeignKey(tableName="", columnName="", foreignTableName="", foreignColumnName="") }}
+ALTER TABLE IF EXISTS {{ tableName }} ADD CONSTRAINT fk_{{ tableName }}_{{ columnName }} FOREIGN KEY ({{ columnName }}) REFERENCES {{ foreignTableName }} ({{ foreignColumnName }});
+{{- end }}
+
+
+{{- block dropConstraint(tableName="", columnName="") }}
+ALTER TABLE IF EXISTS {{ tableName }} DROP CONSTRAINT IF EXISTS fk_{{ tableName }}_{{ columnName }};
+{{- end }}
