@@ -3,9 +3,7 @@ import java.util.List;
   {{- range .Tables }}
 public class {{ toCamel(.Name) }}DTO {
     {{- range .Columns }}
-      {{- if .ForeignKey == "" }}
   private {{ toJavaType(.DataType) }} {{ toLowerCamel(.Name) }};
-      {{- end }}
     {{- end }}
     {{- range .Columns }}
       {{- if .ForeignKey != "" }}
