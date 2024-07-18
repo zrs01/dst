@@ -63,6 +63,7 @@ func setJetFunc(views *jet.Set) {
 	jetPlural(views)
 	jetSingular(views)
 	jetJavaType(views)
+	jetTypescriptType(views)
 }
 
 func jetToLowerCamel(views *jet.Set) {
@@ -133,6 +134,54 @@ func jetJavaType(view *jet.Set) {
 			return reflect.ValueOf("String")
 		case strings.Contains(srcType, "char"):
 			return reflect.ValueOf("String")
+		default:
+			return reflect.ValueOf("Unknown Type: " + srcType)
+		}
+	})
+}
+
+func jetTypescriptType(view *jet.Set) {
+	view.AddGlobalFunc("toTypescriptType", func(args jet.Arguments) reflect.Value {
+		srcType := strings.ToLower(args.Get(0).Interface().(string))
+		switch {
+		case strings.Contains(srcType, "bigint"):
+			return reflect.ValueOf("number")
+		case strings.Contains(srcType, "bit"):
+			return reflect.ValueOf("boolean")
+		case strings.Contains(srcType, "date"):
+			return reflect.ValueOf("Date")
+		case strings.Contains(srcType, "datetime"):
+			return reflect.ValueOf("Date")
+		case strings.Contains(srcType, "decimal"):
+			return reflect.ValueOf("number")
+		case strings.Contains(srcType, "float"):
+			return reflect.ValueOf("number")
+		case strings.Contains(srcType, "int"):
+			return reflect.ValueOf("number")
+		case strings.Contains(srcType, "longtext"):
+			return reflect.ValueOf("string")
+		case strings.Contains(srcType, "mediumint"):
+			return reflect.ValueOf("number")
+		case strings.Contains(srcType, "mediumtext"):
+			return reflect.ValueOf("string")
+		case strings.Contains(srcType, "smallint"):
+			return reflect.ValueOf("string")
+		case strings.Contains(srcType, "text"):
+			return reflect.ValueOf("string")
+		case strings.Contains(srcType, "time"):
+			return reflect.ValueOf("date")
+		case strings.Contains(srcType, "timestamp"):
+			return reflect.ValueOf("date")
+		case strings.Contains(srcType, "tinyint"):
+			return reflect.ValueOf("byte")
+		case strings.Contains(srcType, "tinytext"):
+			return reflect.ValueOf("string")
+		case strings.Contains(srcType, "varbinary"):
+			return reflect.ValueOf("byte[]")
+		case strings.Contains(srcType, "varchar"):
+			return reflect.ValueOf("string")
+		case strings.Contains(srcType, "char"):
+			return reflect.ValueOf("string")
 		default:
 			return reflect.ValueOf("Unknown Type: " + srcType)
 		}
