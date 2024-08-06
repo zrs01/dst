@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/urfave/cli/v2"
 	"github.com/zrs01/dst/internal/sql"
+	"github.com/zrs01/dst/internal/urafvcli"
 	"github.com/zrs01/dst/internal/yml"
 	"github.com/ztrue/tracerr"
 )
@@ -20,12 +21,14 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 		return sqlCmd
 	}())
 
-	dbFlag := func(db *string) *cli.StringFlag {
-		return &cli.StringFlag{Name: "database", Aliases: []string{"d"}, Usage: "database (mssql)", Required: true, Destination: db}
-	}
-	colFlag := func(col *string) *cli.StringFlag {
-		return &cli.StringFlag{Name: "column", Aliases: []string{"c"}, Usage: "column", Required: false, Destination: col}
-	}
+	databaseFlagBuilder := urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)")
+	// dbFlag := func(db *string) *cli.StringFlag {
+	// 	return &cli.StringFlag{Name: "database", Aliases: []string{"d"}, Usage: "database (mssql)", Required: true, Destination: db}
+	// }
+	columnFlagBuilder := urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column")
+	// colFlag := func(col *string) *cli.StringFlag {
+	// 	return &cli.StringFlag{Name: "column", Aliases: []string{"c"}, Usage: "column", Required: false, Destination: col}
+	// }
 
 	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
@@ -34,11 +37,17 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "create table DDL",
 			Aliases: []string{"ct"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
@@ -57,11 +66,16 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "drop table DDL",
 			Aliases: []string{"dt"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
@@ -80,12 +94,18 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "add column DDL",
 			Aliases: []string{"ac"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
-				colFlag(&col),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+				urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column").WithDestination(&col).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
+				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
@@ -104,12 +124,18 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "drop column DDL",
 			Aliases: []string{"dc"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
-				colFlag(&col),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+				urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column").WithDestination(&col).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
+				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
@@ -128,12 +154,18 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "rename column DDL",
 			Aliases: []string{"rc"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
-				colFlag(&col),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+				urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column").WithDestination(&col).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
+				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
@@ -152,12 +184,18 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "modify column type DDL",
 			Aliases: []string{"mc"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
-				colFlag(&col),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+				urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column").WithDestination(&col).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
+				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
@@ -176,12 +214,18 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "create index DDL",
 			Aliases: []string{"ci"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
-				colFlag(&col),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("database").WithAliases("d").WithUsage("database (mssql)").WithDestination(&db).Build(),
+				urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column").WithDestination(&col).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
+				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
@@ -200,12 +244,18 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "drop index DDL",
 			Aliases: []string{"di"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				dbFlag(&db),
-				colFlag(&col),
+				inSchemaFlagBuilder.WithDestination(&ifile).Build(),
+				outFileFlagBuilder.WithDestination(&ofile).Build(),
+				schemaFlagBuilder.WithDestination(&schema).Build(),
+				tableFlagBuilder.WithDestination(&table).Build(),
+				databaseFlagBuilder.Required(true).WithDestination(&db).Build(),
+				columnFlagBuilder.WithDestination(&col).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// dbFlag(&db),
+				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := yml.ReadSelectedYml(ifile, schema, table, col)

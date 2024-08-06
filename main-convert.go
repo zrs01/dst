@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"github.com/zrs01/dst/internal/erd"
 	"github.com/zrs01/dst/internal/tpl"
+	"github.com/zrs01/dst/internal/urafvcli"
 	"github.com/zrs01/dst/internal/xlsx"
 	"github.com/zrs01/dst/internal/yml"
 	"github.com/ztrue/tracerr"
@@ -34,14 +35,21 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file (text file)"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				templateFlag(&tfile),
-				dumpFlag(&dump),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithDestination(&tfile).Build(),
+				urafvcli.NewBoolFlagBuilder("dump").WithUsage("dump the content in .yml format").WithDestination(&dump).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file (text file)"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// templateFlag(&tfile),
+				// dumpFlag(&dump),
 			},
 			Action: func(c *cli.Context) error {
+				fmt.Println("*** " + ifile)
 				// read .yml to DataDef
 				data, err := yml.LoadData(ifile)
 				if err != nil {
@@ -80,11 +88,16 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file (.xlsx)"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				simpleFlag(&simple),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewBoolFlagBuilder("simple").WithUsage("simple content").WithDestination(&simple).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file (.xlsx)"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// simpleFlag(&simple),
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
@@ -112,12 +125,18 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to diagram",
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
-				iSchemaFileFlag(&ifile),
-				ofileFlag(&ofile, "output file (.png)"),
-				schemaFile(&schema),
-				tableFlag(&table),
-				templateFlag(&tfile),
-				libFlag(&lib),
+				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
+				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
+				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithDestination(&tfile).Build(),
+				urafvcli.NewStringFlagBuilder("lib").WithUsage("plantuml.jar file, used when output format is png").WithDestination(&lib).Build(),
+				// iSchemaFileFlag(&ifile),
+				// ofileFlag(&ofile, "output file (.png)"),
+				// schemaFile(&schema),
+				// tableFlag(&table),
+				// templateFlag(&tfile),
+				// libFlag(&lib),
 			},
 			Action: func(c *cli.Context) error {
 				if ofile == "" {
