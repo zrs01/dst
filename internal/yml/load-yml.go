@@ -11,7 +11,7 @@ import (
 	yamlIn "gopkg.in/yaml.v3"
 )
 
-func readFromFile(file string) (*model.DataDef, error) {
+func loadFromYml(file string) (*model.DataDef, error) {
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, tracerr.Wrap(err)

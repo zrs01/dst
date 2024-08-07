@@ -21,45 +21,52 @@ const (
 	MSSQL_PREFIX = "sqlserver://"
 )
 
-func LoadData(in string) (*model.DataDef, error) {
-	var dataSource dbm.DataSource
-	var dataSourceName string
-	var path string
-
-	if strings.HasPrefix(in, MYSQL_PREFIX) {
-		// in: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
-		regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(in)
-		if len(regex) == 0 {
-			return nil, tracerr.Errorf("Failed to parse %s", in)
-		}
-		path = regex[1]
-		dataSource = dbm.NewMysqlService()
-		dataSourceName = in[len(MYSQL_PREFIX):]
-	} else if strings.HasPrefix(in, MSSQL_PREFIX) {
-		// in: sqlserver: //username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
-		parts := strings.Split(in, "?")
-		for _, part := range parts {
-			pair := strings.Split(part, "=")
-			if (len(pair) == 2) && (pair[0] == "database") {
-				path = pair[1]
-			}
-		}
-		if path == "" {
-			return nil, tracerr.Errorf("Failed to parse %s", in)
-		}
-
-		dataSource = dbm.NewMssqlService()
-		dataSourceName = in
+func LoadData(input string) (*model.DataDef, error) {
+	if strings.HasPrefix(input, MYSQL_PREFIX) {
+		return loadFromMysql(input)
+	} else if strings.HasPrefix(input, MSSQL_PREFIX) {
+		return loadFromMssql(input)
 	}
-	if dataSource != nil {
-		fmt.Printf("Read from %s\n", dataSourceName)
-		result, err := dataSource.Read(dataSourceName, strings.Replace(path, "/", "", -1))
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-		return result, nil
+	return loadFromYml(input)
+}
+
+func loadFromMysql(dataSourceName string) (*model.DataDef, error) {
+	// dataSourceName: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
+	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dataSourceName)
+	if len(regex) == 0 {
+		return nil, tracerr.Errorf("Failed to parse %s", dataSourceName)
 	}
-	return readFromFile(in)
+	schema := regex[1]
+	dsName := dataSourceName[len(MYSQL_PREFIX):]
+	service := dbm.NewMysqlService(dsName)
+	fmt.Printf("Read from %s\n", dsName)
+	result, err := service.Read(strings.Replace(schema, "/", "", -1))
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	return result, nil
+}
+
+func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
+	// dataSourceName: sqlserver: //username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
+	schema := ""
+	parts := strings.Split(dataSourceName, "?")
+	for _, part := range parts {
+		pair := strings.Split(part, "=")
+		if (len(pair) == 2) && (pair[0] == "database") {
+			schema = pair[1]
+		}
+	}
+	if schema == "" {
+		return nil, tracerr.Errorf("Failed to parse %s", dataSourceName)
+	}
+	service := dbm.NewMssqlService(dataSourceName)
+	fmt.Printf("Read from %s\n", dataSourceName)
+	result, err := service.Read(strings.Replace(schema, "/", "", -1))
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	return result, nil
 }
 
 func ReadSelectedYml(ifile, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {

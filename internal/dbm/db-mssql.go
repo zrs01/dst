@@ -14,17 +14,25 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type MssqlService struct{}
-
-func NewMssqlService() DataSource {
-	return &MssqlService{}
+type MssqlService struct {
+	dataSourceName string
 }
 
-func (s *MssqlService) Read(dataSourceName string, dbName string) (*model.DataDef, error) {
+func NewMssqlService(dataSourceName string) DataService {
+	return &MssqlService{
+		dataSourceName: dataSourceName,
+	}
+}
+
+func (s *MssqlService) DataSourceName() string {
+	return s.dataSourceName
+}
+
+func (s *MssqlService) Read(dbName string) (*model.DataDef, error) {
 	dataDef := model.DataDef{}
 
 	fmt.Println("Connecting to SqlServer ...")
-	db, err := sqlx.Connect("sqlserver", dataSourceName)
+	db, err := sqlx.Connect("sqlserver", s.dataSourceName)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}

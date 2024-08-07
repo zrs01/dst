@@ -11,17 +11,25 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type MysqlService struct{}
-
-func NewMysqlService() DataSource {
-	return &MysqlService{}
+type MysqlService struct {
+	dataSourceName string
 }
 
-func (s *MysqlService) Read(dataSourceName string, schemaName string) (*model.DataDef, error) {
+func NewMysqlService(dataSourceName string) DataService {
+	return &MysqlService{
+		dataSourceName: dataSourceName,
+	}
+}
+
+func (s *MysqlService) DataSourceName() string {
+	return s.dataSourceName
+}
+
+func (s *MysqlService) Read(schemaName string) (*model.DataDef, error) {
 	dataDef := model.DataDef{}
 
 	fmt.Println("Connecting to MySQL ...")
-	db, err := sqlx.Connect("mysql", dataSourceName)
+	db, err := sqlx.Connect("mysql", s.dataSourceName)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
