@@ -14,12 +14,12 @@ import (
 var (
 	version = "development"
 
-	inFileFlagBuilder   *urafvcli.StringFlagBuilder
-	inSchemaFlagBuilder *urafvcli.StringFlagBuilder
-	outFileFlagBuilder  *urafvcli.StringFlagBuilder
-	tmplFileFlagBuilder *urafvcli.StringFlagBuilder
-	schemaFlagBuilder   *urafvcli.StringFlagBuilder
-	tableFlagBuilder    *urafvcli.StringFlagBuilder
+	inFileFlagBuilder   func() *urafvcli.StringFlagBuilder
+	inSchemaFlagBuilder func() *urafvcli.StringFlagBuilder
+	outFileFlagBuilder  func() *urafvcli.StringFlagBuilder
+	tmplFileFlagBuilder func() *urafvcli.StringFlagBuilder
+	schemaFlagBuilder   func() *urafvcli.StringFlagBuilder
+	tableFlagBuilder    func() *urafvcli.StringFlagBuilder
 )
 
 // input   output   options
@@ -53,12 +53,24 @@ func main() {
 
 	/* ------------------------------ Common flags ------------------------------ */
 
-	inFileFlagBuilder = urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input file")
-	outFileFlagBuilder = urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file")
-	inSchemaFlagBuilder = urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml")
-	tmplFileFlagBuilder = urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithValue("template.yml")
-	schemaFlagBuilder = urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %")
-	tableFlagBuilder = urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %")
+	inFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
+		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input file")
+	}
+	outFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
+		return urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file")
+	}
+	inSchemaFlagBuilder = func() *urafvcli.StringFlagBuilder {
+		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml")
+	}
+	tmplFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
+		return urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithValue("template.yml")
+	}
+	schemaFlagBuilder = func() *urafvcli.StringFlagBuilder {
+		return urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %")
+	}
+	tableFlagBuilder = func() *urafvcli.StringFlagBuilder {
+		return urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %")
+	}
 
 	// ifileFlag = func(file *string, usage string) *cli.StringFlag {
 	// 	return &cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: lo.Ternary(usage == "", "input file", usage), Required: true, Destination: file}

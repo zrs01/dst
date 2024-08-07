@@ -35,11 +35,11 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
-				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
-				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
-				urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithDestination(&tfile).Build(),
+				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
+				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				schemaFlagBuilder().WithDestination(&schema).Build(),
+				tableFlagBuilder().WithDestination(&table).Build(),
+				tmplFileFlagBuilder().WithDestination(&tfile).Build(),
 				urafvcli.NewBoolFlagBuilder("dump").WithUsage("dump the content in .yml format").WithDestination(&dump).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (text file)"),
@@ -49,7 +49,6 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 				// dumpFlag(&dump),
 			},
 			Action: func(c *cli.Context) error {
-				fmt.Println("*** " + ifile)
 				// read .yml to DataDef
 				data, err := yml.LoadData(ifile)
 				if err != nil {
@@ -88,10 +87,10 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
-				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
-				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
+				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
+				outFileFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
+				schemaFlagBuilder().WithDestination(&schema).Build(),
+				tableFlagBuilder().WithDestination(&table).Build(),
 				urafvcli.NewBoolFlagBuilder("simple").WithUsage("simple content").WithDestination(&simple).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (.xlsx)"),
@@ -125,11 +124,11 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to diagram",
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
-				urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml").WithDestination(&ifile).Build(),
-				urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file (.png)").WithDestination(&ofile).Build(),
-				urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %").WithDestination(&schema).Build(),
-				urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %").WithDestination(&table).Build(),
-				urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithDestination(&tfile).Build(),
+				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
+				outFileFlagBuilder().WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				schemaFlagBuilder().WithDestination(&schema).Build(),
+				tableFlagBuilder().WithDestination(&table).Build(),
+				tmplFileFlagBuilder().WithDestination(&tfile).Build(),
 				urafvcli.NewStringFlagBuilder("lib").WithUsage("plantuml.jar file, used when output format is png").WithDestination(&lib).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (.png)"),
