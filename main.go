@@ -14,22 +14,13 @@ import (
 var (
 	version = "development"
 
-	inFileFlagBuilder   func() *urafvcli.StringFlagBuilder
-	inSchemaFlagBuilder func() *urafvcli.StringFlagBuilder
-	outFileFlagBuilder  func() *urafvcli.StringFlagBuilder
-	tmplFileFlagBuilder func() *urafvcli.StringFlagBuilder
-	schemaFlagBuilder   func() *urafvcli.StringFlagBuilder
-	tableFlagBuilder    func() *urafvcli.StringFlagBuilder
+	// inFileFlagBuilder func() *urafvcli.StringFlagBuilder
+	ischFlagBuilder   func() *urafvcli.StringFlagBuilder
+	outputFlagBuilder func() *urafvcli.StringFlagBuilder
+	tmplFlagBuilder   func() *urafvcli.StringFlagBuilder
+	schemaFlagBuilder func() *urafvcli.StringFlagBuilder
+	tableFlagBuilder  func() *urafvcli.StringFlagBuilder
 )
-
-// input   output   options
-// ------------------------
-// yaml    xlsx     simple
-// yaml    <text>   template
-// yaml    png      plantuml.jar
-// xlsx    yaml
-// TODO:
-// dbase   yaml     orginal yaml
 
 func main() {
 	cliapp := cli.NewApp()
@@ -53,16 +44,16 @@ func main() {
 
 	/* ------------------------------ Common flags ------------------------------ */
 
-	inFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input file")
-	}
-	outFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
+	// inFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
+	// 	return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input file")
+	// }
+	outputFlagBuilder = func() *urafvcli.StringFlagBuilder {
 		return urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file")
 	}
-	inSchemaFlagBuilder = func() *urafvcli.StringFlagBuilder {
+	ischFlagBuilder = func() *urafvcli.StringFlagBuilder {
 		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml")
 	}
-	tmplFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
+	tmplFlagBuilder = func() *urafvcli.StringFlagBuilder {
 		return urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithValue("template.yml")
 	}
 	schemaFlagBuilder = func() *urafvcli.StringFlagBuilder {
@@ -83,27 +74,6 @@ func main() {
 	// 		flag.Required = false
 	// 	}
 	// 	return flag
-	// }
-	// ofileFlag = func(file *string, usage string) *cli.StringFlag {
-	// 	return &cli.StringFlag{Name: "output", Aliases: []string{"o"}, Usage: lo.Ternary(usage == "", "output file", usage), Required: false, Destination: file}
-	// }
-	// templateFlag = func(file *string) *cli.StringFlag {
-	// 	return &cli.StringFlag{Name: "template", Aliases: []string{"t"}, Usage: "template file", Required: false, Destination: file}
-	// }
-	// schemaFile = func(schema *string) *cli.StringFlag {
-	// 	return &cli.StringFlag{Name: "schema", Usage: "schema name pattern, wildcard char: * or %", Required: false, Destination: schema}
-	// }
-	// tableFlag = func(table *string) *cli.StringFlag {
-	// 	return &cli.StringFlag{Name: "table", Usage: "table name pattern, wildcard char: * or %", Required: false, Destination: table}
-	// }
-	// simpleFlag = func(simple *bool) *cli.BoolFlag {
-	// 	return &cli.BoolFlag{Name: "simple", Usage: "simple content", Value: false, Required: false, Destination: simple}
-	// }
-	// libFlag = func(lib *string) *cli.StringFlag {
-	// 	return &cli.StringFlag{Name: "lib", Usage: "plantuml.jar file, used when output format is png", Required: false, Destination: lib}
-	// }
-	// dumpFlag = func(dump *bool) *cli.BoolFlag {
-	// 	return &cli.BoolFlag{Name: "dump", Usage: "dump content", Value: false, Required: false, Destination: dump}
 	// }
 
 	registerCmdConvert(cliapp)

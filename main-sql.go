@@ -35,8 +35,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "create table DDL",
 			Aliases: []string{"ct"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -47,7 +47,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
+				data, err := yml.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -63,8 +63,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "drop table DDL",
 			Aliases: []string{"dt"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -75,7 +75,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
+				data, err := yml.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -91,8 +91,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "add column DDL",
 			Aliases: []string{"ac"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -105,7 +105,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
+				data, err := yml.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -121,8 +121,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "drop column DDL",
 			Aliases: []string{"dc"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -135,7 +135,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
+				data, err := yml.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -151,8 +151,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "rename column DDL",
 			Aliases: []string{"rc"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -165,7 +165,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
+				data, err := yml.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -181,8 +181,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "modify column type DDL",
 			Aliases: []string{"mc"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -195,7 +195,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
+				data, err := yml.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -211,8 +211,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "create index DDL",
 			Aliases: []string{"ci"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -225,7 +225,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
+				data, err := yml.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -241,8 +241,8 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 			Usage:   "drop index DDL",
 			Aliases: []string{"di"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
@@ -255,7 +255,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.ReadSelectedYml(ifile, schema, table, col)
+				data, err := yml.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

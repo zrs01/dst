@@ -5,50 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/samber/lo"
-	"github.com/zrs01/dst/utils"
-	"github.com/ztrue/tracerr"
 )
-
-// FilterData filters the data based on the provided schema, table, and column patterns.
-func FilterData(data *DataDef, schemaPattern string, tablePattern string, columnPattern string) (*DataDef, error) {
-	d := &DataDef{
-		Fixed:   data.Fixed,
-		Schemas: make([]Schema, 0),
-	}
-
-	for i := 0; i < len(data.Schemas); i++ {
-		schema := data.Schemas[i]
-		if schemaPattern == "" || utils.WildCardMatchs(strings.Split(schemaPattern, ","), schema.Name) {
-			var tables []Table
-			filteredTables := lo.Filter(schema.Tables, func(t Table, _ int) bool {
-				return tablePattern == "" || utils.WildCardMatchs(strings.Split(tablePattern, ","), t.Name)
-			})
-			for j := 0; j < len(filteredTables); j++ {
-				columns := lo.Filter(filteredTables[j].Columns, func(c Column, _ int) bool {
-					return columnPattern == "" || utils.WildCardMatchs(strings.Split(columnPattern, ","), c.Name)
-				})
-				if len(columns) > 0 {
-					filteredTables[j].Columns = columns
-					tables = append(tables, filteredTables[j])
-				}
-			}
-
-			if len(tables) > 0 {
-				schema.Tables = tables
-				d.Schemas = append(d.Schemas, schema)
-			}
-		}
-	}
-	tables := lo.FlatMap(d.Schemas, func(s Schema, _ int) []Table {
-		return s.Tables
-	})
-	if len(tables) == 0 {
-		return nil, tracerr.New("no schema/table/column matched")
-	}
-	return d, nil
-}
 
 // Verify checks the integrity of the data in the DataDef struct.
 func Verify(data *DataDef) []string {

@@ -13,6 +13,7 @@ import (
 	"github.com/sanity-io/litter"
 	"github.com/zrs01/dst/internal/dbm"
 	"github.com/zrs01/dst/model"
+	"github.com/zrs01/dst/utils"
 	"github.com/ztrue/tracerr"
 )
 
@@ -21,15 +22,58 @@ const (
 	MSSQL_PREFIX = "sqlserver://"
 )
 
-func LoadData(input string) (*model.DataDef, error) {
+// Load loads the data from the specified input.
+//
+// The input can be a YAML file path, a MySQL database data source name, or a SQL Server database data source name.
+// If the input is a MySQL or SQL Server database, the data is loaded from the database.
+// If the input is a YAML file path, the data is loaded from the file.
+//
+// Returns the loaded data and any error encountered.
+func Load(input string) (*model.DataDef, error) {
+	// Check if the input starts with mysql:// or sqlserver://.
+	// If so, load the data from the corresponding database.
 	if strings.HasPrefix(input, MYSQL_PREFIX) {
 		return loadFromMysql(input)
 	} else if strings.HasPrefix(input, MSSQL_PREFIX) {
 		return loadFromMssql(input)
 	}
+
+	// If the input does not start with mysql:// or sqlserver://,
+	// assume it is a YAML file path and load the data from the file.
 	return loadFromYml(input)
 }
 
+// LoadWithFilter loads the data from the specified input, filters it based on the provided schema, table, and column patterns, and returns the filtered data.
+//
+// The input can be a YAML file path, a MySQL database data source name, or a SQL Server database data source name.
+// If the input is a MySQL or SQL Server database, the data is loaded from the database and filtered based on the provided schema, table, and column patterns.
+// If the input is a YAML file path, the data is loaded from the file and filtered based on the provided schema, table, and column patterns.
+//
+// The schemaPattern, tablePattern, and columnPattern parameters are used to filter the data.
+// The schemaPattern parameter specifies the schemas to include in the filtered data.
+// The tablePattern parameter specifies the tables to include in the filtered data.
+// The columnPattern parameter specifies the columns to include in the filtered data.
+// If the schemaPattern, tablePattern, or columnPattern parameters are empty, all schemas, tables, or columns are included in the filtered data.
+//
+// Returns the filtered data and any error encountered.
+func LoadWithFilter(input string, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
+	dataDef, err := Load(input)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	dataDef, err = Filter(dataDef, schemaPattern, tablePattern, columnPattern)
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	return dataDef, nil
+}
+
+// loadFromMysql loads the data from a MySQL database specified by the dataSourceName.
+//
+// The dataSourceName should be in the format: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN].
+// The value after '/' in the dataSourceName is used as the schema name.
+//
+// Returns the loaded data and any error encountered.
 func loadFromMysql(dataSourceName string) (*model.DataDef, error) {
 	// dataSourceName: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
 	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dataSourceName)
@@ -47,6 +91,12 @@ func loadFromMysql(dataSourceName string) (*model.DataDef, error) {
 	return result, nil
 }
 
+// loadFromMssql loads the data from a Microsoft SQL Server database specified by the dataSourceName.
+//
+// The dataSourceName should be in the format: sqlserver://username:password@host[:port][/instance][?param1=value1&...&paramN=valueN].
+// The value of the 'database' parameter in the dataSourceName is used as the schema name.
+//
+// Returns the loaded data and any error encountered.
 func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 	// dataSourceName: sqlserver: //username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
 	schema := ""
@@ -69,20 +119,90 @@ func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 	return result, nil
 }
 
-func ReadSelectedYml(ifile, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
-	dataDef, err := LoadData(ifile)
-	if err != nil {
-		return nil, tracerr.Wrap(err)
+// Filter filters the data based on the provided schema, table, and column patterns.
+//
+// Parameters:
+// - data: the data to be filtered.
+// - schemaPattern: a comma-separated string of schema patterns. Matches if any pattern matches.
+// - tablePattern: a comma-separated string of table patterns. Matches if any pattern matches.
+// - columnPattern: a comma-separated string of column patterns. Matches if any pattern matches.
+//
+// Returns:
+// - a new DataDef object containing the filtered data.
+// - an error if no schema/table/column matched.
+func Filter(data *model.DataDef, schemaPattern string, tablePattern string, columnPattern string) (*model.DataDef, error) {
+	d := &model.DataDef{
+		Fixed:   data.Fixed,
+		Schemas: make([]model.Schema, 0),
 	}
-	return SelectedDataDef(dataDef, schemaPattern, tablePattern, columnPattern)
+
+	for i := 0; i < len(data.Schemas); i++ {
+		schema := data.Schemas[i]
+		if schemaPattern == "" || utils.WildCardMatchs(strings.Split(schemaPattern, ","), schema.Name) {
+			var tables []model.Table
+			filteredTables := lo.Filter(schema.Tables, func(t model.Table, _ int) bool {
+				return tablePattern == "" || utils.WildCardMatchs(strings.Split(tablePattern, ","), t.Name)
+			})
+			for j := 0; j < len(filteredTables); j++ {
+				columns := lo.Filter(filteredTables[j].Columns, func(c model.Column, _ int) bool {
+					return columnPattern == "" || utils.WildCardMatchs(strings.Split(columnPattern, ","), c.Name)
+				})
+				if len(columns) > 0 {
+					filteredTables[j].Columns = columns
+					tables = append(tables, filteredTables[j])
+				}
+			}
+
+			if len(tables) > 0 {
+				schema.Tables = tables
+				d.Schemas = append(d.Schemas, schema)
+			}
+		}
+	}
+	tables := lo.FlatMap(d.Schemas, func(s model.Schema, _ int) []model.Table {
+		return s.Tables
+	})
+	if len(tables) == 0 {
+		return nil, tracerr.New("no schema/table/column matched")
+	}
+	return d, nil
 }
 
-func SelectedDataDef(dataDef *model.DataDef, schemaPattern, tablePattern, columnPattern string) (*model.DataDef, error) {
-	data, err := model.FilterData(dataDef, schemaPattern, tablePattern, columnPattern)
-	if err != nil {
-		return nil, tracerr.Wrap(err)
+func updateReferenceTables(dataDef *model.DataDef) {
+	// the map table to speed up the lookup process
+	tableMap := make(map[string]*model.Table)
+	for i := 0; i < len(dataDef.Schemas); i++ {
+		schema := &dataDef.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			table := &schema.Tables[j]
+			tableMap[table.Name] = table
+		}
 	}
-	return data, nil
+
+	// update the reference table
+	for i := 0; i < len(dataDef.Schemas); i++ {
+		schema := &dataDef.Schemas[i]
+		for j := 0; j < len(schema.Tables); j++ {
+			table := &schema.Tables[j]
+			for k := 0; k < len(table.Columns); k++ {
+				column := &table.Columns[k]
+				if column.ForeignKey != "" {
+					fkTableName, fkColumnName, found := strings.Cut(column.ForeignKey, ".")
+					if found {
+						fkTable, ok := tableMap[fkTableName]
+						if ok {
+							fkTable.References = append(fkTable.References, model.Reference{
+								ColumnName: fkColumnName,
+								Foreign:    []model.ForeignTable{{Table: table.Name, Column: column.Name}},
+							})
+						} else {
+							fmt.Printf("failed to find table '%s'", fkTableName)
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 // Expand fixed columns to each tables.
@@ -99,7 +219,7 @@ func expandFixColumns(dataDef *model.DataDef) {
 }
 
 func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
-	patternDataDef, err := SelectedDataDef(dataDef, schemaPattern, tablePattern, "")
+	patternDataDef, err := Filter(dataDef, schemaPattern, tablePattern, "")
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -138,7 +258,7 @@ func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern
 func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
 	restoreFixColumns(dataDef)
 
-	patternDataDef, err := SelectedDataDef(dataDef, schemaPattern, tablePattern, "")
+	patternDataDef, err := Filter(dataDef, schemaPattern, tablePattern, "")
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

@@ -3,7 +3,6 @@ package yml
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
@@ -22,42 +21,7 @@ func loadFromYml(file string) (*model.DataDef, error) {
 		return nil, tracerr.Wrap(err)
 	}
 
-	/* ------------------------- update reference tables ------------------------ */
-	// the map table to speed up the lookup process
-	tableMap := make(map[string]*model.Table)
-	for i := 0; i < len(d.Schemas); i++ {
-		schema := &d.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			table := &schema.Tables[j]
-			tableMap[table.Name] = table
-		}
-	}
-
-	// update the reference table
-	for i := 0; i < len(d.Schemas); i++ {
-		schema := &d.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			table := &schema.Tables[j]
-			for k := 0; k < len(table.Columns); k++ {
-				column := &table.Columns[k]
-				if column.ForeignKey != "" {
-					fkTableName, fkColumnName, found := strings.Cut(column.ForeignKey, ".")
-					if found {
-						fkTable, ok := tableMap[fkTableName]
-						if ok {
-							fkTable.References = append(fkTable.References, model.Reference{
-								ColumnName: fkColumnName,
-								Foreign:    []model.ForeignTable{{Table: table.Name, Column: column.Name}},
-							})
-						} else {
-							fmt.Printf("failed to find table '%s'", fkTableName)
-						}
-					}
-				}
-			}
-		}
-	}
-
+	updateReferenceTables(&d)
 	expandFixColumns(&d)
 
 	// validate	data

@@ -35,11 +35,11 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
-				tmplFileFlagBuilder().WithDestination(&tfile).Build(),
+				tmplFlagBuilder().WithDestination(&tfile).Build(),
 				urafvcli.NewBoolFlagBuilder("dump").WithUsage("dump the content in .yml format").WithDestination(&dump).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (text file)"),
@@ -50,7 +50,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				// read .yml to DataDef
-				data, err := yml.LoadData(ifile)
+				data, err := yml.Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -64,7 +64,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 				}
 				if tfile != "" {
 					// filter the data with pattern
-					selectedData, err := yml.SelectedDataDef(data, schema, table, "")
+					selectedData, err := yml.Filter(data, schema, table, "")
 					if err != nil {
 						return tracerr.Wrap(err)
 					}
@@ -87,8 +87,8 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
 				urafvcli.NewBoolFlagBuilder("simple").WithUsage("simple content").WithDestination(&simple).Build(),
@@ -100,7 +100,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
+				data, err := yml.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -124,11 +124,11 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to diagram",
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
-				inSchemaFlagBuilder().WithDestination(&ifile).Build(),
-				outFileFlagBuilder().WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				ischFlagBuilder().WithDestination(&ifile).Build(),
+				outputFlagBuilder().WithUsage("output file (.png)").WithDestination(&ofile).Build(),
 				schemaFlagBuilder().WithDestination(&schema).Build(),
 				tableFlagBuilder().WithDestination(&table).Build(),
-				tmplFileFlagBuilder().WithDestination(&tfile).Build(),
+				tmplFlagBuilder().WithDestination(&tfile).Build(),
 				urafvcli.NewStringFlagBuilder("lib").WithUsage("plantuml.jar file, used when output format is png").WithDestination(&lib).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (.png)"),
@@ -142,7 +142,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := yml.ReadSelectedYml(ifile, schema, table, "")
+				data, err := yml.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
