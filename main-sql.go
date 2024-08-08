@@ -22,7 +22,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 	}())
 
 	databaseFlagBuilder := func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("database").WithAliases("d").Required(true).WithUsage("database (mssql)")
+		return urafvcli.NewStringFlagBuilder("database").WithAliases("d").Required(true).WithUsage("database (mariadb, mssql)")
 	}
 	columnFlagBuilder := func() *urafvcli.StringFlagBuilder {
 		return urafvcli.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column")

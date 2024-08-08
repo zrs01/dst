@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -36,6 +37,10 @@ func Load(input string) (*model.DataDef, error) {
 		return loadFromMysql(input)
 	} else if strings.HasPrefix(input, MSSQL_PREFIX) {
 		return loadFromMssql(input)
+	}
+
+	if input == "" {
+		input = guessSchemaFileName()
 	}
 
 	// If the input does not start with mysql:// or sqlserver://,
@@ -117,6 +122,27 @@ func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 		return nil, tracerr.Wrap(err)
 	}
 	return result, nil
+}
+
+// guessSchemaFileName tries to guess the name of the schema file by looking for a file matching the pattern "*schema*.yml" in the current directory.
+//
+// If no matching file is found, it returns the default schema file name "schema.yml".
+//
+// Returns:
+// - string: the name of the schema file.
+func guessSchemaFileName() string {
+	fileName := "schema.yml"
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		// if schema.yml at current folder, use it as default
+		files, err := filepath.Glob("*schema*.yml")
+		if err != nil {
+			return ""
+		}
+		if len(files) > 0 {
+			fileName = files[0]
+		}
+	}
+	return fileName
 }
 
 // Filter filters the data based on the provided schema, table, and column patterns.

@@ -51,10 +51,10 @@ func main() {
 		return urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file")
 	}
 	ischFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithValue("schema.yml")
+		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input schema.yml file")
 	}
 	tmplFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file").WithValue("template.yml")
+		return urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file")
 	}
 	schemaFlagBuilder = func() *urafvcli.StringFlagBuilder {
 		return urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %")
@@ -62,19 +62,6 @@ func main() {
 	tableFlagBuilder = func() *urafvcli.StringFlagBuilder {
 		return urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %")
 	}
-
-	// ifileFlag = func(file *string, usage string) *cli.StringFlag {
-	// 	return &cli.StringFlag{Name: "input", Aliases: []string{"i"}, Usage: lo.Ternary(usage == "", "input file", usage), Required: true, Destination: file}
-	// }
-	// iSchemaFileFlag = func(file *string) *cli.StringFlag {
-	// 	// if schema.yml at current folder, use it as default
-	// 	flag := inFileFlagBuilder.WithUsage("input file (.yml)").WithDestination(file).Build()
-	// 	if _, err := os.Stat("schema.yml"); !os.IsNotExist(err) {
-	// 		flag.Value = "schema.yml"
-	// 		flag.Required = false
-	// 	}
-	// 	return flag
-	// }
 
 	registerCmdConvert(cliapp)
 	registerCmdSql(cliapp)
