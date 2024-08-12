@@ -7,12 +7,14 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
+	"github.com/zrs01/dst/internal/dstloader"
+	"github.com/zrs01/dst/internal/dstwriter"
 	"github.com/zrs01/dst/internal/erd"
 	"github.com/zrs01/dst/internal/tpl"
 	"github.com/zrs01/dst/internal/urafvcli"
-	"github.com/zrs01/dst/internal/xlsx"
-	"github.com/zrs01/dst/internal/yml"
 	"github.com/ztrue/tracerr"
+
+	"github.com/zrs01/dst/utils"
 )
 
 func registerCmdConvert(cliapp *cli.App) *cli.Command {
@@ -50,27 +52,27 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				// read .yml to DataDef
-				data, err := yml.Load(ifile)
+				data, err := dstloader.Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 
 				// dump the original content in .yml format to console
 				if dump {
-					if err := yml.DumpYml(data, ofile, schema, table); err != nil {
+					if err := dstloader.DumpYml(data, ofile, schema, table); err != nil {
 						return tracerr.Wrap(err)
 					}
 					return nil
 				}
+				selectedData, err := utils.Filter(data, schema, table, "")
 				if tfile != "" {
 					// filter the data with pattern
-					selectedData, err := yml.Filter(data, schema, table, "")
 					if err != nil {
 						return tracerr.Wrap(err)
 					}
 					return tpl.WriteFileTpl(selectedData, tfile, ofile)
 				}
-				if err := yml.WriteYml(data, ofile, schema, table); err != nil {
+				if err := dstwriter.WriteYml(data, ofile, schema, table); err != nil {
 					return tracerr.Wrap(err)
 				}
 				return nil
@@ -100,13 +102,13 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := yml.LoadWithFilter(ifile, schema, table, "")
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 				switch oext {
 				case ".xlsx":
-					if err := xlsx.WriteXlsx(data, ofile, simple); err != nil {
+					if err := dstwriter.WriteXlsx(data, ofile, simple); err != nil {
 						return tracerr.Wrap(err)
 					}
 					return nil
@@ -142,7 +144,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := yml.LoadWithFilter(ifile, schema, table, "")
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

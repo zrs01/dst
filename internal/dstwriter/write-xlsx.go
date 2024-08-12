@@ -1,4 +1,4 @@
-package xlsx
+package dstwriter
 
 import (
 	"fmt"
@@ -213,7 +213,7 @@ func writeDataDict(data *model.DataDef, out string) error {
 			excel.SetColWidth(sheet, col, col, width)
 		}
 
-		var setColValue = func(rowIndex int, column model.Column) {
+		setColValue := func(rowIndex int, column model.Column) {
 			excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowIndex), column.Name)
 			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.Title)
 			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.DataType)
@@ -264,8 +264,8 @@ func writeDataDict(data *model.DataDef, out string) error {
 		return tracerr.Wrap(err)
 	}
 	return nil
-
 }
+
 func definedExcelStyle(excel *excelize.File) (*map[string]int, error) {
 	style := make(map[string]int, 0)
 

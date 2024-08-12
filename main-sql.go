@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/urfave/cli/v2"
+	"github.com/zrs01/dst/internal/dstloader"
 	"github.com/zrs01/dst/internal/sql"
 	"github.com/zrs01/dst/internal/urafvcli"
-	"github.com/zrs01/dst/internal/yml"
 	"github.com/ztrue/tracerr"
 )
 
@@ -47,7 +47,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, "")
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -75,7 +75,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, "")
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -105,7 +105,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, col)
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -135,7 +135,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, col)
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -165,7 +165,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, col)
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -195,7 +195,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, col)
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -225,7 +225,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, col)
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -255,7 +255,7 @@ func registerCmdSql(cliapp *cli.App) *cli.Command {
 				// colFlag(&col),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := yml.LoadWithFilter(ifile, schema, table, col)
+				data, err := dstloader.LoadWithFilter(ifile, schema, table, col)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
