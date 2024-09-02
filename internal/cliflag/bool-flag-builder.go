@@ -1,4 +1,4 @@
-package urafvcli
+package cliflag
 
 import (
 	"github.com/urfave/cli/v2"

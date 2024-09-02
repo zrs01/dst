@@ -1,4 +1,4 @@
-package dstwriter
+package filewriter
 
 import (
 	"fmt"

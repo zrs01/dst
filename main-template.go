@@ -7,17 +7,17 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
-	"github.com/zrs01/dst/internal/dstloader"
-	"github.com/zrs01/dst/internal/dstwriter"
+	"github.com/zrs01/dst/internal/cliflag"
 	"github.com/zrs01/dst/internal/erd"
+	"github.com/zrs01/dst/internal/fileloader"
+	"github.com/zrs01/dst/internal/filewriter"
 	"github.com/zrs01/dst/internal/tpl"
-	"github.com/zrs01/dst/internal/urafvcli"
 	"github.com/ztrue/tracerr"
 
 	"github.com/zrs01/dst/utils"
 )
 
-func registerCmdConvert(cliapp *cli.App) *cli.Command {
+func registerTemplateRenderer(cliapp *cli.App) *cli.Command {
 	// convert command
 	convertCmd := &cli.Command{
 		Name:    "convert",
@@ -37,42 +37,35 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to text",
 			Aliases: []string{"t"},
 			Flags: []cli.Flag{
-				ischFlagBuilder().WithDestination(&ifile).Build(),
-				outputFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaFlagBuilder().WithDestination(&schema).Build(),
-				tableFlagBuilder().WithDestination(&table).Build(),
-				tmplFlagBuilder().WithDestination(&tfile).Build(),
-				urafvcli.NewBoolFlagBuilder("dump").WithUsage("dump the content in .yml format").WithDestination(&dump).Build(),
-				// iSchemaFileFlag(&ifile),
-				// ofileFlag(&ofile, "output file (text file)"),
-				// schemaFile(&schema),
-				// tableFlag(&table),
-				// templateFlag(&tfile),
-				// dumpFlag(&dump),
+				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
+				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				schemaNameFlagBuilder().WithDestination(&schema).Build(),
+				tableNameFlagBuilder().WithDestination(&table).Build(),
+				templateFileFlagBuilder().WithDestination(&tfile).Build(),
+				cliflag.NewBoolFlagBuilder("dump").WithUsage("dump the content in .yml format").WithDestination(&dump).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				// read .yml to DataDef
-				data, err := dstloader.Load(ifile)
+				data, err := fileloader.Load(ifile) // the data does not filter by schema and table
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 
 				// dump the original content in .yml format to console
 				if dump {
-					if err := dstloader.DumpYml(data, ofile, schema, table); err != nil {
+					if err := fileloader.DumpYml(data, ofile, schema, table); err != nil {
 						return tracerr.Wrap(err)
 					}
 					return nil
 				}
-				selectedData, err := utils.Filter(data, schema, table, "")
 				if tfile != "" {
+					filteredData, err := utils.Filter(data, schema, table, "")
 					// filter the data with pattern
 					if err != nil {
 						return tracerr.Wrap(err)
 					}
-					return tpl.WriteFileTpl(selectedData, tfile, ofile)
+					return tpl.WriteFileTpl(filteredData, tfile, ofile)
 				}
-				if err := dstwriter.WriteYml(data, ofile, schema, table); err != nil {
+				if err := filewriter.WriteYml(data, ofile, schema, table); err != nil {
 					return tracerr.Wrap(err)
 				}
 				return nil
@@ -89,11 +82,11 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to excel",
 			Aliases: []string{"e"},
 			Flags: []cli.Flag{
-				ischFlagBuilder().WithDestination(&ifile).Build(),
-				outputFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
-				schemaFlagBuilder().WithDestination(&schema).Build(),
-				tableFlagBuilder().WithDestination(&table).Build(),
-				urafvcli.NewBoolFlagBuilder("simple").WithUsage("simple content").WithDestination(&simple).Build(),
+				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
+				outputFileFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
+				schemaNameFlagBuilder().WithDestination(&schema).Build(),
+				tableNameFlagBuilder().WithDestination(&table).Build(),
+				cliflag.NewBoolFlagBuilder("simple").WithUsage("simple content").WithDestination(&simple).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (.xlsx)"),
 				// schemaFile(&schema),
@@ -102,13 +95,13 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			},
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := dstloader.LoadWithFilter(ifile, schema, table, "")
+				data, err := fileloader.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
 				switch oext {
 				case ".xlsx":
-					if err := dstwriter.WriteXlsx(data, ofile, simple); err != nil {
+					if err := filewriter.WriteXlsx(data, ofile, simple); err != nil {
 						return tracerr.Wrap(err)
 					}
 					return nil
@@ -126,12 +119,12 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 			Usage:   "transform from yaml to diagram",
 			Aliases: []string{"d"},
 			Flags: []cli.Flag{
-				ischFlagBuilder().WithDestination(&ifile).Build(),
-				outputFlagBuilder().WithUsage("output file (.png)").WithDestination(&ofile).Build(),
-				schemaFlagBuilder().WithDestination(&schema).Build(),
-				tableFlagBuilder().WithDestination(&table).Build(),
-				tmplFlagBuilder().WithDestination(&tfile).Build(),
-				urafvcli.NewStringFlagBuilder("lib").WithUsage("plantuml.jar file, used when output format is png").WithDestination(&lib).Build(),
+				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
+				outputFileFlagBuilder().WithUsage("output file (.png)").WithDestination(&ofile).Build(),
+				schemaNameFlagBuilder().WithDestination(&schema).Build(),
+				tableNameFlagBuilder().WithDestination(&table).Build(),
+				templateFileFlagBuilder().WithDestination(&tfile).Build(),
+				cliflag.NewStringFlagBuilder("lib").WithUsage("plantuml.jar file, used when output format is png").WithDestination(&lib).Build(),
 				// iSchemaFileFlag(&ifile),
 				// ofileFlag(&ofile, "output file (.png)"),
 				// schemaFile(&schema),
@@ -144,7 +137,7 @@ func registerCmdConvert(cliapp *cli.App) *cli.Command {
 					ofile = strings.TrimSuffix(ifile, filepath.Ext(ifile)) + ".png"
 				}
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				data, err := dstloader.LoadWithFilter(ifile, schema, table, "")
+				data, err := fileloader.LoadWithFilter(ifile, schema, table, "")
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

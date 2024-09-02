@@ -1,4 +1,4 @@
-package dstloader
+package fileloader
 
 import (
 	"fmt"
@@ -38,7 +38,11 @@ func Load(input string) (*model.DataDef, error) {
 	}
 
 	if input == "" {
-		input = guessSchemaFileName()
+		f, err := guessSchemaFileName()
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+		input = f
 	}
 
 	// If the input does not start with mysql:// or sqlserver://,
@@ -93,7 +97,6 @@ func loadFromYml(file string) (*model.DataDef, error) {
 		})
 		return nil, tracerr.Errorf("invalid data")
 	}
-
 	return &d, err
 }
 
@@ -137,7 +140,7 @@ func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 		}
 	}
 	if schema == "" {
-		return nil, tracerr.Errorf("Failed to parse %s", dataSourceName)
+		return nil, tracerr.Errorf("failed to parse %s", dataSourceName)
 	}
 	service := dbm.NewMssqlService(dataSourceName)
 	fmt.Printf("Read from %s\n", dataSourceName)
@@ -150,23 +153,25 @@ func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 
 // guessSchemaFileName tries to guess the name of the schema file by looking for a file matching the pattern "*schema*.yml" in the current directory.
 //
-// If no matching file is found, it returns the default schema file name "schema.yml".
+// If no matching file is found, it returns empty string.
+// If multiple matching files are found, it returns an error.
 //
 // Returns:
 // - string: the name of the schema file.
-func guessSchemaFileName() string {
+// - error: an error if there are multiple schema files found, or if there is an error during the file search.
+func guessSchemaFileName() (string, error) {
 	fileName := "schema.yml"
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		// if schema.yml at current folder, use it as default
 		files, err := filepath.Glob("*schema*.yml")
 		if err != nil {
-			return ""
+			return "", nil
 		}
 		if len(files) > 0 {
-			fileName = files[0]
+			return "", tracerr.Errorf("multiple schema files found: %v", files)
 		}
 	}
-	return fileName
+	return fileName, nil
 }
 
 func updateReferenceTables(dataDef *model.DataDef) {

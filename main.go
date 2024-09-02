@@ -8,18 +8,17 @@ import (
 	"github.com/ztrue/tracerr"
 
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/urafvcli"
+	"github.com/zrs01/dst/internal/cliflag"
 )
 
 var (
 	version = "development"
 
-	// inFileFlagBuilder func() *urafvcli.StringFlagBuilder
-	ischFlagBuilder   func() *urafvcli.StringFlagBuilder
-	outputFlagBuilder func() *urafvcli.StringFlagBuilder
-	tmplFlagBuilder   func() *urafvcli.StringFlagBuilder
-	schemaFlagBuilder func() *urafvcli.StringFlagBuilder
-	tableFlagBuilder  func() *urafvcli.StringFlagBuilder
+	schemaFileFlagBuilder   func() *cliflag.StringFlagBuilder // schedule file
+	outputFileFlagBuilder   func() *cliflag.StringFlagBuilder // output file
+	templateFileFlagBuilder func() *cliflag.StringFlagBuilder // template file
+	schemaNameFlagBuilder   func() *cliflag.StringFlagBuilder // schema name
+	tableNameFlagBuilder    func() *cliflag.StringFlagBuilder // table name
 )
 
 func main() {
@@ -29,9 +28,6 @@ func main() {
 	cliapp.Version = version
 	cliapp.Commands = []*cli.Command{}
 
-	// debug := false
-
-	// global options
 	cliapp.Flags = []cli.Flag{
 		&cli.BoolFlag{
 			Name:        "debug",
@@ -44,27 +40,24 @@ func main() {
 
 	/* ------------------------------ Common flags ------------------------------ */
 
-	// inFileFlagBuilder = func() *urafvcli.StringFlagBuilder {
-	// 	return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input file")
-	// }
-	outputFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file")
+	outputFileFlagBuilder = func() *cliflag.StringFlagBuilder {
+		return cliflag.NewStringFlagBuilder("output").WithAliases("o").WithUsage("output file")
 	}
-	ischFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("input").WithAliases("i").WithUsage("input schema.yml file")
+	schemaFileFlagBuilder = func() *cliflag.StringFlagBuilder {
+		return cliflag.NewStringFlagBuilder("input").WithAliases("i").WithUsage("schema file")
 	}
-	tmplFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file")
+	templateFileFlagBuilder = func() *cliflag.StringFlagBuilder {
+		return cliflag.NewStringFlagBuilder("template").WithAliases("t").WithUsage("template file")
 	}
-	schemaFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %")
+	schemaNameFlagBuilder = func() *cliflag.StringFlagBuilder {
+		return cliflag.NewStringFlagBuilder("schema").WithUsage("schema name pattern, wildcard char: * or %")
 	}
-	tableFlagBuilder = func() *urafvcli.StringFlagBuilder {
-		return urafvcli.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %")
+	tableNameFlagBuilder = func() *cliflag.StringFlagBuilder {
+		return cliflag.NewStringFlagBuilder("table").WithUsage("table name pattern, wildcard char: * or %")
 	}
 
-	registerCmdConvert(cliapp)
-	registerCmdSql(cliapp)
+	registerTemplateRenderer(cliapp)
+	registerDDLRenderer(cliapp)
 
 	if err := cliapp.Run(os.Args); err != nil {
 		if config.Debug {
