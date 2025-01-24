@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/CloudyKit/jet/v6 v6.2.0
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gertd/go-pluralize v0.2.1
@@ -16,6 +17,7 @@ require (
 	github.com/rotisserie/eris v0.5.4
 	github.com/samber/lo v1.39.0
 	github.com/sanity-io/litter v1.5.5
+	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.5.0
 	github.com/xuri/excelize/v2 v2.6.0
 	github.com/ztrue/tracerr v0.4.0
@@ -34,6 +36,7 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect

@@ -33,6 +33,7 @@ func (s *MysqlService) Read(schemaName string) (*model.DataDef, error) {
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
+	defer db.Close()
 
 	dSchemas, err := s.getSchemas(db, schemaName)
 	if err != nil {
