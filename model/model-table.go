@@ -7,9 +7,9 @@ import (
 )
 
 // PrimaryKeyColumns returns all columns that contain identity or are numeric, sorted by identity.
-func (s *Table) PrimaryKeyColumns() []Column {
+func (s *Table) PrimaryKeyColumns() []*Column {
 	// get all columns contains identity
-	cols := lo.Filter(s.Columns, func(c Column, _ int) bool {
+	cols := lo.Filter(s.Columns, func(c *Column, _ int) bool {
 		return c.Identity == "Y" || isNumeric(c.Identity)
 	})
 	// sort the the identity columns

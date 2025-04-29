@@ -3,8 +3,7 @@ module github.com/zrs01/dst
 go 1.18
 
 require (
-	github.com/CloudyKit/jet/v6 v6.2.0
-	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/CloudyKit/jet/v6 v6.3.1
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gertd/go-pluralize v0.2.1
@@ -12,12 +11,11 @@ require (
 	github.com/go-sqlx/sqlx v1.3.7
 	github.com/goccy/go-yaml v1.11.3
 	github.com/iancoleman/strcase v0.3.0
+	github.com/jinzhu/configor v1.2.2
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/microsoft/go-mssqldb v1.7.0
-	github.com/rotisserie/eris v0.5.4
 	github.com/samber/lo v1.39.0
 	github.com/sanity-io/litter v1.5.5
-	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.5.0
 	github.com/xuri/excelize/v2 v2.6.0
 	github.com/ztrue/tracerr v0.4.0
@@ -26,6 +24,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
@@ -36,7 +35,6 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect

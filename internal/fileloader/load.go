@@ -178,7 +178,7 @@ func updateReferenceTables(dataDef *model.DataDef) {
 	// the map table to speed up the lookup process
 	tableMap := make(map[string]*model.Table)
 	for i := 0; i < len(dataDef.Schemas); i++ {
-		schema := &dataDef.Schemas[i]
+		schema := dataDef.Schemas[i]
 		for j := 0; j < len(schema.Tables); j++ {
 			table := &schema.Tables[j]
 			tableMap[table.Name] = table
@@ -187,11 +187,11 @@ func updateReferenceTables(dataDef *model.DataDef) {
 
 	// update the reference table
 	for i := 0; i < len(dataDef.Schemas); i++ {
-		schema := &dataDef.Schemas[i]
+		schema := dataDef.Schemas[i]
 		for j := 0; j < len(schema.Tables); j++ {
 			table := &schema.Tables[j]
 			for k := 0; k < len(table.Columns); k++ {
-				column := &table.Columns[k]
+				column := table.Columns[k]
 				if column.ForeignKey != "" {
 					fkTableName, fkColumnName, found := strings.Cut(column.ForeignKey, ".")
 					if found {
@@ -199,7 +199,7 @@ func updateReferenceTables(dataDef *model.DataDef) {
 						if ok {
 							fkTable.References = append(fkTable.References, model.Reference{
 								ColumnName: fkColumnName,
-								Foreign:    []model.ForeignTable{{Table: table.Name, Column: column.Name}},
+								Foreign:    []*model.ForeignTable{{Table: table.Name, Column: column.Name}},
 							})
 						} else {
 							fmt.Printf("failed to find table '%s'", fkTableName)
@@ -221,7 +221,7 @@ func expandFixColumns(dataDef *model.DataDef) {
 		}
 	}
 	// clean the fixed column
-	dataDef.Fixed = []model.Column{}
+	dataDef.Fixed = []*model.Column{}
 }
 
 func DumpYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {

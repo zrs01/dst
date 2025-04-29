@@ -7,12 +7,24 @@ import (
 	"reflect"
 	"strings"
 
-	yamlOut "github.com/goccy/go-yaml"
+	// yamlOut "github.com/goccy/go-yaml"
 	"github.com/samber/lo"
+	"github.com/zrs01/dst/config"
+	"github.com/zrs01/dst/internal/fileloader"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/utils"
 	"github.com/ztrue/tracerr"
+	"gopkg.in/yaml.v3"
 )
+
+func Generate() error {
+	data, err := fileloader.Load(config.Setting.Text.Input) // the data does not filter by schema and table
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	WriteYml(data, config.Setting.Text.Output, config.Setting.Text.Schema, config.Setting.Text.Table)
+	return nil
+}
 
 // WriteYml writes data to yml file with pattern
 func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
@@ -24,36 +36,36 @@ func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePatter
 	}
 
 	// modify the columns in fixed to flow style
-	(*patternDataDef).OutFixed = outColumns(&patternDataDef.Fixed)
-	patternDataDef.Fixed = nil
+	// (*patternDataDef).OutFixed = outColumns(&patternDataDef.Fixed)
+	// patternDataDef.Fixed = nil
 
-	// modify the columns to flow style
-	schemas := &patternDataDef.Schemas
-	for i := 0; i < len(*schemas); i++ {
-		tables := &(*schemas)[i].Tables
-		for j := 0; j < len(*tables); j++ {
-			// references is a runtime content, should not show in output
-			(*tables)[j].References = nil
-			(*tables)[j].OutColumns = outColumns(&(*tables)[j].Columns)
-			(*tables)[j].Columns = nil
-		}
-	}
+	// // modify the columns to flow style
+	// schemas := &patternDataDef.Schemas
+	// for i := 0; i < len(*schemas); i++ {
+	// 	tables := &(*schemas)[i].Tables
+	// 	for j := 0; j < len(*tables); j++ {
+	// 		// references is a runtime content, should not show in output
+	// 		(*tables)[j].References = nil
+	// 		(*tables)[j].OutColumns = outColumns(&(*tables)[j].Columns)
+	// 		(*tables)[j].Columns = nil
+	// 	}
+	// }
 
-	bytes, err := yamlOut.Marshal(patternDataDef)
+	bytes, err := yaml.Marshal(patternDataDef)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 
 	output := string(bytes)
-	// correct the names
-	output = strings.ReplaceAll(output, "out_fixed", "fixed")
-	output = strings.ReplaceAll(output, "out_columns", "columns")
-	output = strings.ReplaceAll(output, "_column: ", "")
-	// remove the quote for boolean
-	output = strings.ReplaceAll(output, "\"N\"", "N")
-	output = strings.ReplaceAll(output, "\"n\"", "n")
-	output = strings.ReplaceAll(output, "\"Y\"", "Y")
-	output = strings.ReplaceAll(output, "\"y\"", "y")
+	// // correct the names
+	// output = strings.ReplaceAll(output, "out_fixed", "fixed")
+	// output = strings.ReplaceAll(output, "out_columns", "columns")
+	// output = strings.ReplaceAll(output, "_column: ", "")
+	// // remove the quote for boolean
+	// output = strings.ReplaceAll(output, "\"N\"", "N")
+	// output = strings.ReplaceAll(output, "\"n\"", "n")
+	// output = strings.ReplaceAll(output, "\"Y\"", "Y")
+	// output = strings.ReplaceAll(output, "\"y\"", "y")
 
 	if outfile == "" || outfile == "stdout" {
 		fmt.Println(output)
@@ -88,11 +100,11 @@ func restoreFixColumns(data *model.DataDef) {
 
 	// create a list of tables with the same column attributes
 	for i := 0; i < len(data.Schemas); i++ {
-		schema := &data.Schemas[i]
+		schema := data.Schemas[i]
 		for j := 0; j < len(schema.Tables); j++ {
 			table := &schema.Tables[j]
 			for k := 0; k < len(table.Columns); k++ {
-				column := &table.Columns[k]
+				column := table.Columns[k]
 				// Generate a unique key based on column attributes
 				key := generateColumnKey(*column)
 				// Append the current table to the list of tables with the same attributes
@@ -103,11 +115,11 @@ func restoreFixColumns(data *model.DataDef) {
 
 	// Check if all tables have the same column attributes
 	for _, items := range tbMap {
-		if len(items) == lo.Reduce(data.Schemas, func(acc int, schema model.Schema, _ int) int { return acc + len(schema.Tables) }, 0) {
+		if len(items) == lo.Reduce(data.Schemas, func(acc int, schema *model.Schema, _ int) int { return acc + len(schema.Tables) }, 0) {
 			// Remove the column from the table
 			for _, item := range items {
 				for j := 0; j < len(data.Schemas); j++ {
-					schema := &data.Schemas[j]
+					schema := data.Schemas[j]
 					for k := 0; k < len(schema.Tables); k++ {
 						table := &schema.Tables[k]
 						if table.Name == item.tableName {

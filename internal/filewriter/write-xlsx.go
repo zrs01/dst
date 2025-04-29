@@ -104,7 +104,7 @@ func ReadXlsx(infile string) (*model.DataDef, error) {
 		}
 		// last table
 		schema.Tables = append(schema.Tables, *table)
-		data.Schemas = append(data.Schemas, *schema)
+		data.Schemas = append(data.Schemas, schema)
 	}
 	return &data, err
 }
@@ -213,7 +213,7 @@ func writeDataDict(data *model.DataDef, out string) error {
 			excel.SetColWidth(sheet, col, col, width)
 		}
 
-		setColValue := func(rowIndex int, column model.Column) {
+		setColValue := func(rowIndex int, column *model.Column) {
 			excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowIndex), column.Name)
 			excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.Title)
 			excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.DataType)

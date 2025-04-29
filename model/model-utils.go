@@ -9,7 +9,7 @@ import (
 
 // Verify checks the integrity of the data in the DataDef struct.
 func Verify(data *DataDef) []string {
-	tables := make(map[string][]Column)
+	tables := make(map[string][]*Column)
 
 	// convert to map for easy searching
 	for _, schema := range data.Schemas {

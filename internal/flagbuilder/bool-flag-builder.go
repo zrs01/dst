@@ -1,17 +1,17 @@
-package cliflag
+package flagbuilder
 
 import (
 	"github.com/urfave/cli/v2"
 )
 
-// boolFlagBuilder is a builder for creating a BoolFlag
-type boolFlagBuilder struct {
+// BoolFlag is a builder for creating a BoolFlag
+type BoolFlag struct {
 	flag *cli.BoolFlag
 }
 
-// NewBoolFlagBuilder returns a new boolFlagBuilder
-func NewBoolFlagBuilder(name string) *boolFlagBuilder {
-	return &boolFlagBuilder{
+// NewBoolFlag returns a new boolFlagBuilder
+func NewBoolFlag(name string) *BoolFlag {
+	return &BoolFlag{
 		flag: &cli.BoolFlag{
 			Name: name,
 		},
@@ -19,54 +19,54 @@ func NewBoolFlagBuilder(name string) *boolFlagBuilder {
 }
 
 // WithAliases sets the aliases for the flag
-func (b *boolFlagBuilder) WithAliases(aliases ...string) *boolFlagBuilder {
+func (b *BoolFlag) WithAliases(aliases ...string) *BoolFlag {
 	b.flag.Aliases = aliases
 	return b
 }
 
 // WithUsage sets the usage description for the flag
-func (b *boolFlagBuilder) WithUsage(usage string) *boolFlagBuilder {
+func (b *BoolFlag) WithUsage(usage string) *BoolFlag {
 	b.flag.Usage = usage
 	return b
 }
 
 // WithEnvVars sets the environment variables for the flag
-func (b *boolFlagBuilder) WithEnvVars(envVars ...string) *boolFlagBuilder {
+func (b *BoolFlag) WithEnvVars(envVars ...string) *BoolFlag {
 	b.flag.EnvVars = envVars
 	return b
 }
 
 // WithFilePath sets the file path for the flag
-func (b *boolFlagBuilder) WithFilePath(filePath string) *boolFlagBuilder {
+func (b *BoolFlag) WithFilePath(filePath string) *BoolFlag {
 	b.flag.FilePath = filePath
 	return b
 }
 
 // Required sets whether the flag is required
-func (b *boolFlagBuilder) Required(required bool) *boolFlagBuilder {
+func (b *BoolFlag) Required(required bool) *BoolFlag {
 	b.flag.Required = required
 	return b
 }
 
 // Hidden sets whether the flag is hidden from help messages
-func (b *boolFlagBuilder) Hidden(hidden bool) *boolFlagBuilder {
+func (b *BoolFlag) Hidden(hidden bool) *BoolFlag {
 	b.flag.Hidden = hidden
 	return b
 }
 
 // WithValue sets the default value for the flag
-func (b *boolFlagBuilder) WithValue(value bool) *boolFlagBuilder {
+func (b *BoolFlag) WithValue(value bool) *BoolFlag {
 	b.flag.Value = value
 	return b
 }
 
 // WithDestination sets the destination pointer for the flag
-func (b *boolFlagBuilder) WithDestination(destination *bool) *boolFlagBuilder {
+func (b *BoolFlag) WithDestination(destination *bool) *BoolFlag {
 	b.flag.Destination = destination
 	return b
 }
 
 // Build returns the constructed BoolFlag
-func (b *boolFlagBuilder) Build() *cli.BoolFlag {
+func (b *BoolFlag) Build() *cli.BoolFlag {
 	return b.flag
 }

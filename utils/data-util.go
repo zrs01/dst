@@ -22,7 +22,7 @@ import (
 func Filter(data *model.DataDef, schemaPattern string, tablePattern string, columnPattern string) (*model.DataDef, error) {
 	d := &model.DataDef{
 		Fixed:   data.Fixed,
-		Schemas: make([]model.Schema, 0),
+		Schemas: make([]*model.Schema, 0),
 	}
 
 	for i := 0; i < len(data.Schemas); i++ {
@@ -33,7 +33,7 @@ func Filter(data *model.DataDef, schemaPattern string, tablePattern string, colu
 				return tablePattern == "" || WildCardMatchs(strings.Split(tablePattern, ","), t.Name)
 			})
 			for j := 0; j < len(filteredTables); j++ {
-				columns := lo.Filter(filteredTables[j].Columns, func(c model.Column, _ int) bool {
+				columns := lo.Filter(filteredTables[j].Columns, func(c *model.Column, _ int) bool {
 					return columnPattern == "" || WildCardMatchs(strings.Split(columnPattern, ","), c.Name)
 				})
 				if len(columns) > 0 {
@@ -48,7 +48,7 @@ func Filter(data *model.DataDef, schemaPattern string, tablePattern string, colu
 			}
 		}
 	}
-	tables := lo.FlatMap(d.Schemas, func(s model.Schema, _ int) []model.Table {
+	tables := lo.FlatMap(d.Schemas, func(s *model.Schema, _ int) []model.Table {
 		return s.Tables
 	})
 	if len(tables) == 0 {

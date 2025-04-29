@@ -1,86 +1,62 @@
 package erd
 
 import (
+	"embed"
 	_ "embed"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/CloudyKit/jet/v6"
+	"github.com/CloudyKit/jet/v6/loaders/embedfs"
 	"github.com/codeskyblue/go-sh"
-	"github.com/rotisserie/eris"
+	"github.com/zrs01/dst/config"
+	"github.com/zrs01/dst/internal/fileloader"
 	"github.com/zrs01/dst/internal/tpl"
-	"github.com/zrs01/dst/model"
-	"github.com/zrs01/dst/utils"
 	"github.com/ztrue/tracerr"
 )
 
-//go:embed templates/erd.jet
-var tplERD []byte
+//go:embed templates/default.jet
+var templateFS embed.FS
 
-func WriteERD(data *model.DataDef, tplf string, out string) error {
-	if tplf == "" {
-		// use default template
-		fh, err := os.CreateTemp("", "dst")
-		if err != nil {
-			return tracerr.Wrap(err)
-		}
-		tplf = fh.Name()
-		fh.Close()
-
-		if err := os.WriteFile(tplf, tplERD, 0644); err != nil {
-			return tracerr.Wrap(err)
-		}
-		defer os.Remove(tplf)
-	}
-
-	outPuml := strings.TrimSuffix(out, filepath.Ext(out)) + ".puml"
-	if err := tpl.WriteFileTpl(data, tplf, outPuml); err != nil {
+func Generate() error {
+	// load the schema
+	data, err := fileloader.LoadWithFilter(config.Setting.Erd.Input, config.Setting.Erd.Schema, config.Setting.Erd.Table, "")
+	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	// if err := writePlantuml(data, tplf, outPuml); err != nil {
-	// 	return tracerr.Wrap(err)
-	// }
-	if out != "" {
-		lib, err := utils.SearchPathFiles("plantuml*.jar")
-		if err != nil {
-			return tracerr.Wrap(err)
-		}
-		if len(lib) == 0 {
-			return tracerr.New("plantuml*.jar not found in PATH environment variable")
-		}
-		fmt.Printf("> use plantuml library found in '%s'\n", lib[0])
-		if err := sh.Command("java", "-jar", lib[0], outPuml).Run(); err != nil {
-			return eris.Wrapf(err, "failed to generate the diagram")
-		}
+
+	var loader jet.Loader
+	// Use default template if not specified
+	if config.Setting.Erd.Template == "" {
+		config.Setting.Erd.Template = "templates/default.jet"
+		loader = embedfs.NewLoader(filepath.Dir(config.Setting.Erd.Template), templateFS)
+	} else {
+		loader = jet.NewOSFileSystemLoader(filepath.Dir(config.Setting.Erd.Template))
 	}
 
+	ext := filepath.Ext(config.Setting.Erd.Output)
+	switch ext {
+	case ".puml":
+		if err := tpl.WriteWithLoader(loader, data, config.Setting.Erd.Template, config.Setting.Erd.Output); err != nil {
+			return tracerr.Wrap(err)
+		}
+	case ".png":
+		if config.Setting.Erd.UmlLib == "" {
+			return tracerr.New("plantuml library path is not specified")
+		}
+		if _, err := os.Stat(config.Setting.Erd.UmlLib); os.IsNotExist(err) {
+			return tracerr.Wrap(err)
+		}
+		if err := tpl.WriteWithLoader(loader, data, config.Setting.Erd.Template, "output.puml"); err != nil {
+			return tracerr.Wrap(err)
+		}
+		defer os.Remove("output.puml")
+		if err := sh.Command("java", "-jar", config.Setting.Erd.UmlLib, "-o", filepath.Dir(config.Setting.Erd.Output), "output.puml").Run(); err != nil {
+			return tracerr.Wrap(err)
+		}
+	default:
+		return tracerr.New(fmt.Sprintf("output file extension '%s' does not supported", config.Setting.Erd.Output))
+	}
 	return nil
 }
-
-// func writePlantuml(data *model.DataDef, tplf string, out string) error {
-// 	loader := jet.NewOSFileSystemLoader(filepath.Dir(tplf))
-
-// 	views := jet.NewSet(loader)
-// 	view, err := views.GetTemplate(filepath.Base(tplf))
-// 	if err != nil {
-// 		return tracerr.Wrap(err)
-// 	}
-
-// 	// output
-// 	var fh *os.File
-// 	if out == "" {
-// 		fh = os.Stdout
-// 	} else {
-// 		fh, err = os.Create(out)
-// 		if err != nil {
-// 			return tracerr.Wrap(err)
-// 		}
-// 		defer fh.Close()
-// 	}
-
-// 	if err := view.Execute(fh, nil, *data); err != nil {
-// 		return tracerr.Wrap(err)
-// 	}
-// 	return nil
-// }

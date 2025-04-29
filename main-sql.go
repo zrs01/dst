@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/urfave/cli/v2"
-	"github.com/zrs01/dst/internal/cliflag"
 	"github.com/zrs01/dst/internal/fileloader"
+	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/sql"
 	"github.com/ztrue/tracerr"
 )
@@ -11,24 +11,24 @@ import (
 /* -------------------------------------------------------------------------- */
 /*                                     SQL                                    */
 /* -------------------------------------------------------------------------- */
-func registerDDLRenderer(cliapp *cli.App) *cli.Command {
-	sqlCmd := &cli.Command{
+func RegisterSql(cliapp *cli.App) {
+	cmd := &cli.Command{
 		Name:    "sql",
 		Aliases: []string{"s"},
 		Usage:   "Generate SQL DDL",
 	}
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		return sqlCmd
+		return cmd
 	}())
 
-	databaseFlagBuilder := func() *cliflag.StringFlagBuilder {
-		return cliflag.NewStringFlagBuilder("database").WithAliases("d").Required(true).WithUsage("database (mariadb, mssql)")
+	databaseFlagBuilder := func() *flagbuilder.StringFlag {
+		return flagbuilder.NewStringFlag("database").WithAliases("d").Required(true).WithUsage("database (mariadb, mssql)")
 	}
-	columnFlagBuilder := func() *cliflag.StringFlagBuilder {
-		return cliflag.NewStringFlagBuilder("column").WithAliases("c").WithUsage("column")
+	columnFlagBuilder := func() *flagbuilder.StringFlag {
+		return flagbuilder.NewStringFlag("column").WithAliases("c").WithUsage("column")
 	}
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
 		return &cli.Command{
 			Name:  "ct",
@@ -39,11 +39,6 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 				schemaNameFlagBuilder().WithDestination(&schema).Build(),
 				tableNameFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
-				// iSchemaFileFlag(&ifile),
-				// ofileFlag(&ofile, "output file"),
-				// schemaFile(&schema),
-				// tableFlag(&table),
-				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := fileloader.LoadWithFilter(ifile, schema, table, "")
@@ -55,7 +50,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
 		return &cli.Command{
 			Name:  "dt",
@@ -66,11 +61,6 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 				schemaNameFlagBuilder().WithDestination(&schema).Build(),
 				tableNameFlagBuilder().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
-				// iSchemaFileFlag(&ifile),
-				// ofileFlag(&ofile, "output file"),
-				// schemaFile(&schema),
-				// tableFlag(&table),
-				// dbFlag(&db),
 			},
 			Action: func(c *cli.Context) error {
 				data, err := fileloader.LoadWithFilter(ifile, schema, table, "")
@@ -82,7 +72,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "ac",
@@ -105,7 +95,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "dc",
@@ -128,7 +118,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "rc",
@@ -151,7 +141,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "mc",
@@ -174,7 +164,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "ci",
@@ -197,7 +187,7 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 		}
 	}())
 
-	sqlCmd.Subcommands = append(sqlCmd.Subcommands, func() *cli.Command {
+	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "di",
@@ -219,6 +209,4 @@ func registerDDLRenderer(cliapp *cli.App) *cli.Command {
 			},
 		}
 	}())
-
-	return sqlCmd
 }

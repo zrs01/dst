@@ -60,8 +60,8 @@ func (s *MysqlService) Read(schemaName string) (*model.DataDef, error) {
 	return &dataDef, nil
 }
 
-func (s *MysqlService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Schema, error) {
-	mSchemas := make([]model.Schema, len(*dSchemas))
+func (s *MysqlService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]*model.Schema, error) {
+	mSchemas := make([]*model.Schema, len(*dSchemas))
 	for index, dSchema := range *dSchemas {
 		schemaTables := lo.Filter(*dTables, func(dTable MySqlTable, _ int) bool {
 			return *dTable.TableSchema == *dSchema.SchemaName
@@ -70,7 +70,7 @@ func (s *MysqlService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTab
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		mSchemas[index] = model.Schema{
+		mSchemas[index] = &model.Schema{
 			Name:   *dSchema.SchemaName,
 			Tables: *mTables,
 		}
@@ -99,10 +99,10 @@ func (s *MysqlService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dC
 	return &mTables, nil
 }
 
-func (s *MysqlService) buildColumn(dTable MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Column, error) {
-	mColumns := make([]model.Column, len(*dColumns))
+func (s *MysqlService) buildColumn(dTable MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]*model.Column, error) {
+	mColumns := make([]*model.Column, len(*dColumns))
 	for index, dColumn := range *dColumns {
-		mColumn := model.Column{
+		mColumn := &model.Column{
 			Name:     *dColumn.ColumnName,
 			DataType: *dColumn.DataType,
 		}

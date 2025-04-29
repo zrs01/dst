@@ -8,29 +8,28 @@ import (
 	"strings"
 
 	"github.com/CloudyKit/jet/v6"
+	"github.com/CloudyKit/jet/v6/loaders/embedfs"
 	pluralize "github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
-func WriteFileTpl(data *model.DataDef, tplf string, out string) error {
-	loader := jet.NewOSFileSystemLoader(filepath.Dir(tplf))
-	return writeTpl(data, loader, tplf, out)
+func WriteWithFileLoader(data *model.DataDef, tplf string, out string) error {
+	return WriteWithLoader(jet.NewOSFileSystemLoader(filepath.Dir(tplf)), data, tplf, out)
 }
 
-func WriteEmbedFSTpl(fs embed.FS, data *model.DataDef, tplf string, out string) error {
-	loader := NewVSFileSystemLoader(fs, filepath.Dir(tplf))
-	return writeTpl(data, loader, tplf, out)
+func WriteWithEmbedFSLoader(fs embed.FS, data *model.DataDef, tplf string, out string) error {
+	return WriteWithLoader(embedfs.NewLoader(filepath.Dir(tplf), fs), data, tplf, out)
 }
 
-func WriteMemoryTpl(data *model.DataDef, tplf, tplc string, out string) error {
+func WriteWithInMemoryLoader(data *model.DataDef, tplf, tplc string, out string) error {
 	loader := jet.NewInMemLoader()
 	loader.Set(filepath.Base(tplf), tplc)
-	return writeTpl(data, loader, tplf, out)
+	return WriteWithLoader(loader, data, tplf, out)
 }
 
-func writeTpl(data *model.DataDef, loader jet.Loader, tplf string, out string) error {
+func WriteWithLoader(loader jet.Loader, data *model.DataDef, tplf string, out string) error {
 	views := jet.NewSet(loader)
 	setJetFunc(views)
 	view, err := views.GetTemplate(filepath.Base(tplf))
@@ -38,7 +37,6 @@ func writeTpl(data *model.DataDef, loader jet.Loader, tplf string, out string) e
 		return tracerr.Wrap(err)
 	}
 
-	// output
 	var fh *os.File
 	if out == "" || out == "stdout" {
 		fh = os.Stdout

@@ -45,7 +45,7 @@ func DropIndex(data *model.DataDef, db string, out string) error {
 }
 
 func writeDDL(data *model.DataDef, template string, out string) error {
-	if err := tpl.WriteEmbedFSTpl(fs, data, template, out); err != nil {
+	if err := tpl.WriteWithEmbedFSLoader(fs, data, template, out); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil
