@@ -15,9 +15,10 @@ type DataDef struct {
 }
 
 type Schema struct {
-	Name   string   `yaml:"name,omitempty" default:"Schema"`
-	Desc   string   `yaml:"desc,omitempty"`
-	Tables []*Table `yaml:"tables,omitempty"`
+	Name    string   `yaml:"name,omitempty" default:"Schema"`
+	Desc    string   `yaml:"desc,omitempty"`
+	Tables  []*Table `yaml:"tables,omitempty"`
+	Indexes []*Index `yaml:"indexes,omitempty"`
 }
 
 type Table struct {
@@ -26,6 +27,7 @@ type Table struct {
 	Desc       string       `yaml:"desc,omitempty"`
 	Version    bool         `yaml:"version,omitempty"`
 	Columns    []*Column    `yaml:"columns,omitempty"`
+	Indexes    []*Index     `yaml:"indexes,omitempty"`
 	References []*Reference `yaml:"references,omitempty"`
 }
 
@@ -42,6 +44,7 @@ type Column struct {
 	Index       string `yaml:"in,omitempty"`
 	Desc        string `yaml:"dc,omitempty"`
 	Compute     string `yaml:"cm,omitempty"`
+	ComputeType string `yaml:"computetype,omitempty"`
 }
 
 type Reference struct {
@@ -54,10 +57,21 @@ type ForeignTable struct {
 	Column string `yaml:"column,omitempty"`
 }
 
+type Index struct {
+	Name    string   `yaml:"name,omitempty"`
+	Unique  string   `yaml:"unique,omitempty"`
+	Columns []string `yaml:"columns,flow,omitempty"`
+}
+
+type Routine struct {
+	Name string `yaml:"name,omitempty"`
+	Code string `yaml:"code,omitempty"`
+}
+
 // MarshalYAML is a method that marshals a Column struct into a YAML Node
 func (c *Column) MarshalYAML() (any, error) {
 	// toYamlNodes is a function that converts a struct into a slice of YAML Nodes
-	content := toYamlNodes(*c, func(name string, value any) bool {
+	content := getContent(*c, func(name string, value any) bool {
 		// check whether below columns should be excluded
 		if name == "Identity" && value == "N" {
 			return false
@@ -68,9 +82,6 @@ func (c *Column) MarshalYAML() (any, error) {
 		if name == "NotNull" && value == "N" {
 			return false
 		}
-		// if name == "AutoIncrement" && value == "N" {
-		// 	return false
-		// }
 		return true
 	}, func(nameNode, valueNode *yaml.Node) {
 		// make expression of compute column more readable
@@ -88,7 +99,7 @@ func (c *Column) MarshalYAML() (any, error) {
 }
 
 func (f *ForeignTable) MarshalYAML() (any, error) {
-	content := toYamlNodes(*f, nil, nil)
+	content := getContent(*f, nil, nil)
 
 	node := &yaml.Node{
 		Kind:    yaml.MappingNode,
@@ -98,8 +109,8 @@ func (f *ForeignTable) MarshalYAML() (any, error) {
 	return node, nil
 }
 
-// toYamlNodes converts a source object into a slice of YAML nodes.
-func toYamlNodes(source any, isColumnVisible func(string, any) bool, finalTouch func(*yaml.Node, *yaml.Node)) []*yaml.Node {
+// getContent converts a source object into a slice of YAML nodes.
+func getContent(source any, isColumnVisible func(string, any) bool, finalTouch func(*yaml.Node, *yaml.Node)) []*yaml.Node {
 	outNodes := make([]*yaml.Node, 0)
 
 	v := reflect.ValueOf(source)

@@ -2,41 +2,12 @@ package ddwriter
 
 import (
 	"fmt"
-	"io/fs"
-	"os"
 	"reflect"
 
 	// yamlOut "github.com/goccy/go-yaml"
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
-	"github.com/zrs01/dst/utils"
-	"github.com/ztrue/tracerr"
-	"gopkg.in/yaml.v3"
 )
-
-// WriteYml writes data to yml file with pattern
-func WriteYml(dataDef *model.DataDef, outfile string, schemaPattern, tablePattern string) error {
-	restoreFixColumns(dataDef)
-
-	patternDataDef, err := utils.FilterData(dataDef, schemaPattern, tablePattern, "")
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
-
-	bytes, err := yaml.Marshal(patternDataDef)
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
-
-	if outfile == "" || outfile == "stdout" {
-		fmt.Println(string(bytes))
-	} else {
-		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o744)); err != nil {
-			return tracerr.Wrap(err)
-		}
-	}
-	return nil
-}
 
 func restoreFixColumns(data *model.DataDef) {
 	type tb struct {

@@ -31,9 +31,10 @@ func RegisterXls(cliapp *cli.App) {
 			Action: func(c *cli.Context) error {
 				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table))
+					ddloader.WithTablePattern(table)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

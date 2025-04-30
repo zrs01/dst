@@ -7,49 +7,70 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"github.com/zrs01/dst/internal/db/mariadb"
 	"github.com/zrs01/dst/internal/dbm"
 	"github.com/zrs01/dst/model"
-	"github.com/zrs01/dst/utils"
+	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
 	yamlIn "gopkg.in/yaml.v3"
 )
 
+type LoadBuilder struct {
+	options struct {
+		schemaPattern         string
+		tablePattern          string
+		columnPattern         string
+		updateReferenceTables bool
+		expandFixColumns      bool
+	}
+}
+
 const (
-	MYSQL_PREFIX = "mysql://"
-	MSSQL_PREFIX = "sqlserver://"
+	MYSQL_PREFIX   = "mysql://"
+	MSSQL_PREFIX   = "sqlserver://"
+	MARIADB_PREFIX = "mariadb://"
 )
 
+func NewLoadBuilder(opts ...func(*LoadBuilder)) *LoadBuilder {
+	builder := &LoadBuilder{}
+	for _, o := range opts {
+		o(builder)
+	}
+	return builder
+}
+
 // Load loads the data from the specified input.
-func Load(input string, opts ...Option) (*model.DataDef, error) {
+func (s *LoadBuilder) Load(input string) (*model.DataDef, error) {
 	if input == "" {
 		return nil, tracerr.Errorf("the input source is empty")
-	}
-	var options = options{}
-	for _, o := range opts {
-		o.apply(&options)
 	}
 
 	var dataDef *model.DataDef
 	var err error
 	if strings.HasPrefix(input, MYSQL_PREFIX) {
-		dataDef, err = loadFromMysql(input)
+		dataDef, err = s.loadFromMysql(input)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-	}
-	if strings.HasPrefix(input, MSSQL_PREFIX) {
-		dataDef, err = loadFromMssql(input)
+	} else if strings.HasPrefix(input, MSSQL_PREFIX) {
+		dataDef, err = s.loadFromMssql(input)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-	}
-	dataDef, err = loadFromFile(input)
-	if err != nil {
-		return nil, tracerr.Wrap(err)
+	} else if strings.HasPrefix(input, MARIADB_PREFIX) {
+		dataDef, err = s.loadFromMariadb(input)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+	} else {
+		dataDef, err = s.loadFromFile(input)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
 	}
 
-	if options.schemaPattern != "" || options.tablePattern != "" || options.columnPattern != "" {
-		dataDef, err = utils.FilterData(dataDef, options.schemaPattern, options.tablePattern, options.columnPattern)
+	if s.options.schemaPattern != "" || s.options.tablePattern != "" || s.options.columnPattern != "" {
+		dataDef, err = util.FilterData(dataDef, s.options.schemaPattern, s.options.tablePattern, s.options.columnPattern)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
@@ -57,7 +78,7 @@ func Load(input string, opts ...Option) (*model.DataDef, error) {
 	return dataDef, nil
 }
 
-func loadFromFile(file string) (*model.DataDef, error) {
+func (s *LoadBuilder) loadFromFile(file string) (*model.DataDef, error) {
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
@@ -68,8 +89,12 @@ func loadFromFile(file string) (*model.DataDef, error) {
 		return nil, tracerr.Wrap(err)
 	}
 
-	UpdateReferenceTables(&d)
-	expandFixColumns(&d)
+	if s.options.updateReferenceTables {
+		s.updateReferenceTables(&d)
+	}
+	if s.options.expandFixColumns {
+		s.expandFixColumns(&d)
+	}
 
 	// validate	data
 	validateResult := model.Verify(&d)
@@ -83,7 +108,7 @@ func loadFromFile(file string) (*model.DataDef, error) {
 }
 
 // loadFromMysql loads the data from a MySQL database specified by the dataSourceName.
-func loadFromMysql(dataSourceName string) (*model.DataDef, error) {
+func (s *LoadBuilder) loadFromMysql(dataSourceName string) (*model.DataDef, error) {
 	// dataSourceName: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
 	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dataSourceName)
 	if len(regex) == 0 {
@@ -101,7 +126,7 @@ func loadFromMysql(dataSourceName string) (*model.DataDef, error) {
 }
 
 // loadFromMssql loads the data from a Microsoft SQL Server database specified by the dataSourceName.
-func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
+func (s *LoadBuilder) loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 	// dataSourceName: sqlserver: //username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
 	schema := ""
 	parts := strings.Split(dataSourceName, "?")
@@ -123,7 +148,28 @@ func loadFromMssql(dataSourceName string) (*model.DataDef, error) {
 	return result, nil
 }
 
-func UpdateReferenceTables(dataDef *model.DataDef) {
+func (s *LoadBuilder) loadFromMariadb(dataSourceName string) (*model.DataDef, error) {
+	// dataSourceName: mariadb://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
+	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dataSourceName)
+	if len(regex) == 0 {
+		return nil, tracerr.Errorf("Failed to parse %s", dataSourceName)
+	}
+	schema := regex[1]
+	dsName := dataSourceName[len(MARIADB_PREFIX):]
+	dbManager := mariadb.NewExportManager().
+		WithDriverName("mysql").
+		WithDataSourceName(dsName).
+		WithDatabaseName(schema)
+	schemaDef, err := dbManager.ToModel()
+	if err != nil {
+		return nil, tracerr.Wrap(err)
+	}
+	return &model.DataDef{
+		Schemas: []*model.Schema{schemaDef},
+	}, nil
+}
+
+func (s *LoadBuilder) updateReferenceTables(dataDef *model.DataDef) {
 	// the map table to speed up the lookup process
 	tableMap := make(map[string]*model.Table)
 	for i := 0; i < len(dataDef.Schemas); i++ {
@@ -159,7 +205,7 @@ func UpdateReferenceTables(dataDef *model.DataDef) {
 }
 
 // Expand fixed columns to each tables.
-func expandFixColumns(dataDef *model.DataDef) {
+func (s *LoadBuilder) expandFixColumns(dataDef *model.DataDef) {
 	// copy fixed columns to each tables
 	for i := 0; i < len(dataDef.Schemas); i++ {
 		schema := dataDef.Schemas[i]

@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"regexp"
@@ -37,10 +37,4 @@ func WildCardMatchs(pattern []string, value string) bool {
 func WildCardMatch(pattern string, value string) bool {
 	result, _ := regexp.MatchString(WildCardToRegexp(strings.TrimSpace(pattern)), value)
 	return result
-}
-
-func SplitWithTrim(str string, sep string) []string {
-	return lo.FilterMap(strings.Split(str, sep), func(x string, _ int) (string, bool) {
-		return strings.TrimSpace(x), x != ""
-	})
 }

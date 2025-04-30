@@ -22,9 +22,10 @@ var templateFS embed.FS
 
 func Generate() error {
 	logrus.Info("Generating ER Diagram...")
-	data, err := ddloader.Load(config.Setting.Input,
-		ddloader.WithSchemaPattern(config.Setting.Erd.Schema),
-		ddloader.WithTablePattern(config.Setting.Erd.Table))
+	data, err := ddloader.NewLoadBuilder(
+		ddloader.WithSchemaPattern(config.Setting.Erd.SchemaFilter),
+		ddloader.WithTablePattern(config.Setting.Erd.TableFilter)).
+		Load(config.Setting.Input)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

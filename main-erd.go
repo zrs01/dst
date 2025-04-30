@@ -31,8 +31,8 @@ func RegisterErd(cliapp *cli.App) {
 			Action: func(c *cli.Context) error {
 				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
 				config.Setting.Erd.Output = lo.If(output != "", output).Else(config.Setting.Erd.Output)
-				config.Setting.Erd.Schema = lo.If(schema != "", schema).Else(config.Setting.Erd.Schema)
-				config.Setting.Erd.Table = lo.If(table != "", table).Else(config.Setting.Erd.Table)
+				config.Setting.Erd.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.Erd.SchemaFilter)
+				config.Setting.Erd.TableFilter = lo.If(table != "", table).Else(config.Setting.Erd.TableFilter)
 				config.Setting.Erd.Template = lo.If(template != "", template).Else(config.Setting.Erd.Template)
 				config.Setting.Erd.UmlLib = lo.If(lib != "", lib).Else(config.Setting.Erd.UmlLib)
 				return erd.Generate()

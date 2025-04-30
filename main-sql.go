@@ -42,9 +42,10 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table))
+					ddloader.WithTablePattern(table)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -67,9 +68,10 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table))
+					ddloader.WithTablePattern(table)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -93,10 +95,11 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col))
+					ddloader.WithColumnPattern(col)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -120,10 +123,11 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col))
+					ddloader.WithColumnPattern(col)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -146,10 +150,11 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col))
+					ddloader.WithColumnPattern(col)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -173,10 +178,11 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col))
+					ddloader.WithColumnPattern(col)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -200,10 +206,11 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col))
+					ddloader.WithColumnPattern(col)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -227,10 +234,11 @@ func RegisterSql(cliapp *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.Load(ifile,
+				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col))
+					ddloader.WithColumnPattern(col)).
+					Load(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

@@ -8,6 +8,7 @@ import (
 	"github.com/ztrue/tracerr"
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
@@ -52,7 +53,6 @@ func main() {
 	1. A schema file in YAML format (e.g. schemal.yml)
 	2. A MySQL database connnection string in the format:
 	   mysql://[user[:cred]@][protocol[(address[:port])]]/dbname[?param1=value1&...]
-	   (e.g. mysql://root:password@tcp(127.0.0.1:3306)/user?charset=utf8mb4)
 	3. A SQL Server database connection string in the format:
 	   sqlserver://user:cred@host[:port][/dbname][?param1=value1&...]`)
 	}

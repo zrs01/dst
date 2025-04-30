@@ -7,17 +7,18 @@ import (
 type SettingDef struct {
 	Input string
 	Text  struct {
-		Output   string
-		Template string
-		Schema   string
-		Table    string
+		Output       string
+		Template     string
+		SchemaFilter string
+		TableFilter  string
+		ColumnFilter string
 	}
 	Erd struct {
-		Output   string `default:"output.png"`
-		Template string
-		Schema   string
-		Table    string
-		UmlLib   string
+		Output       string `default:"output.png"`
+		Template     string
+		SchemaFilter string
+		TableFilter  string
+		UmlLib       string
 	}
 }
 

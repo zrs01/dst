@@ -1,41 +1,31 @@
 package ddloader
 
-type options struct {
-	schemaPattern string
-	tablePattern  string
-	columnPattern string
+func WithSchemaPattern(pattern string) func(*LoadBuilder) {
+	return func(s *LoadBuilder) {
+		s.options.schemaPattern = pattern
+	}
 }
 
-type Option interface {
-	apply(*options)
+func WithTablePattern(pattern string) func(*LoadBuilder) {
+	return func(s *LoadBuilder) {
+		s.options.tablePattern = pattern
+	}
 }
 
-type schemaPatternOption string
-
-func (s schemaPatternOption) apply(o *options) {
-	o.schemaPattern = string(s)
+func WithColumnPattern(pattern string) func(*LoadBuilder) {
+	return func(s *LoadBuilder) {
+		s.options.columnPattern = pattern
+	}
 }
 
-func WithSchemaPattern(pattern string) Option {
-	return schemaPatternOption(pattern)
+func WithUpdateReferenceTables() func(*LoadBuilder) {
+	return func(s *LoadBuilder) {
+		s.options.updateReferenceTables = true
+	}
 }
 
-type tablePatternOption string
-
-func (t tablePatternOption) apply(o *options) {
-	o.tablePattern = string(t)
-}
-
-func WithTablePattern(pattern string) Option {
-	return tablePatternOption(pattern)
-}
-
-type columnPatternOption string
-
-func (c columnPatternOption) apply(o *options) {
-	o.columnPattern = string(c)
-}
-
-func WithColumnPattern(pattern string) Option {
-	return columnPatternOption(pattern)
+func WithExpandFixColumns() func(*LoadBuilder) {
+	return func(s *LoadBuilder) {
+		s.options.expandFixColumns = true
+	}
 }
