@@ -81,8 +81,8 @@ func (s *MysqlService) buildSchemas(dSchemas *[]MySqlSchema, dTables *[]MySqlTab
 	return &mSchemas, nil
 }
 
-func (s *MysqlService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]model.Table, error) {
-	mTables := make([]model.Table, len(*dTables))
+func (s *MysqlService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dColumns *[]MySqlColumn, dKeyColumnUsages *[]MySqlKeyColumnUsage) (*[]*model.Table, error) {
+	mTables := make([]*model.Table, len(*dTables))
 	for index, dTable := range *dTables {
 		tableColumns := lo.Filter(*dColumns, func(dColumn MySqlColumn, _ int) bool {
 			return *dColumn.TableSchema == *dSchema.SchemaName && *dColumn.TableName == *dTable.TableName
@@ -91,7 +91,7 @@ func (s *MysqlService) buildTable(dSchema MySqlSchema, dTables *[]MySqlTable, dC
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		mTables[index] = model.Table{
+		mTables[index] = &model.Table{
 			Name:    *dTable.TableName,
 			Columns: *mColumns,
 		}

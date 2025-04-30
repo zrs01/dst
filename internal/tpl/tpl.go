@@ -11,9 +11,23 @@ import (
 	"github.com/CloudyKit/jet/v6/loaders/embedfs"
 	pluralize "github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
+	"github.com/zrs01/dst/config"
+	"github.com/zrs01/dst/internal/ddloader"
+	"github.com/zrs01/dst/internal/ddwriter"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
+
+func Generate() error {
+	data, err := ddloader.Load(config.Setting.Input) // the data does not filter by schema and table
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	if config.Setting.Text.Template == "" {
+		return ddwriter.WriteYml(data, config.Setting.Text.Output, config.Setting.Text.Schema, config.Setting.Text.Table)
+	}
+	return WriteWithFileLoader(data, config.Setting.Text.Template, config.Setting.Text.Output)
+}
 
 func WriteWithFileLoader(data *model.DataDef, tplf string, out string) error {
 	return WriteWithLoader(jet.NewOSFileSystemLoader(filepath.Dir(tplf)), data, tplf, out)

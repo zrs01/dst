@@ -5,15 +5,14 @@ import (
 )
 
 type SettingDef struct {
-	Text struct {
-		Input    string
+	Input string
+	Text  struct {
 		Output   string
 		Template string
 		Schema   string
 		Table    string
 	}
 	Erd struct {
-		Input    string
 		Output   string `default:"output.png"`
 		Template string
 		Schema   string

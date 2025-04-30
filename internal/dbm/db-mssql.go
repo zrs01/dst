@@ -81,8 +81,8 @@ func (s *MssqlService) buildSchemas(dSchemas *[]MsSqlSchema, dTables *[]MsSqlTab
 	return &mSchemas, nil
 }
 
-func (s *MssqlService) buildTable(dSchema MsSqlSchema, dTables *[]MsSqlTable, dColumns *[]MsSqlColumn, dKeyColumnUsages *[]MsSqlKeyColumnUsage) (*[]model.Table, error) {
-	mTables := make([]model.Table, len(*dTables))
+func (s *MssqlService) buildTable(dSchema MsSqlSchema, dTables *[]MsSqlTable, dColumns *[]MsSqlColumn, dKeyColumnUsages *[]MsSqlKeyColumnUsage) (*[]*model.Table, error) {
+	mTables := make([]*model.Table, len(*dTables))
 	for index, dTable := range *dTables {
 		tableColumns := lo.Filter(*dColumns, func(dColumn MsSqlColumn, _ int) bool {
 			return *dColumn.TableSchema == *dSchema.SchemaName && *dColumn.TableName == *dTable.TableName
@@ -91,7 +91,7 @@ func (s *MssqlService) buildTable(dSchema MsSqlSchema, dTables *[]MsSqlTable, dC
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		mTables[index] = model.Table{
+		mTables[index] = &model.Table{
 			Name:    *dTable.TableName,
 			Columns: *mColumns,
 		}

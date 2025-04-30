@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/urfave/cli/v2"
-	"github.com/zrs01/dst/internal/fileloader"
+	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/sql"
 	"github.com/ztrue/tracerr"
@@ -41,7 +41,10 @@ func RegisterSql(cliapp *cli.App) {
 				databaseFlagBuilder().WithDestination(&db).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, "")
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -63,7 +66,10 @@ func RegisterSql(cliapp *cli.App) {
 				databaseFlagBuilder().WithDestination(&db).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, "")
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -86,7 +92,11 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, col)
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table),
+					ddloader.WithColumnPattern(col))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -109,7 +119,11 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, col)
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table),
+					ddloader.WithColumnPattern(col))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -132,7 +146,10 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, col)
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table),
+					ddloader.WithColumnPattern(col))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -155,7 +172,11 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, col)
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table),
+					ddloader.WithColumnPattern(col))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -178,7 +199,11 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, col)
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table),
+					ddloader.WithColumnPattern(col))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -201,7 +226,11 @@ func RegisterSql(cliapp *cli.App) {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				data, err := fileloader.LoadWithFilter(ifile, schema, table, col)
+				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+				data, err := ddloader.Load(ifile,
+					ddloader.WithSchemaPattern(schema),
+					ddloader.WithTablePattern(table),
+					ddloader.WithColumnPattern(col))
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

@@ -3,6 +3,8 @@ package utils
 import (
 	"regexp"
 	"strings"
+
+	"github.com/samber/lo"
 )
 
 func WildCardToRegexp(pattern string) string {
@@ -25,21 +27,20 @@ func WildCardToRegexp(pattern string) string {
 	return "^" + "(?i)" + sb.String() + "$"
 }
 
+func WildCardMatchs(pattern []string, value string) bool {
+	return lo.SomeBy(pattern, func(x string) bool {
+		return WildCardMatch(x, value)
+	})
+}
+
 // WildCardMatch checks if a given value matches a wildcard pattern.
-//
-// pattern: the wildcard pattern to match against.
-// value: the value to check.
-// bool: true if the value matches the pattern, false otherwise.
 func WildCardMatch(pattern string, value string) bool {
 	result, _ := regexp.MatchString(WildCardToRegexp(strings.TrimSpace(pattern)), value)
 	return result
 }
 
-func WildCardMatchs(pattern []string, value string) bool {
-	for i := 0; i < len(pattern); i++ {
-		if WildCardMatch(pattern[i], value) {
-			return true
-		}
-	}
-	return false
+func SplitWithTrim(str string, sep string) []string {
+	return lo.FilterMap(strings.Split(str, sep), func(x string, _ int) (string, bool) {
+		return strings.TrimSpace(x), x != ""
+	})
 }

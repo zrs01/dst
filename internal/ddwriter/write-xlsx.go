@@ -1,4 +1,4 @@
-package filewriter
+package ddwriter
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func ReadXlsx(infile string) (*model.DataDef, error) {
 
 				if table != nil {
 					// append last table instance
-					schema.Tables = append(schema.Tables, *table)
+					schema.Tables = append(schema.Tables, table)
 				}
 				table = &model.Table{}
 
@@ -99,11 +99,11 @@ func ReadXlsx(infile string) (*model.DataDef, error) {
 						incol.Desc = cell
 					}
 				}
-				table.OutColumns = append(table.OutColumns, model.OutColumn{Value: incol})
+				// table.OutColumns = append(table.OutColumns, model.OutColumn{Value: incol})
 			}
 		}
 		// last table
-		schema.Tables = append(schema.Tables, *table)
+		schema.Tables = append(schema.Tables, table)
 		data.Schemas = append(data.Schemas, schema)
 	}
 	return &data, err

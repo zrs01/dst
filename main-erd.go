@@ -29,7 +29,7 @@ func RegisterErd(cliapp *cli.App) {
 				flagbuilder.NewStringFlag("umllib").WithUsage("Path of plantuml.jar file (required when output is .png").WithDestination(&lib).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				config.Setting.Erd.Input = lo.If(input != "", input).Else(config.Setting.Erd.Input)
+				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
 				config.Setting.Erd.Output = lo.If(output != "", output).Else(config.Setting.Erd.Output)
 				config.Setting.Erd.Schema = lo.If(schema != "", schema).Else(config.Setting.Erd.Schema)
 				config.Setting.Erd.Table = lo.If(table != "", table).Else(config.Setting.Erd.Table)

@@ -10,26 +10,23 @@ import (
 )
 
 type DataDef struct {
-	Fixed    []*Column   `yaml:"fixed,omitempty"`
-	OutFixed []OutColumn `yaml:"out_fixed,omitempty"`
-	Schemas  []*Schema   `yaml:"schemas,omitempty"`
+	Fixed   []*Column `yaml:"fixed,omitempty"`
+	Schemas []*Schema `yaml:"schemas,omitempty"`
 }
 
 type Schema struct {
-	Name   string  `yaml:"name,omitempty" default:"Schema"`
-	Desc   string  `yaml:"desc,omitempty"`
-	Tables []Table `yaml:"tables,omitempty"`
+	Name   string   `yaml:"name,omitempty" default:"Schema"`
+	Desc   string   `yaml:"desc,omitempty"`
+	Tables []*Table `yaml:"tables,omitempty"`
 }
 
 type Table struct {
-	Name          string         `yaml:"name,omitempty"`
-	Title         string         `yaml:"title,omitempty"`
-	Desc          string         `yaml:"desc,omitempty"`
-	Version       bool           `yaml:"version,omitempty"`
-	Columns       []*Column      `yaml:"columns,omitempty"`
-	OutColumns    []OutColumn    `yaml:"out_columns,omitempty"`
-	References    []Reference    `yaml:"references,omitempty"`
-	OutReferences []OutReference `yaml:"out_references,omitempty"`
+	Name       string       `yaml:"name,omitempty"`
+	Title      string       `yaml:"title,omitempty"`
+	Desc       string       `yaml:"desc,omitempty"`
+	Version    bool         `yaml:"version,omitempty"`
+	Columns    []*Column    `yaml:"columns,omitempty"`
+	References []*Reference `yaml:"references,omitempty"`
 }
 
 type Column struct {
@@ -57,19 +54,11 @@ type ForeignTable struct {
 	Column string `yaml:"column,omitempty"`
 }
 
-type OutColumn struct {
-	Value Column `yaml:"_column,flow,omitempty"`
-}
-
-type OutReference struct {
-	Value Reference `yaml:"_reference,flow,omitempty"`
-}
-
 // MarshalYAML is a method that marshals a Column struct into a YAML Node
 func (c *Column) MarshalYAML() (any, error) {
 	// toYamlNodes is a function that converts a struct into a slice of YAML Nodes
 	content := toYamlNodes(*c, func(name string, value any) bool {
-		// exclude below columns if their value is N
+		// check whether below columns should be excluded
 		if name == "Identity" && value == "N" {
 			return false
 		}
@@ -99,9 +88,7 @@ func (c *Column) MarshalYAML() (any, error) {
 }
 
 func (f *ForeignTable) MarshalYAML() (any, error) {
-	content := toYamlNodes(*f, func(name string, value any) bool {
-		return true
-	}, nil)
+	content := toYamlNodes(*f, nil, nil)
 
 	node := &yaml.Node{
 		Kind:    yaml.MappingNode,
@@ -111,7 +98,8 @@ func (f *ForeignTable) MarshalYAML() (any, error) {
 	return node, nil
 }
 
-func toYamlNodes(source any, isValid func(string, any) bool, touch func(*yaml.Node, *yaml.Node)) []*yaml.Node {
+// toYamlNodes converts a source object into a slice of YAML nodes.
+func toYamlNodes(source any, isColumnVisible func(string, any) bool, finalTouch func(*yaml.Node, *yaml.Node)) []*yaml.Node {
 	outNodes := make([]*yaml.Node, 0)
 
 	v := reflect.ValueOf(source)
@@ -127,14 +115,14 @@ func toYamlNodes(source any, isValid func(string, any) bool, touch func(*yaml.No
 			return strings.TrimSpace(s)
 		})
 
-		valid := true
+		columnVisible := true
 		if lo.Contains(tags, "omitempty") {
-			valid = fieldValue != nil && fieldValue != "" && fieldValue != "NULL"
+			columnVisible = fieldValue != nil && fieldValue != "" && fieldValue != "NULL"
 		}
-		if valid && isValid != nil {
-			valid = isValid(fieldName, fieldValue)
+		if columnVisible && isColumnVisible != nil {
+			columnVisible = isColumnVisible(fieldName, fieldValue)
 		}
-		if valid {
+		if columnVisible {
 			// replace the name of field if found
 			if len(tags) >= 1 && tags[0] != "" {
 				fieldName = tags[0]
@@ -148,8 +136,8 @@ func toYamlNodes(source any, isValid func(string, any) bool, touch func(*yaml.No
 			valueNode := &yaml.Node{}
 			valueNode.SetString(fieldValue.(string))
 
-			if touch != nil {
-				touch(nameNode, valueNode)
+			if finalTouch != nil {
+				finalTouch(nameNode, valueNode)
 			}
 
 			outNodes = append(outNodes, nameNode, valueNode)

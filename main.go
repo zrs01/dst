@@ -1,12 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"time"
 
 	"github.com/urfave/cli/v2"
 	"github.com/ztrue/tracerr"
 
+	nested "github.com/antonfisher/nested-logrus-formatter"
+	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
 )
@@ -22,6 +24,8 @@ var (
 )
 
 func main() {
+	initLogrus()
+
 	cliapp := cli.NewApp()
 	cliapp.Name = "dst"
 	cliapp.Usage = "Database schema tool"
@@ -62,16 +66,23 @@ func main() {
 		return flagbuilder.NewStringFlag("table").WithUsage("Table name pattern; wildcard characters allowed: * or %")
 	}
 
-	RegisterTxt(cliapp)
-	RegisterXls(cliapp)
-	RegisterErd(cliapp)
-	RegisterSql(cliapp)
+	RegisterTxt(cliapp) // Template
+	RegisterXls(cliapp) // Excel
+	RegisterErd(cliapp) // ER diagram
+	RegisterSql(cliapp) // SQL DDL statement
 
 	if err := cliapp.Run(os.Args); err != nil {
 		if config.Debug {
-			tracerr.PrintSourceColor(err, 0)
+			logrus.Error(tracerr.SprintSourceColor(err, 0))
 		} else {
-			fmt.Printf("Error: %s\n", err)
+			logrus.Errorf("%s", err)
 		}
 	}
+}
+
+func initLogrus() {
+	logrus.SetFormatter(&nested.Formatter{
+		HideKeys:        true,
+		TimestampFormat: time.RFC3339,
+	})
 }

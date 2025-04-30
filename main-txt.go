@@ -4,8 +4,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/filewriter"
 	"github.com/zrs01/dst/internal/flagbuilder"
+	"github.com/zrs01/dst/internal/tpl"
 )
 
 func RegisterTxt(cliapp *cli.App) {
@@ -26,7 +26,7 @@ func RegisterTxt(cliapp *cli.App) {
 				flagbuilder.NewBoolFlag("dump").WithUsage("dump the content in .yml format").WithDestination(&dump).Build(),
 			},
 			Action: func(c *cli.Context) error {
-				config.Setting.Text.Input = lo.If(input != "", input).Else(config.Setting.Text.Input)
+				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
 				config.Setting.Text.Output = lo.If(output != "", output).Else(config.Setting.Text.Output)
 				config.Setting.Text.Schema = lo.If(schema != "", schema).Else(config.Setting.Text.Schema)
 				config.Setting.Text.Table = lo.If(table != "", table).Else(config.Setting.Text.Table)
@@ -55,7 +55,7 @@ func RegisterTxt(cliapp *cli.App) {
 				// if err := filewriter.WriteYml(data, output, schema, table); err != nil {
 				// 	return tracerr.Wrap(err)
 				// }
-				return filewriter.Generate()
+				return tpl.Generate()
 			},
 		}
 	}())
