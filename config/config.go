@@ -5,8 +5,13 @@ import (
 )
 
 type SettingDef struct {
-	Input string
-	Text  struct {
+	Export struct {
+		Dsn         string
+		Output      string
+		TableFilter string
+	}
+	Text struct {
+		Input        string
 		Output       string
 		Template     string
 		SchemaFilter string
@@ -14,6 +19,7 @@ type SettingDef struct {
 		ColumnFilter string
 	}
 	Erd struct {
+		Input        string
 		Output       string `default:"output.png"`
 		Template     string
 		SchemaFilter string
@@ -23,6 +29,7 @@ type SettingDef struct {
 }
 
 var (
+	Version  string      = "development"
 	Debug    bool        = false
 	Filename string      = "config.yml"
 	Setting  *SettingDef = &SettingDef{}

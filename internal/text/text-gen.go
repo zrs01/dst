@@ -1,4 +1,4 @@
-package tpl
+package text
 
 import (
 	"embed"
@@ -25,7 +25,7 @@ func Generate() error {
 		ddloader.WithSchemaPattern(config.Setting.Text.SchemaFilter),
 		ddloader.WithTablePattern(config.Setting.Text.TableFilter),
 		ddloader.WithColumnPattern(config.Setting.Text.ColumnFilter)).
-		Load(config.Setting.Input) // the data does not filter by schema and table
+		Load(config.Setting.Text.Input) // the data does not filter by schema and table
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

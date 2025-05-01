@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/db/mariadb"
 	"github.com/zrs01/dst/internal/dbm"
 	"github.com/zrs01/dst/model"
@@ -159,7 +160,8 @@ func (s *LoadBuilder) loadFromMariadb(dataSourceName string) (*model.DataDef, er
 	dbManager := mariadb.NewExportManager().
 		WithDriverName("mysql").
 		WithDataSourceName(dsName).
-		WithDatabaseName(schema)
+		WithDatabaseName(schema).
+		WithTableName(config.Setting.Text.TableFilter)
 	schemaDef, err := dbManager.ToModel()
 	if err != nil {
 		return nil, tracerr.Wrap(err)

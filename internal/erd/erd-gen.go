@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/ddloader"
-	"github.com/zrs01/dst/internal/tpl"
+	"github.com/zrs01/dst/internal/text"
 	"github.com/ztrue/tracerr"
 )
 
@@ -25,7 +25,7 @@ func Generate() error {
 	data, err := ddloader.NewLoadBuilder(
 		ddloader.WithSchemaPattern(config.Setting.Erd.SchemaFilter),
 		ddloader.WithTablePattern(config.Setting.Erd.TableFilter)).
-		Load(config.Setting.Input)
+		Load(config.Setting.Erd.Input)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -44,7 +44,7 @@ func Generate() error {
 	ext := filepath.Ext(config.Setting.Erd.Output)
 	switch ext {
 	case ".puml":
-		if err := tpl.WriteWithLoader(loader, data, config.Setting.Erd.Template, config.Setting.Erd.Output); err != nil {
+		if err := text.WriteWithLoader(loader, data, config.Setting.Erd.Template, config.Setting.Erd.Output); err != nil {
 			return tracerr.Wrap(err)
 		}
 		logrus.Infof("Generated file: %s", config.Setting.Erd.Output)
@@ -55,7 +55,7 @@ func Generate() error {
 		if _, err := os.Stat(config.Setting.Erd.UmlLib); os.IsNotExist(err) {
 			return tracerr.Wrap(err)
 		}
-		if err := tpl.WriteWithLoader(loader, data, config.Setting.Erd.Template, "output.puml"); err != nil {
+		if err := text.WriteWithLoader(loader, data, config.Setting.Erd.Template, "output.puml"); err != nil {
 			return tracerr.Wrap(err)
 		}
 		defer os.Remove("output.puml")

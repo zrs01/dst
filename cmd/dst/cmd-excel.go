@@ -1,4 +1,4 @@
-package main
+package dst
 
 import (
 	"path/filepath"
@@ -12,7 +12,7 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-func RegisterXls(cliapp *cli.App) {
+func RegisterExcelCmd(cliapp *cli.App) {
 	var ifile, ofile, schema, table string
 	var simple bool
 

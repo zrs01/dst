@@ -1,4 +1,4 @@
-package main
+package dst
 
 import (
 	"github.com/urfave/cli/v2"
@@ -11,7 +11,7 @@ import (
 /* -------------------------------------------------------------------------- */
 /*                                     SQL                                    */
 /* -------------------------------------------------------------------------- */
-func RegisterSql(cliapp *cli.App) {
+func RegisterSQLCmd(cliapp *cli.App) {
 	cmd := &cli.Command{
 		Name:    "sql",
 		Aliases: []string{"s"},
