@@ -59,11 +59,11 @@ func (m *ExportManager) ToModel() (*model.Schema, error) {
 		if _, err := os.Stat(m.commonColumnFile); os.IsNotExist(err) {
 			return nil, tracerr.Errorf("file '%s' does not exist", m.commonColumnFile)
 		}
-		ec, err := util.UnmarshalYml(m.commonColumnFile, &[]*model.Column{})
+		ec, err := util.UnmarshalYml(m.commonColumnFile, &model.Table{})
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
-		excludeColumns = ec
+		excludeColumns = &ec.Columns
 	}
 
 	db, err := util.OpenSqlDb(m.driverName, m.dataSourceName)

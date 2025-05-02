@@ -25,7 +25,7 @@ func Generate() error {
 	data, err := ddloader.NewLoadBuilder(
 		ddloader.WithSchemaPattern(config.Setting.Erd.SchemaFilter),
 		ddloader.WithTablePattern(config.Setting.Erd.TableFilter)).
-		Load(config.Setting.Erd.Input)
+		LoadFromFile(config.Setting.Erd.Input)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -49,17 +49,17 @@ func Generate() error {
 		}
 		logrus.Infof("Generated file: %s", config.Setting.Erd.Output)
 	case ".png":
-		if config.Setting.Erd.UmlLib == "" {
+		if config.Setting.Erd.PlantumlLib == "" {
 			return tracerr.New("plantuml library path is not specified")
 		}
-		if _, err := os.Stat(config.Setting.Erd.UmlLib); os.IsNotExist(err) {
+		if _, err := os.Stat(config.Setting.Erd.PlantumlLib); os.IsNotExist(err) {
 			return tracerr.Wrap(err)
 		}
 		if err := text.WriteWithLoader(loader, data, config.Setting.Erd.Template, "output.puml"); err != nil {
 			return tracerr.Wrap(err)
 		}
 		defer os.Remove("output.puml")
-		if err := sh.Command("java", "-jar", config.Setting.Erd.UmlLib, "-o", filepath.Dir(config.Setting.Erd.Output), "output.puml").Run(); err != nil {
+		if err := sh.Command("java", "-jar", config.Setting.Erd.PlantumlLib, "-o", filepath.Dir(config.Setting.Erd.Output), "output.puml").Run(); err != nil {
 			return tracerr.Wrap(err)
 		}
 		logrus.Infof("Generated file: %s", config.Setting.Erd.Output)

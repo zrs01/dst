@@ -2,8 +2,6 @@ package text
 
 import (
 	"embed"
-	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -15,9 +13,9 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/ddloader"
+	"github.com/zrs01/dst/internal/ddwriter"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
-	"gopkg.in/yaml.v3"
 )
 
 func Generate() error {
@@ -25,12 +23,12 @@ func Generate() error {
 		ddloader.WithSchemaPattern(config.Setting.Text.SchemaFilter),
 		ddloader.WithTablePattern(config.Setting.Text.TableFilter),
 		ddloader.WithColumnPattern(config.Setting.Text.ColumnFilter)).
-		Load(config.Setting.Text.Input) // the data does not filter by schema and table
+		LoadFromFile(config.Setting.Text.Input) // the data does not filter by schema and table
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	if config.Setting.Text.Template == "" {
-		return WriteYml(data, config.Setting.Text.Output)
+		return ddwriter.OutputYml(data, config.Setting.Text.Output)
 	}
 	return WriteWithFileLoader(data, config.Setting.Text.Template, config.Setting.Text.Output)
 }
@@ -50,28 +48,28 @@ func WriteWithInMemoryLoader(data *model.DataDef, tplf, tplc string, out string)
 }
 
 // WriteYml writes data to yml file with pattern
-func WriteYml(dataDef *model.DataDef, outfile string) error {
-	// restoreFixColumns(dataDef)
+// func WriteYml(dataDef *model.DataDef, outfile string) error {
+// 	// restoreFixColumns(dataDef)
 
-	// patternDataDef, err := utils.FilterData(dataDef, schemaPattern, tablePattern, "")
-	// if err != nil {
-	// 	return tracerr.Wrap(err)
-	// }
+// 	// patternDataDef, err := utils.FilterData(dataDef, schemaPattern, tablePattern, "")
+// 	// if err != nil {
+// 	// 	return tracerr.Wrap(err)
+// 	// }
 
-	bytes, err := yaml.Marshal(dataDef)
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
+// 	bytes, err := yaml.Marshal(dataDef)
+// 	if err != nil {
+// 		return tracerr.Wrap(err)
+// 	}
 
-	if outfile == "" {
-		fmt.Println(string(bytes))
-	} else {
-		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o744)); err != nil {
-			return tracerr.Wrap(err)
-		}
-	}
-	return nil
-}
+// 	if outfile == "" {
+// 		fmt.Println(string(bytes))
+// 	} else {
+// 		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o744)); err != nil {
+// 			return tracerr.Wrap(err)
+// 		}
+// 	}
+// 	return nil
+// }
 
 func WriteWithLoader(loader jet.Loader, data *model.DataDef, tplf string, out string) error {
 	views := jet.NewSet(loader)

@@ -6,9 +6,10 @@ import (
 
 type SettingDef struct {
 	Export struct {
-		Dsn         string
-		Output      string
-		TableFilter string
+		Dsn              string
+		CommonColumnFile string `yaml:"ccf"`
+		Output           string
+		TableFilter      string
 	}
 	Text struct {
 		Input        string
@@ -24,7 +25,7 @@ type SettingDef struct {
 		Template     string
 		SchemaFilter string
 		TableFilter  string
-		UmlLib       string
+		PlantumlLib  string `yaml:"plantuml"`
 	}
 }
 

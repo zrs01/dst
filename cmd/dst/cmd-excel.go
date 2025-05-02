@@ -34,7 +34,7 @@ func RegisterExcelCmd(cliapp *cli.App) {
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

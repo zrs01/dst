@@ -2,11 +2,15 @@ package ddwriter
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
 	"reflect"
 
 	// yamlOut "github.com/goccy/go-yaml"
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
+	"github.com/ztrue/tracerr"
+	"gopkg.in/yaml.v3"
 )
 
 func restoreFixColumns(data *model.DataDef) {
@@ -62,6 +66,22 @@ func restoreFixColumns(data *model.DataDef) {
 			}
 		}
 	}
+}
+
+func OutputYml(dataDef *model.DataDef, outfile string) error {
+	bytes, err := yaml.Marshal(dataDef)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+
+	if outfile == "" {
+		fmt.Println(string(bytes))
+	} else {
+		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o744)); err != nil {
+			return tracerr.Wrap(err)
+		}
+	}
+	return nil
 }
 
 func generateColumnKey(column model.Column) string {

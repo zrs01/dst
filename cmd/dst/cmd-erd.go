@@ -30,7 +30,7 @@ func RegisterERDCmd(cliapp *cli.App) {
 				config.Setting.Erd.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.Erd.SchemaFilter)
 				config.Setting.Erd.TableFilter = lo.If(table != "", table).Else(config.Setting.Erd.TableFilter)
 				config.Setting.Erd.Template = lo.If(template != "", template).Else(config.Setting.Erd.Template)
-				config.Setting.Erd.UmlLib = lo.If(lib != "", lib).Else(config.Setting.Erd.UmlLib)
+				config.Setting.Erd.PlantumlLib = lo.If(lib != "", lib).Else(config.Setting.Erd.PlantumlLib)
 				return erd.Generate()
 			},
 		}

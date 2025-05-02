@@ -45,7 +45,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -71,7 +71,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -99,7 +99,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
 					ddloader.WithColumnPattern(col)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -127,7 +127,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
 					ddloader.WithColumnPattern(col)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -154,7 +154,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
 					ddloader.WithColumnPattern(col)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -182,7 +182,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
 					ddloader.WithColumnPattern(col)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -210,7 +210,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
 					ddloader.WithColumnPattern(col)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}
@@ -238,7 +238,7 @@ func RegisterSQLCmd(cliapp *cli.App) {
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
 					ddloader.WithColumnPattern(col)).
-					Load(ifile)
+					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
 				}

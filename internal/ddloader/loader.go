@@ -11,7 +11,6 @@ import (
 	"github.com/zrs01/dst/internal/db/mariadb"
 	"github.com/zrs01/dst/internal/dbm"
 	"github.com/zrs01/dst/model"
-	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
 	yamlIn "gopkg.in/yaml.v3"
 )
@@ -40,46 +39,7 @@ func NewLoadBuilder(opts ...func(*LoadBuilder)) *LoadBuilder {
 	return builder
 }
 
-// Load loads the data from the specified input.
-func (s *LoadBuilder) Load(input string) (*model.DataDef, error) {
-	if input == "" {
-		return nil, tracerr.Errorf("the input source is empty")
-	}
-
-	var dataDef *model.DataDef
-	var err error
-	if strings.HasPrefix(input, MYSQL_PREFIX) {
-		dataDef, err = s.loadFromMysql(input)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-	} else if strings.HasPrefix(input, MSSQL_PREFIX) {
-		dataDef, err = s.loadFromMssql(input)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-	} else if strings.HasPrefix(input, MARIADB_PREFIX) {
-		dataDef, err = s.loadFromMariadb(input)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-	} else {
-		dataDef, err = s.loadFromFile(input)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-	}
-
-	if s.options.schemaPattern != "" || s.options.tablePattern != "" || s.options.columnPattern != "" {
-		dataDef, err = util.FilterData(dataDef, s.options.schemaPattern, s.options.tablePattern, s.options.columnPattern)
-		if err != nil {
-			return nil, tracerr.Wrap(err)
-		}
-	}
-	return dataDef, nil
-}
-
-func (s *LoadBuilder) loadFromFile(file string) (*model.DataDef, error) {
+func (s *LoadBuilder) LoadFromFile(file string) (*model.DataDef, error) {
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
@@ -108,15 +68,46 @@ func (s *LoadBuilder) loadFromFile(file string) (*model.DataDef, error) {
 	return &d, err
 }
 
+func (s *LoadBuilder) LoadFromDB(dsn string, ccf string) (*model.DataDef, error) {
+	var dataDef *model.DataDef
+	var err error
+	if strings.HasPrefix(dsn, MYSQL_PREFIX) {
+		dataDef, err = s.loadFromMysql(dsn)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+	} else if strings.HasPrefix(dsn, MSSQL_PREFIX) {
+		dataDef, err = s.loadFromMssql(dsn)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+	} else if strings.HasPrefix(dsn, MARIADB_PREFIX) {
+		dataDef, err = s.loadFromMariadb(dsn, ccf)
+		if err != nil {
+			return nil, tracerr.Wrap(err)
+		}
+	} else {
+		return nil, tracerr.New("Unsupported database type")
+	}
+
+	// if s.options.schemaPattern != "" || s.options.tablePattern != "" || s.options.columnPattern != "" {
+	// 	dataDef, err = util.FilterData(dataDef, s.options.schemaPattern, s.options.tablePattern, s.options.columnPattern)
+	// 	if err != nil {
+	// 		return nil, tracerr.Wrap(err)
+	// 	}
+	// }
+	return dataDef, nil
+}
+
 // loadFromMysql loads the data from a MySQL database specified by the dataSourceName.
-func (s *LoadBuilder) loadFromMysql(dataSourceName string) (*model.DataDef, error) {
+func (s *LoadBuilder) loadFromMysql(dsn string) (*model.DataDef, error) {
 	// dataSourceName: mysql://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
-	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dataSourceName)
+	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dsn)
 	if len(regex) == 0 {
-		return nil, tracerr.Errorf("Failed to parse %s", dataSourceName)
+		return nil, tracerr.Errorf("Failed to parse %s", dsn)
 	}
 	schema := regex[1]
-	dsName := dataSourceName[len(MYSQL_PREFIX):]
+	dsName := dsn[len(MYSQL_PREFIX):]
 	service := dbm.NewMysqlService(dsName)
 	// fmt.Printf("Read from %s\n", dsName)
 	result, err := service.Read(strings.Replace(schema, "/", "", -1))
@@ -127,10 +118,10 @@ func (s *LoadBuilder) loadFromMysql(dataSourceName string) (*model.DataDef, erro
 }
 
 // loadFromMssql loads the data from a Microsoft SQL Server database specified by the dataSourceName.
-func (s *LoadBuilder) loadFromMssql(dataSourceName string) (*model.DataDef, error) {
+func (s *LoadBuilder) loadFromMssql(dsn string) (*model.DataDef, error) {
 	// dataSourceName: sqlserver: //username:password@host[:port][/instance][?param1=value1&...&paramN=valueN]
 	schema := ""
-	parts := strings.Split(dataSourceName, "?")
+	parts := strings.Split(dsn, "?")
 	for _, part := range parts {
 		pair := strings.Split(part, "=")
 		if (len(pair) == 2) && (pair[0] == "database") {
@@ -138,9 +129,9 @@ func (s *LoadBuilder) loadFromMssql(dataSourceName string) (*model.DataDef, erro
 		}
 	}
 	if schema == "" {
-		return nil, tracerr.Errorf("failed to parse %s", dataSourceName)
+		return nil, tracerr.Errorf("failed to parse %s", dsn)
 	}
-	service := dbm.NewMssqlService(dataSourceName)
+	service := dbm.NewMssqlService(dsn)
 	// fmt.Printf("Read from %s\n", dataSourceName)
 	result, err := service.Read(strings.Replace(schema, "/", "", -1))
 	if err != nil {
@@ -149,19 +140,20 @@ func (s *LoadBuilder) loadFromMssql(dataSourceName string) (*model.DataDef, erro
 	return result, nil
 }
 
-func (s *LoadBuilder) loadFromMariadb(dataSourceName string) (*model.DataDef, error) {
+func (s *LoadBuilder) loadFromMariadb(dsn, ccf string) (*model.DataDef, error) {
 	// dataSourceName: mariadb://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
-	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dataSourceName)
+	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(dsn)
 	if len(regex) == 0 {
-		return nil, tracerr.Errorf("Failed to parse %s", dataSourceName)
+		return nil, tracerr.Errorf("Failed to parse %s", dsn)
 	}
 	schema := regex[1]
-	dsName := dataSourceName[len(MARIADB_PREFIX):]
+	dsName := dsn[len(MARIADB_PREFIX):]
 	dbManager := mariadb.NewExportManager().
 		WithDriverName("mysql").
 		WithDataSourceName(dsName).
 		WithDatabaseName(schema).
-		WithTableName(config.Setting.Text.TableFilter)
+		WithTableName(config.Setting.Text.TableFilter).
+		WithCommonColumnFile(ccf)
 	schemaDef, err := dbManager.ToModel()
 	if err != nil {
 		return nil, tracerr.Wrap(err)
