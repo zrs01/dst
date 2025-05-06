@@ -11,11 +11,10 @@ import (
 /* -------------------------------------------------------------------------- */
 /*                                     SQL                                    */
 /* -------------------------------------------------------------------------- */
-func RegisterSQLCmd(cliapp *cli.App) {
+func RegisterDLLCmd(cliapp *cli.App) {
 	cmd := &cli.Command{
-		Name:    "sql",
-		Aliases: []string{"s"},
-		Usage:   "Generate SQL DDL",
+		Name:  "ddl",
+		Usage: "Generate SQL DDL",
 	}
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
 		return cmd

@@ -47,30 +47,6 @@ func WriteWithInMemoryLoader(data *model.DataDef, tplf, tplc string, out string)
 	return WriteWithLoader(loader, data, tplf, out)
 }
 
-// WriteYml writes data to yml file with pattern
-// func WriteYml(dataDef *model.DataDef, outfile string) error {
-// 	// restoreFixColumns(dataDef)
-
-// 	// patternDataDef, err := utils.FilterData(dataDef, schemaPattern, tablePattern, "")
-// 	// if err != nil {
-// 	// 	return tracerr.Wrap(err)
-// 	// }
-
-// 	bytes, err := yaml.Marshal(dataDef)
-// 	if err != nil {
-// 		return tracerr.Wrap(err)
-// 	}
-
-// 	if outfile == "" {
-// 		fmt.Println(string(bytes))
-// 	} else {
-// 		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o744)); err != nil {
-// 			return tracerr.Wrap(err)
-// 		}
-// 	}
-// 	return nil
-// }
-
 func WriteWithLoader(loader jet.Loader, data *model.DataDef, tplf string, out string) error {
 	views := jet.NewSet(loader)
 	setJetFunc(views)

@@ -12,7 +12,7 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type ExportManager struct {
+type ExportService struct {
 	driverName         string
 	dataSourceName     string
 	targetDatabaseName string
@@ -20,36 +20,36 @@ type ExportManager struct {
 	commonColumnFile   string
 }
 
-func NewExportManager() *ExportManager {
-	return &ExportManager{}
+func NewExportService() *ExportService {
+	return &ExportService{}
 }
 
-func (m *ExportManager) WithDriverName(driverName string) *ExportManager {
+func (m *ExportService) WithDriverName(driverName string) *ExportService {
 	m.driverName = driverName
 	return m
 }
 
-func (m *ExportManager) WithDataSourceName(dataSourceName string) *ExportManager {
+func (m *ExportService) WithDataSourceName(dataSourceName string) *ExportService {
 	m.dataSourceName = dataSourceName
 	return m
 }
 
-func (m *ExportManager) WithDatabaseName(targetDatabaseName string) *ExportManager {
+func (m *ExportService) WithDatabaseName(targetDatabaseName string) *ExportService {
 	m.targetDatabaseName = targetDatabaseName
 	return m
 }
 
-func (m *ExportManager) WithTableName(targetTableName string) *ExportManager {
+func (m *ExportService) WithTableName(targetTableName string) *ExportService {
 	m.targetTableName = targetTableName
 	return m
 }
 
-func (m *ExportManager) WithCommonColumnFile(commonColumnFile string) *ExportManager {
+func (m *ExportService) WithCommonColumnFile(commonColumnFile string) *ExportService {
 	m.commonColumnFile = commonColumnFile
 	return m
 }
 
-func (m *ExportManager) ToModel() (*model.Schema, error) {
+func (m *ExportService) ToModel() (*model.Schema, error) {
 	if m.targetDatabaseName == "" {
 		return nil, tracerr.Errorf("database name is required")
 	}
@@ -236,7 +236,7 @@ func (m *ExportManager) ToModel() (*model.Schema, error) {
 	return desDb, nil
 }
 
-func (m *ExportManager) ToRoutines() ([]*model.Routine, error) {
+func (m *ExportService) ToRoutines() ([]*model.Routine, error) {
 	db, err := util.OpenSqlDb(m.driverName, m.dataSourceName)
 	if err != nil {
 		return nil, tracerr.Wrap(err)

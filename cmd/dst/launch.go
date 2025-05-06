@@ -67,7 +67,7 @@ func Launch() {
 	RegisterTextCmd(cliapp)   // Template
 	RegisterExcelCmd(cliapp)  // Excel
 	RegisterERDCmd(cliapp)    // ER diagram
-	RegisterSQLCmd(cliapp)    // SQL DDL statement
+	RegisterDLLCmd(cliapp)    // SQL DDL statement
 	RegisterExportCmd(cliapp) // Export
 
 	if err := cliapp.Run(os.Args); err != nil {

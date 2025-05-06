@@ -11,22 +11,22 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type DDLManager struct {
+type DDLService struct {
 	targetTableName string
 }
 
-func NewDDLManager() *DDLManager {
-	return &DDLManager{}
+func NewDDLService() *DDLService {
+	return &DDLService{}
 }
 
-func (m *DDLManager) WithTableName(tableName string) *DDLManager {
+func (m *DDLService) WithTableName(tableName string) *DDLService {
 	m.targetTableName = tableName
 	return m
 }
 
-func (m *DDLManager) GenerateStatement(db *model.Schema, stmtType string) (*string, error) {
+func (m *DDLService) GenerateStatement(db *model.Schema, stmtType string) (*string, error) {
 	switch stmtType {
-	case "auto", "create":
+	case "create":
 		return m.createStmt(db)
 	case "alter":
 		return m.alterStmt(db)
@@ -35,7 +35,7 @@ func (m *DDLManager) GenerateStatement(db *model.Schema, stmtType string) (*stri
 	}
 }
 
-func (m *DDLManager) createStmt(mdb *model.Schema) (*string, error) {
+func (m *DDLService) createStmt(mdb *model.Schema) (*string, error) {
 	mTables := mdb.Tables
 	if m.targetTableName != "" {
 		mTables = lo.Filter(mTables, func(mTable *model.Table, _ int) bool {
@@ -56,7 +56,7 @@ func (m *DDLManager) createStmt(mdb *model.Schema) (*string, error) {
 	return &output, nil
 }
 
-func (m *DDLManager) createTableStmt(mTable *model.Table) ([]string, error) {
+func (m *DDLService) createTableStmt(mTable *model.Table) ([]string, error) {
 	var stmts, colStmts []string
 	for _, mColumn := range mTable.Columns {
 		col := fmt.Sprintf("\t`%s` %s", mColumn.Name, mColumn.DataType)
@@ -106,7 +106,7 @@ func (m *DDLManager) createTableStmt(mTable *model.Table) ([]string, error) {
 	return stmts, nil
 }
 
-func (m *DDLManager) alterStmt(mdb *model.Schema) (*string, error) {
+func (m *DDLService) alterStmt(mdb *model.Schema) (*string, error) {
 	mTables := mdb.Tables
 	if m.targetTableName != "" {
 		mTables = lo.Filter(mTables, func(mTable *model.Table, _ int) bool {
@@ -127,9 +127,9 @@ func (m *DDLManager) alterStmt(mdb *model.Schema) (*string, error) {
 	return &output, nil
 }
 
-func (m *DDLManager) alterTableStmt(srcDBName string, srcTB *model.Table) ([]string, error) {
+func (m *DDLService) alterTableStmt(srcDBName string, srcTB *model.Table) ([]string, error) {
 	// map current database schema to model
-	expDB, err := NewExportManager().WithDatabaseName(srcDBName).ToModel()
+	expDB, err := NewExportService().WithDatabaseName(srcDBName).ToModel()
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
@@ -188,7 +188,7 @@ func (m *DDLManager) alterTableStmt(srcDBName string, srcTB *model.Table) ([]str
 	return stmts, nil
 }
 
-func (m *DDLManager) buildColumnAttribues(col *model.Column) string {
+func (m *DDLService) buildColumnAttribues(col *model.Column) string {
 	attr := ""
 	if col.Compute != "" {
 		attr += fmt.Sprintf(" GENERATED ALWAYS AS (%s)", col.Compute)
@@ -208,7 +208,7 @@ func (m *DDLManager) buildColumnAttribues(col *model.Column) string {
 	return attr
 }
 
-func (m *DDLManager) buildColumnIndex(tbn string, col *model.Column) string {
+func (m *DDLService) buildColumnIndex(tbn string, col *model.Column) string {
 	if util.IsYes(col.Index) {
 		name := m.formatIndexName(tbn, col.Name)
 		return m.createIndex(name, tbn, []string{col.Name}, util.IsYes(col.Unique))
@@ -216,11 +216,11 @@ func (m *DDLManager) buildColumnIndex(tbn string, col *model.Column) string {
 	return ""
 }
 
-func (m *DDLManager) createIndex(name, tbn string, fields []string, isUnique bool) string {
+func (m *DDLService) createIndex(name, tbn string, fields []string, isUnique bool) string {
 	unique := lo.If(isUnique, "UNIQUE ").Else("")
 	return fmt.Sprintf("CREATE %sINDEX IF NOT EXISTS `%s` ON `%s` (`%s`);", unique, name, tbn, strings.Join(fields, "`,`"))
 }
 
-func (m *DDLManager) formatIndexName(tb, col string) string {
+func (m *DDLService) formatIndexName(tb, col string) string {
 	return fmt.Sprintf("idx_%s_%s", tb, col)
 }

@@ -148,7 +148,7 @@ func (s *LoadBuilder) loadFromMariadb(dsn, ccf string) (*model.DataDef, error) {
 	}
 	schema := regex[1]
 	dsName := dsn[len(MARIADB_PREFIX):]
-	dbManager := mariadb.NewExportManager().
+	dbManager := mariadb.NewExportService().
 		WithDriverName("mysql").
 		WithDataSourceName(dsName).
 		WithDatabaseName(schema).
