@@ -18,9 +18,8 @@ func RegisterExcelCmd(cliapp *cli.App) {
 
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
 		return &cli.Command{
-			Name:    "excel",
-			Usage:   "transform from yaml to excel",
-			Aliases: []string{"e"},
+			Name:  "excel",
+			Usage: "transform from yaml to excel",
 			Flags: []cli.Flag{
 				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
 				outputFileFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),

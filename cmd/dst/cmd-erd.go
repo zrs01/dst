@@ -13,9 +13,8 @@ func RegisterERDCmd(cliapp *cli.App) {
 
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
 		return &cli.Command{
-			Name:    "erd",
-			Aliases: []string{"d"},
-			Usage:   "Generate ERD diagram",
+			Name:  "erd",
+			Usage: "Generate ERD diagram",
 			Flags: []cli.Flag{
 				schemaFileFlagBuilder().WithDestination(&input).Build(),
 				outputFileFlagBuilder().WithUsage("output file (file extension must be either .puml or .png)").WithDestination(&output).Build(),

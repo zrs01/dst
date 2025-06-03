@@ -7,15 +7,14 @@ import (
 	"github.com/zrs01/dst/internal/text"
 )
 
-func RegisterTextCmd(cliapp *cli.App) {
+func RegisterTemplateCmd(cliapp *cli.App) {
 	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
 		var input, output, template, schema, table string
 		// var dump bool
 
 		return &cli.Command{
-			Name:    "text",
-			Usage:   "transform from yaml to text",
-			Aliases: []string{"t"},
+			Name:  "template",
+			Usage: "Transform YAML data using a template into a text file",
 			Flags: []cli.Flag{
 				schemaFileFlagBuilder().WithDestination(&input).Build(),
 				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&output).Build(),

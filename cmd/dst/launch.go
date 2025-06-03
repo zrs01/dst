@@ -44,31 +44,31 @@ func Launch() {
 	/* ------------------------------ Common flags ------------------------------ */
 
 	outputFileFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("output").WithAliases("o").WithUsage("output file")
+		return flagbuilder.NewStringFlag("output").WithAliases("o").WithUsage("Output file")
 	}
 	schemaFileFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("input").WithAliases("i").WithUsage(`input file. It can accept various types of input sources:
-	1. A schema file in YAML format (e.g. schemal.yml)
-	2. A MySQL database connnection string in the format:
+		return flagbuilder.NewStringFlag("input").WithAliases("i").WithUsage(`Input file or database connection string. Supports:
+	1. YAML schema file (e.g., schemal.yml)
+	2. MySQL connection string in the format:
 	   mysql://[user[:cred]@][protocol[(address[:port])]]/dbname[?param1=value1&...]
-	3. A SQL Server database connection string in the format:
+	3. SQL Server connection string in the format:
 	   sqlserver://user:cred@host[:port][/dbname][?param1=value1&...]`)
 	}
 	templateFileFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("template").WithAliases("t").WithUsage("Template file")
+		return flagbuilder.NewStringFlag("template").WithAliases("t").WithUsage("Template file to use for generating the output.")
 	}
 	schemaNameFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("schema").WithUsage("Schema name pattern; wildcard characters allowed: * or %")
+		return flagbuilder.NewStringFlag("schema").WithUsage("Schema name pattern (e.g., \"my_schema*\") with wildcard support (* or %).")
 	}
 	tableNameFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("table").WithUsage("Table name pattern; wildcard characters allowed: * or %")
+		return flagbuilder.NewStringFlag("table").WithUsage("Table name pattern (e.g., \"my_table*\") with wildcard support (* or %).")
 	}
 
-	RegisterTextCmd(cliapp)   // Template
-	RegisterExcelCmd(cliapp)  // Excel
-	RegisterERDCmd(cliapp)    // ER diagram
-	RegisterDLLCmd(cliapp)    // SQL DDL statement
-	RegisterExportCmd(cliapp) // Export
+	RegisterTemplateCmd(cliapp) // Template
+	RegisterExcelCmd(cliapp)    // Excel
+	RegisterERDCmd(cliapp)      // ER diagram
+	RegisterDLLCmd(cliapp)      // SQL DDL statement
+	RegisterExportCmd(cliapp)   // Export
 
 	if err := cliapp.Run(os.Args); err != nil {
 		if config.Debug {
