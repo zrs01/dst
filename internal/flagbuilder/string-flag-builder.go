@@ -1,7 +1,7 @@
 package flagbuilder
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // StringFlag is a builder for creating a StringFlag
@@ -31,16 +31,16 @@ func (b *StringFlag) WithUsage(usage string) *StringFlag {
 }
 
 // WithEnvVars sets the environment variables for the flag
-func (b *StringFlag) WithEnvVars(envVars ...string) *StringFlag {
-	b.flag.EnvVars = envVars
-	return b
-}
+// func (b *StringFlag) WithEnvVars(envVars ...string) *StringFlag {
+// 	b.flag.EnvVars = envVars
+// 	return b
+// }
 
 // WithFilePath sets the file path for the flag
-func (b *StringFlag) WithFilePath(filePath string) *StringFlag {
-	b.flag.FilePath = filePath
-	return b
-}
+// func (b *StringFlag) WithFilePath(filePath string) *StringFlag {
+// 	b.flag.FilePath = filePath
+// 	return b
+// }
 
 // TakesFile sets whether the flag accepts a file path as input
 func (b *StringFlag) TakesFile(takesFile bool) *StringFlag {

@@ -1,7 +1,9 @@
 package dst
 
 import (
-	"github.com/urfave/cli/v2"
+	"context"
+
+	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/sql"
@@ -11,14 +13,11 @@ import (
 /* -------------------------------------------------------------------------- */
 /*                                     SQL                                    */
 /* -------------------------------------------------------------------------- */
-func RegisterDLLCmd(cliapp *cli.App) {
+func RegisterDLLCmd() *cli.Command {
 	cmd := &cli.Command{
 		Name:  "ddl",
 		Usage: "Generate SQL DDL",
 	}
-	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		return cmd
-	}())
 
 	databaseFlagBuilder := func() *flagbuilder.StringFlag {
 		return flagbuilder.NewStringFlag("database").WithAliases("d").Required(true).WithUsage("database (mariadb, mssql)")
@@ -27,19 +26,19 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		return flagbuilder.NewStringFlag("column").WithAliases("c").WithUsage("column")
 	}
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
 		return &cli.Command{
 			Name:  "ct",
 			Usage: "create table",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -53,19 +52,19 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db string
 		return &cli.Command{
 			Name:  "dt",
 			Usage: "drop table",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -79,20 +78,20 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "ac",
 			Usage: "add column",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -107,20 +106,20 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "dc",
 			Usage: "drop column",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -135,20 +134,20 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "rc",
 			Usage: "rename column",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
 					ddloader.WithTablePattern(table),
@@ -162,20 +161,20 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "mc",
 			Usage: "modify column type",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -190,20 +189,20 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "ci",
 			Usage: "create index DDL",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -218,20 +217,20 @@ func RegisterDLLCmd(cliapp *cli.App) {
 		}
 	}())
 
-	cmd.Subcommands = append(cmd.Subcommands, func() *cli.Command {
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var ifile, ofile, schema, table, db, col string
 		return &cli.Command{
 			Name:  "di",
 			Usage: "drop index",
 			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),
@@ -245,4 +244,6 @@ func RegisterDLLCmd(cliapp *cli.App) {
 			},
 		}
 	}())
+
+	return cmd
 }

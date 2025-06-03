@@ -1,51 +1,50 @@
 package dst
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 
 	"github.com/samber/lo"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/ddwriter"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/ztrue/tracerr"
 )
 
-func RegisterExcelCmd(cliapp *cli.App) {
+func RegisterExcelCmd() *cli.Command {
 	var ifile, ofile, schema, table string
 	var simple bool
 
-	cliapp.Commands = append(cliapp.Commands, func() *cli.Command {
-		return &cli.Command{
-			Name:  "excel",
-			Usage: "transform from yaml to excel",
-			Flags: []cli.Flag{
-				schemaFileFlagBuilder().WithDestination(&ifile).Build(),
-				outputFileFlagBuilder().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
-				schemaNameFlagBuilder().WithDestination(&schema).Build(),
-				tableNameFlagBuilder().WithDestination(&table).Build(),
-				flagbuilder.NewBoolFlag("simple").WithUsage("simple content").WithDestination(&simple).Build(),
-			},
-			Action: func(c *cli.Context) error {
-				oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
-				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table)).
-					LoadFromFile(ifile)
-				if err != nil {
+	return &cli.Command{
+		Name:  "excel",
+		Usage: "transform from yaml to excel",
+		Flags: []cli.Flag{
+			flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+			flagbuilder.OutputFileFlag().WithUsage("output file (.xlsx)").WithDestination(&ofile).Build(),
+			flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+			flagbuilder.TableNameFlag().WithDestination(&table).Build(),
+			flagbuilder.NewBoolFlag("simple").WithUsage("simple content").WithDestination(&simple).Build(),
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
+			// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
+			data, err := ddloader.NewLoadBuilder(
+				ddloader.WithSchemaPattern(schema),
+				ddloader.WithTablePattern(table)).
+				LoadFromFile(ifile)
+			if err != nil {
+				return tracerr.Wrap(err)
+			}
+			switch oext {
+			case ".xlsx":
+				if err := ddwriter.WriteXlsx(data, ofile, simple); err != nil {
 					return tracerr.Wrap(err)
 				}
-				switch oext {
-				case ".xlsx":
-					if err := ddwriter.WriteXlsx(data, ofile, simple); err != nil {
-						return tracerr.Wrap(err)
-					}
-					return nil
-				}
-				return tracerr.New("Not implemented yet")
-			},
-		}
-	}())
+				return nil
+			}
+			return tracerr.New("Not implemented yet")
+		},
+	}
 }

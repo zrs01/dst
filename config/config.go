@@ -11,6 +11,7 @@ type SettingDef struct {
 		Output           string
 		TableFilter      string
 	}
+
 	Text struct {
 		Input        string
 		Output       string
@@ -19,6 +20,7 @@ type SettingDef struct {
 		TableFilter  string
 		ColumnFilter string
 	}
+
 	Erd struct {
 		Input        string
 		Output       string `default:"output.png"`

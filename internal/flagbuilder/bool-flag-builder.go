@@ -1,7 +1,7 @@
 package flagbuilder
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // BoolFlag is a builder for creating a BoolFlag
@@ -31,16 +31,16 @@ func (b *BoolFlag) WithUsage(usage string) *BoolFlag {
 }
 
 // WithEnvVars sets the environment variables for the flag
-func (b *BoolFlag) WithEnvVars(envVars ...string) *BoolFlag {
-	b.flag.EnvVars = envVars
-	return b
-}
+// func (b *BoolFlag) WithEnvVars(envVars ...string) *BoolFlag {
+// 	b.flag.EnvVars = envVars
+// 	return b
+// }
 
 // WithFilePath sets the file path for the flag
-func (b *BoolFlag) WithFilePath(filePath string) *BoolFlag {
-	b.flag.FilePath = filePath
-	return b
-}
+// func (b *BoolFlag) WithFilePath(filePath string) *BoolFlag {
+// 	b.flag.FilePath = filePath
+// 	return b
+// }
 
 // Required sets whether the flag is required
 func (b *BoolFlag) Required(required bool) *BoolFlag {

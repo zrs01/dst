@@ -1,76 +1,44 @@
 package dst
 
 import (
+	"context"
 	"os"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 	"github.com/ztrue/tracerr"
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/flagbuilder"
-)
-
-var (
-	schemaFileFlagBuilder   func() *flagbuilder.StringFlag // schedule file
-	outputFileFlagBuilder   func() *flagbuilder.StringFlag // output file
-	templateFileFlagBuilder func() *flagbuilder.StringFlag // template file
-	schemaNameFlagBuilder   func() *flagbuilder.StringFlag // schema name
-	tableNameFlagBuilder    func() *flagbuilder.StringFlag // table name
 )
 
 func Launch() {
 	initLogrus()
 
-	cliapp := cli.NewApp()
-	cliapp.Name = "dst"
-	cliapp.Usage = "Database schema tool"
-	cliapp.Version = config.Version
-	cliapp.Commands = []*cli.Command{}
-
-	cliapp.Flags = []cli.Flag{
-		&cli.BoolFlag{
-			Name:        "debug",
-			Aliases:     []string{"d"},
-			Usage:       "Debug mode",
-			Required:    false,
-			Destination: &config.Debug,
+	cmd := &cli.Command{
+		Name:    "dst",
+		Usage:   "Database schema tool",
+		Version: config.Version,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "debug",
+				Aliases:     []string{"d"},
+				Usage:       "Debug mode",
+				Required:    false,
+				Destination: &config.Debug,
+			},
 		},
 	}
 
-	/* ------------------------------ Common flags ------------------------------ */
+	cmd.Commands = append(cmd.Commands, RegisterTextCmd())   // Template
+	cmd.Commands = append(cmd.Commands, RegisterExcelCmd())  // Excel
+	cmd.Commands = append(cmd.Commands, RegisterERDCmd())    // ER diagram
+	cmd.Commands = append(cmd.Commands, RegisterDLLCmd())    // SQL DDL statement
+	cmd.Commands = append(cmd.Commands, RegisterExportCmd()) // Export
 
-	outputFileFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("output").WithAliases("o").WithUsage("Output file")
-	}
-	schemaFileFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("input").WithAliases("i").WithUsage(`Input file or database connection string. Supports:
-	1. YAML schema file (e.g., schemal.yml)
-	2. MySQL connection string in the format:
-	   mysql://[user[:cred]@][protocol[(address[:port])]]/dbname[?param1=value1&...]
-	3. SQL Server connection string in the format:
-	   sqlserver://user:cred@host[:port][/dbname][?param1=value1&...]`)
-	}
-	templateFileFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("template").WithAliases("t").WithUsage("Template file to use for generating the output.")
-	}
-	schemaNameFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("schema").WithUsage("Schema name pattern (e.g., \"my_schema*\") with wildcard support (* or %).")
-	}
-	tableNameFlagBuilder = func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("table").WithUsage("Table name pattern (e.g., \"my_table*\") with wildcard support (* or %).")
-	}
-
-	RegisterTemplateCmd(cliapp) // Template
-	RegisterExcelCmd(cliapp)    // Excel
-	RegisterERDCmd(cliapp)      // ER diagram
-	RegisterDLLCmd(cliapp)      // SQL DDL statement
-	RegisterExportCmd(cliapp)   // Export
-
-	if err := cliapp.Run(os.Args); err != nil {
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		if config.Debug {
 			logrus.Error(tracerr.SprintSourceColor(err, 0))
 		} else {
