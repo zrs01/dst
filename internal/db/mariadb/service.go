@@ -49,3 +49,7 @@ func (s *MariadbService) Load(tableFilter string) (*model.DataDef, error) {
 		Schemas: []*model.Schema{schemaDef},
 	}, nil
 }
+
+func (s *MariadbService) DDLBuilder() db.DDL {
+	return nil
+}

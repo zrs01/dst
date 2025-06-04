@@ -11,7 +11,7 @@ const (
 )
 
 type Service interface {
-	// DDLBuilder()
+	DDLBuilder() DDL
 	Load(tableFilter string) (*model.DataDef, error)
 }
 

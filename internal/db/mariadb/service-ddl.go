@@ -6,11 +6,164 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"github.com/zrs01/dst/internal/db"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
 )
 
+type DDLBuilder struct {
+	dataDef            *model.Schema
+	targetDatabaseName string
+	targetTableName    string
+	commonColumnFile   string
+}
+
+func NewDDLBuilder() db.DDL {
+	return &DDLBuilder{}
+}
+
+func (m *DDLBuilder) WithDataDef(dataDef *model.Schema) *DDLBuilder {
+	m.dataDef = dataDef
+	return m
+}
+
+func (m *DDLBuilder) WithDatabaseName(targetDatabaseName string) *DDLBuilder {
+	m.targetDatabaseName = targetDatabaseName
+	return m
+}
+
+func (m *DDLBuilder) WithTableName(targetTableName string) *DDLBuilder {
+	m.targetTableName = targetTableName
+	return m
+}
+
+func (m *DDLBuilder) WithCommonColumnFile(commonColumnFile string) *DDLBuilder {
+	m.commonColumnFile = commonColumnFile
+	return m
+}
+
+// CreateDatabase implements db.DDL.
+func (m *DDLBuilder) CreateDatabase() {
+	panic("unimplemented")
+}
+
+// CreateFunction implements db.DDL.
+func (m *DDLBuilder) CreateFunction() {
+	panic("unimplemented")
+}
+
+// CreateIndex implements db.DDL.
+func (m *DDLBuilder) CreateIndex() {
+	panic("unimplemented")
+}
+
+// CreateProcedure implements db.DDL.
+func (m *DDLBuilder) CreateProcedure() {
+	panic("unimplemented")
+}
+
+// CreateTable implements db.DDL.
+func (m *DDLBuilder) CreateTable() {
+	panic("unimplemented")
+}
+
+// CreateTrigger implements db.DDL.
+func (m *DDLBuilder) CreateTrigger() {
+	panic("unimplemented")
+}
+
+// CreateUser implements db.DDL.
+func (m *DDLBuilder) CreateUser() {
+	panic("unimplemented")
+}
+
+// CreateView implements db.DDL.
+func (m *DDLBuilder) CreateView() {
+	panic("unimplemented")
+}
+
+// AlterDatabase implements db.DDL.
+func (m *DDLBuilder) AlterDatabase() {
+	panic("unimplemented")
+}
+
+// AlterFunction implements db.DDL.
+func (m *DDLBuilder) AlterFunction() {
+	panic("unimplemented")
+}
+
+// AlterIndex implements db.DDL.
+func (m *DDLBuilder) AlterIndex() {
+	panic("unimplemented")
+}
+
+// AlterProcedure implements db.DDL.
+func (m *DDLBuilder) AlterProcedure() {
+	panic("unimplemented")
+}
+
+// AlterTable implements db.DDL.
+func (m *DDLBuilder) AlterTable() {
+	panic("unimplemented")
+}
+
+// AlterTrigger implements db.DDL.
+func (m *DDLBuilder) AlterTrigger() {
+	panic("unimplemented")
+}
+
+// AlterUser implements db.DDL.
+func (m *DDLBuilder) AlterUser() {
+	panic("unimplemented")
+}
+
+// AlterView implements db.DDL.
+func (m *DDLBuilder) AlterView() {
+	panic("unimplemented")
+}
+
+// DropDatabase implements db.DDL.
+func (m *DDLBuilder) DropDatabase() {
+	panic("unimplemented")
+}
+
+// DropFunction implements db.DDL.
+func (m *DDLBuilder) DropFunction() {
+	panic("unimplemented")
+}
+
+// DropIndex implements db.DDL.
+func (m *DDLBuilder) DropIndex() {
+	panic("unimplemented")
+}
+
+// DropProcedure implements db.DDL.
+func (m *DDLBuilder) DropProcedure() {
+	panic("unimplemented")
+}
+
+// DropTable implements db.DDL.
+func (m *DDLBuilder) DropTable() {
+	panic("unimplemented")
+}
+
+// DropTrigger implements db.DDL.
+func (m *DDLBuilder) DropTrigger() {
+	panic("unimplemented")
+}
+
+// DropUser implements db.DDL.
+func (m *DDLBuilder) DropUser() {
+	panic("unimplemented")
+}
+
+// DropView implements db.DDL.
+func (m *DDLBuilder) DropView() {
+	panic("unimplemented")
+}
+
+/* -------------------------------- Separator ------------------------------- */
 type DDLService struct {
 	targetTableName string
 }
