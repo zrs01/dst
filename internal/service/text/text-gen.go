@@ -12,17 +12,17 @@ import (
 	pluralize "github.com/gertd/go-pluralize"
 	"github.com/iancoleman/strcase"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/ddwriter"
+	"github.com/zrs01/dst/internal/service"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
 func Generate() error {
-	data, err := ddloader.NewLoadBuilder(
-		ddloader.WithSchemaPattern(config.Setting.Text.SchemaFilter),
-		ddloader.WithTablePattern(config.Setting.Text.TableFilter),
-		ddloader.WithColumnPattern(config.Setting.Text.ColumnFilter)).
+	data, err := service.NewLoadBuilder(
+		service.WithSchemaPattern(config.Setting.Text.SchemaFilter),
+		service.WithTablePattern(config.Setting.Text.TableFilter),
+		service.WithColumnPattern(config.Setting.Text.ColumnFilter)).
 		LoadFromFile(config.Setting.Text.Input) // the data does not filter by schema and table
 	if err != nil {
 		return tracerr.Wrap(err)

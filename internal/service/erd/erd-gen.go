@@ -12,7 +12,7 @@ import (
 	"github.com/codeskyblue/go-sh"
 	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/ddloader"
+	"github.com/zrs01/dst/internal/service"
 	"github.com/zrs01/dst/internal/service/text"
 	"github.com/ztrue/tracerr"
 )
@@ -22,9 +22,9 @@ var templateFS embed.FS
 
 func Generate() error {
 	logrus.Info("Generating ER Diagram...")
-	data, err := ddloader.NewLoadBuilder(
-		ddloader.WithSchemaPattern(config.Setting.Erd.SchemaFilter),
-		ddloader.WithTablePattern(config.Setting.Erd.TableFilter)).
+	data, err := service.NewLoadBuilder(
+		service.WithSchemaPattern(config.Setting.Erd.SchemaFilter),
+		service.WithTablePattern(config.Setting.Erd.TableFilter)).
 		LoadFromFile(config.Setting.Erd.Input)
 	if err != nil {
 		return tracerr.Wrap(err)

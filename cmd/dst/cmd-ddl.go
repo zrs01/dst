@@ -6,8 +6,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/flagbuilder"
+	"github.com/zrs01/dst/internal/service"
 	"github.com/zrs01/dst/internal/service/sql"
 	"github.com/ztrue/tracerr"
 )
@@ -50,9 +50,9 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				setOptions()
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -76,9 +76,9 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -103,10 +103,10 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table),
+					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -131,10 +131,10 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table),
+					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -158,10 +158,10 @@ func RegisterDLLCmd() *cli.Command {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table),
+					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -186,10 +186,10 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table),
+					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -214,10 +214,10 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table),
+					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)
@@ -242,10 +242,10 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := ddloader.NewLoadBuilder(
-					ddloader.WithSchemaPattern(schema),
-					ddloader.WithTablePattern(table),
-					ddloader.WithColumnPattern(col)).
+				data, err := service.NewLoadBuilder(
+					service.WithSchemaPattern(schema),
+					service.WithTablePattern(table),
+					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
 				if err != nil {
 					return tracerr.Wrap(err)

@@ -7,9 +7,9 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
-	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/ddwriter"
 	"github.com/zrs01/dst/internal/flagbuilder"
+	"github.com/zrs01/dst/internal/service"
 	"github.com/ztrue/tracerr"
 )
 
@@ -30,9 +30,9 @@ func RegisterExcelCmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			oext := lo.Ternary(ofile != "", strings.ToLower(filepath.Ext(ofile)), "")
 			// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-			data, err := ddloader.NewLoadBuilder(
-				ddloader.WithSchemaPattern(schema),
-				ddloader.WithTablePattern(table)).
+			data, err := service.NewLoadBuilder(
+				service.WithSchemaPattern(schema),
+				service.WithTablePattern(table)).
 				LoadFromFile(ifile)
 			if err != nil {
 				return tracerr.Wrap(err)
