@@ -13,7 +13,7 @@ import (
 )
 
 func Generate() error {
-	service := factory.Service(config.Setting.Export.Dsn, config.Setting.Export.CommonColumnFile)
+	service := factory.NewService(config.Setting.Export.Dsn, config.Setting.Export.CommonColumnFile)
 	dataDef, err := service.Load(config.Setting.Export.TableFilter)
 	// dataDef, err := ddloader.NewLoadBuilder(
 	// 	ddloader.WithTablePattern(config.Setting.Export.TableFilter)).

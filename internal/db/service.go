@@ -14,3 +14,32 @@ type Service interface {
 	// DDLBuilder()
 	Load(tableFilter string) (*model.DataDef, error)
 }
+
+type DDL interface {
+	CreateDatabase()
+	CreateTable()
+	CreateView()
+	CreateUser()
+	CreateTrigger()
+	CreateFunction()
+	CreateIndex()
+	CreateProcedure()
+
+	AlterDatabase()
+	AlterTable()
+	AlterView()
+	AlterUser()
+	AlterTrigger()
+	AlterFunction()
+	AlterIndex()
+	AlterProcedure()
+
+	DropDatabase()
+	DropTable()
+	DropView()
+	DropUser()
+	DropTrigger()
+	DropFunction()
+	DropIndex()
+	DropProcedure()
+}

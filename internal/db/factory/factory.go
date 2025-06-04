@@ -7,7 +7,7 @@ import (
 	"github.com/zrs01/dst/internal/db/mariadb"
 )
 
-func Service(dsn, ccf string) db.Service {
+func NewService(dsn, ccf string) db.Service {
 	switch {
 	// case strings.HasPrefix(dsn, MYSQL_PREFIX):
 	// 	return mariadb.NewMariadbService(dsn, ccf)
