@@ -5,6 +5,16 @@ import (
 )
 
 type SettingDef struct {
+	Ddl struct {
+		DBType       string // mariadb, mssql
+		Input        string
+		Output       string
+		Database     string
+		SchemaFilter string
+		TableFilter  string
+		ColumnFilter string
+	}
+
 	Export struct {
 		Dsn              string
 		CommonColumnFile string `yaml:"ccf"`

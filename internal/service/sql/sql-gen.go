@@ -4,7 +4,7 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/zrs01/dst/internal/text"
+	"github.com/zrs01/dst/internal/service/text"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )

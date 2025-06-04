@@ -3,10 +3,12 @@ package dst
 import (
 	"context"
 
+	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
+	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/ddloader"
 	"github.com/zrs01/dst/internal/flagbuilder"
-	"github.com/zrs01/dst/internal/sql"
+	"github.com/zrs01/dst/internal/service/sql"
 	"github.com/ztrue/tracerr"
 )
 
@@ -26,8 +28,15 @@ func RegisterDLLCmd() *cli.Command {
 		return flagbuilder.NewStringFlag("column").WithAliases("c").WithUsage("column")
 	}
 
+	var ifile, ofile, schema, table, db string
+	setOptions := func() {
+		config.Setting.Ddl.DBType = lo.If(db != "", db).Else(config.Setting.Ddl.DBType)
+		config.Setting.Ddl.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.Ddl.SchemaFilter)
+		config.Setting.Ddl.TableFilter = lo.If(table != "", table).Else(config.Setting.Ddl.TableFilter)
+		config.Setting.Ddl.Output = lo.If(ofile != "", ofile).Else(config.Setting.Ddl.Output)
+	}
+
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
-		var ifile, ofile, schema, table, db string
 		return &cli.Command{
 			Name:  "ct",
 			Usage: "create table",
@@ -39,6 +48,7 @@ func RegisterDLLCmd() *cli.Command {
 				databaseFlagBuilder().WithDestination(&db).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
+				setOptions()
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
 				data, err := ddloader.NewLoadBuilder(
 					ddloader.WithSchemaPattern(schema),

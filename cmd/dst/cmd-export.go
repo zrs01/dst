@@ -6,8 +6,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/export"
 	"github.com/zrs01/dst/internal/flagbuilder"
+	"github.com/zrs01/dst/internal/service/exp"
 )
 
 func RegisterExportCmd() *cli.Command {
@@ -27,7 +27,7 @@ func RegisterExportCmd() *cli.Command {
 			config.Setting.Export.CommonColumnFile = lo.If(ccf != "", ccf).Else(config.Setting.Export.CommonColumnFile)
 			config.Setting.Export.Output = lo.If(output != "", output).Else(config.Setting.Export.Output)
 			config.Setting.Export.TableFilter = lo.If(table != "", table).Else(config.Setting.Export.TableFilter)
-			return export.Generate()
+			return exp.Generate()
 		},
 	}
 }

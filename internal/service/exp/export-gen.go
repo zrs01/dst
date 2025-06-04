@@ -1,11 +1,11 @@
-package export
+package exp
 
 import (
 	"slices"
 
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/ddloader"
+	"github.com/zrs01/dst/internal/db/factory"
 	"github.com/zrs01/dst/internal/ddwriter"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/util"
@@ -13,9 +13,11 @@ import (
 )
 
 func Generate() error {
-	dataDef, err := ddloader.NewLoadBuilder(
-		ddloader.WithTablePattern(config.Setting.Export.TableFilter)).
-		LoadFromDB(config.Setting.Export.Dsn, config.Setting.Export.CommonColumnFile)
+	service := factory.Service(config.Setting.Export.Dsn, config.Setting.Export.CommonColumnFile)
+	dataDef, err := service.Load(config.Setting.Export.TableFilter)
+	// dataDef, err := ddloader.NewLoadBuilder(
+	// 	ddloader.WithTablePattern(config.Setting.Export.TableFilter)).
+	// 	LoadFromDB(config.Setting.Export.Dsn, config.Setting.Export.CommonColumnFile)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

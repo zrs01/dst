@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/ddloader"
-	"github.com/zrs01/dst/internal/text"
+	"github.com/zrs01/dst/internal/service/text"
 	"github.com/ztrue/tracerr"
 )
 

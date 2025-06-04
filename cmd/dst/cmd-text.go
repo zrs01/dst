@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
-	"github.com/zrs01/dst/internal/text"
+	"github.com/zrs01/dst/internal/service/text"
 )
 
 func RegisterTextCmd() *cli.Command {

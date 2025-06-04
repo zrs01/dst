@@ -6,8 +6,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/erd"
 	"github.com/zrs01/dst/internal/flagbuilder"
+	"github.com/zrs01/dst/internal/service/erd"
 )
 
 func RegisterERDCmd() *cli.Command {
