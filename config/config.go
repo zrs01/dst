@@ -1,57 +1,82 @@
 package config
 
 import (
+	"dario.cat/mergo"
 	"github.com/jinzhu/configor"
+	"github.com/sirupsen/logrus"
 )
 
-type SettingDef struct {
-	Ddl struct {
-		DBType       string // mariadb, mssql
-		Input        string
-		Output       string
-		Database     string
-		SchemaFilter string
-		TableFilter  string
-		ColumnFilter string
-	}
-
-	Export struct {
-		Dsn              string
-		CommonColumnFile string `yaml:"ccf"`
-		Output           string
-		TableFilter      string
-	}
-
-	Text struct {
-		Input        string
-		Output       string
-		Template     string
-		SchemaFilter string
-		TableFilter  string
-		ColumnFilter string
-	}
-
-	Erd struct {
-		Input        string
-		Output       string `default:"output.png"`
-		Template     string
-		SchemaFilter string
-		TableFilter  string
-		PlantumlLib  string `yaml:"plantuml"`
-	}
+type ConfigDef struct {
+	Dsn     string // default database source name
+	DataDef SettingDef
+	Export  SettingDef
+	Text    SettingDef
+	Erd     SettingDef
 }
 
-var (
-	Version  string      = "development"
-	Debug    bool        = false
-	Filename string      = "config.yml"
-	Setting  *SettingDef = &SettingDef{}
+type SettingDef struct {
+	Dsn              string // database source name
+	Input            string // schema definition file
+	Output           string // output file
+	DbType           string // database type (mariadb, mssql)
+	Template         string // template file
+	SchemaFilter     string // schema name filter
+	TableFilter      string // table name filter
+	ColumnFilter     string // column name filter
+	PlantumlLib      string // plantuml library path
+	CommonColumnFile string // common column file
+}
+
+type ConfigType int
+
+const (
+	TextConf = iota
+	ExportConf
+	ERDConf
+	DataDefConf
 )
 
-func init() {
+var (
+	Version  string     = "development"
+	Debug    bool       = false
+	Filename string     = "config.yml"
+	Setting  SettingDef = SettingDef{}
+)
+
+// InitSetting initializes the global Setting variable by merging configurations from multiple sources:
+// 1. Loads base config from config.yml file
+// 2. Merges specific settings based on configType (DataDef, Export, ERD, or Text)
+// 3. Finally merges with provided source parameter to override any settings
+func InitSetting(configType ConfigType, source any) {
+	configDef := &ConfigDef{}
 	// load the configuration by default
 	config := configor.New(&configor.Config{
 		Silent: true, // suppress "file not found" error message
 	})
-	config.Load(Setting, Filename)
+	config.Load(configDef, Filename)
+
+	Setting.Dsn = configDef.Dsn
+	switch configType {
+	case DataDefConf:
+		if err := mergo.Merge(&Setting, configDef.DataDef, mergo.WithOverride); err != nil {
+			logrus.Fatal(err)
+		}
+	case ExportConf:
+		if err := mergo.Merge(&Setting, configDef.Export, mergo.WithOverride); err != nil {
+			logrus.Fatal(err)
+		}
+	case ERDConf:
+		if err := mergo.Merge(&Setting, configDef.Erd, mergo.WithOverride); err != nil {
+			logrus.Fatal(err)
+		}
+		Setting.Output = "output.png"
+		Setting.PlantumlLib = "plantuml.jar"
+	case TextConf:
+		if err := mergo.Merge(&Setting, configDef.Text, mergo.WithOverride); err != nil {
+			logrus.Fatal(err)
+		}
+	}
+	if err := mergo.Merge(&Setting, source, mergo.WithOverride); err != nil {
+		logrus.Fatal(err)
+	}
 }

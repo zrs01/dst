@@ -3,6 +3,7 @@ module github.com/zrs01/dst
 go 1.24.0
 
 require (
+	dario.cat/mergo v1.0.2
 	github.com/CloudyKit/jet/v6 v6.3.1
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/codeskyblue/go-sh v0.0.0-20250509230738-c29da582b0f5
@@ -18,6 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/urfave/cli/v3 v3.3.3
 	github.com/xuri/excelize/v2 v2.9.1
+	github.com/yassinebenaid/godump v0.11.1
 	github.com/ztrue/tracerr v0.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -31,7 +33,6 @@ require (
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/tiendc/go-deepcopy v1.6.0 // indirect

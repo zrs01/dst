@@ -30,10 +30,10 @@ func RegisterDLLCmd() *cli.Command {
 
 	var ifile, ofile, schema, table, db string
 	setOptions := func() {
-		config.Setting.Ddl.DBType = lo.If(db != "", db).Else(config.Setting.Ddl.DBType)
-		config.Setting.Ddl.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.Ddl.SchemaFilter)
-		config.Setting.Ddl.TableFilter = lo.If(table != "", table).Else(config.Setting.Ddl.TableFilter)
-		config.Setting.Ddl.Output = lo.If(ofile != "", ofile).Else(config.Setting.Ddl.Output)
+		config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
+		config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
+		config.Setting.TableFilter = lo.If(table != "", table).Else(config.Setting.TableFilter)
+		config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
 	}
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
@@ -200,19 +200,27 @@ func RegisterDLLCmd() *cli.Command {
 	}())
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
-		var ifile, ofile, schema, table, db, col string
+		var input, output, schema, table, db, col string
 		return &cli.Command{
 			Name:  "ci",
 			Usage: "create index DDL",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
-				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+				flagbuilder.SchemaFileFlag().WithDestination(&input).Build(),
+				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&output).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
 				databaseFlagBuilder().WithDestination(&db).Build(),
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
+				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
+				config.Setting.Output = lo.If(output != "", output).Else(config.Setting.Output)
+				config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
+				config.Setting.TableFilter = lo.If(table != "", table).Else(config.Setting.TableFilter)
+				config.Setting.ColumnFilter = lo.If(col != "", col).Else(config.Setting.ColumnFilter)
+
+				// factory.NewService()
+
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := service.NewLoadBuilder(
 					service.WithSchemaPattern(schema),

@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func restoreFixColumns(data *model.DataDef) {
+func restoreFixColumns(data *model.SchemaDef) {
 	type tb struct {
 		tableName  string
 		columnName string
@@ -68,7 +68,7 @@ func restoreFixColumns(data *model.DataDef) {
 	}
 }
 
-func OutputYml(dataDef *model.DataDef, outfile string) error {
+func OutputYml(dataDef *model.Schema, outfile string) error {
 	bytes, err := yaml.Marshal(dataDef)
 	if err != nil {
 		return tracerr.Wrap(err)

@@ -21,7 +21,7 @@ func NewMariadbService(dsn, ccf string) db.Service {
 	}
 }
 
-func (s *MariadbService) Load(tableFilter string) (*model.DataDef, error) {
+func (s *MariadbService) Load(tableFilter string) (*model.Schema, error) {
 	// dataSourceName: mariadb://[username[:password]@][protocol[(address[:port])]]/dbname[?param1=value1&...&paramN=valueN]
 	regex := regexp.MustCompile(`\w+\://[^/]*/(\w+)`).FindStringSubmatch(s.dsn)
 	if len(regex) == 0 {
@@ -34,20 +34,18 @@ func (s *MariadbService) Load(tableFilter string) (*model.DataDef, error) {
 		dsName = parts[1]
 	}
 
-	schema := regex[1]
-	dbManager := NewExportService().
+	databaseName := regex[1]
+	dbManager := NewExportBuilder().
 		WithDriverName("mysql").
 		WithDataSourceName(dsName).
-		WithDatabaseName(schema).
+		WithDatabaseName(databaseName).
 		WithTableName(tableFilter).
 		WithCommonColumnFile(s.ccf)
-	schemaDef, err := dbManager.ToModel()
+	schemaModel, err := dbManager.ToSchemaModel()
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
-	return &model.DataDef{
-		Schemas: []*model.Schema{schemaDef},
-	}, nil
+	return schemaModel, nil
 }
 
 func (s *MariadbService) DDLBuilder() db.DDL {

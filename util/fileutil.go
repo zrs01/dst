@@ -39,6 +39,10 @@ import (
 // 	return nil, tracerr.Errorf("no matching files found")
 // }
 
+// UnmarshalYml reads a YAML file and unmarshals its content into the provided type T.
+// fileName is the path to the YAML file to read
+// v is a pointer to the type T that will hold the unmarshaled data
+// Returns a pointer to the unmarshaled data and any error encountered
 func UnmarshalYml[T any](fileName string, v *T) (*T, error) {
 	yamlFile, err := os.ReadFile(fileName)
 	if err != nil {

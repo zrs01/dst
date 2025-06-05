@@ -7,6 +7,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
+	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
 	yamlIn "gopkg.in/yaml.v3"
 )
@@ -65,13 +66,13 @@ func NewLoadBuilder(opts ...func(*LoadBuilder)) *LoadBuilder {
 	return builder
 }
 
-func (s *LoadBuilder) LoadFromFile(file string) (*model.DataDef, error) {
+func (s *LoadBuilder) LoadFromFile(file string) (*model.Schema, error) {
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 
-	var d model.DataDef
+	var d model.Schema
 	if err := yamlIn.Unmarshal(yamlFile, &d); err != nil {
 		return nil, tracerr.Wrap(err)
 	}
@@ -91,7 +92,9 @@ func (s *LoadBuilder) LoadFromFile(file string) (*model.DataDef, error) {
 		})
 		return nil, tracerr.Errorf("invalid data")
 	}
-	return &d, err
+
+	fd, err := s.Filter(d)
+	return &fd, err
 }
 
 // func (s *LoadBuilder) LoadFromDB(dsn string, ccf string) (*model.DataDef, error) {
@@ -189,34 +192,28 @@ func (s *LoadBuilder) LoadFromFile(file string) (*model.DataDef, error) {
 // 	}, nil
 // }
 
-func (s *LoadBuilder) updateReferenceTables(dataDef *model.DataDef) {
+func (s *LoadBuilder) updateReferenceTables(schema *model.Schema) {
 	// the map table to speed up the lookup process
 	tableMap := make(map[string]*model.Table)
-	for i := 0; i < len(dataDef.Schemas); i++ {
-		schema := dataDef.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			table := schema.Tables[j]
-			tableMap[table.Name] = table
-		}
+	for j := 0; j < len(schema.Tables); j++ {
+		table := schema.Tables[j]
+		tableMap[table.Name] = table
 	}
 
 	// update the reference table
-	for i := 0; i < len(dataDef.Schemas); i++ {
-		schema := dataDef.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			table := schema.Tables[j]
-			for k := 0; k < len(table.Columns); k++ {
-				column := table.Columns[k]
-				if column.ForeignKey != "" {
-					if fkTableName, fkColumnName, found := strings.Cut(column.ForeignKey, "."); found {
-						if fkTable, ok := tableMap[fkTableName]; ok {
-							fkTable.References = append(fkTable.References, &model.Reference{
-								ColumnName: fkColumnName,
-								Foreign:    []*model.ForeignTable{{Table: table.Name, Column: column.Name}},
-							})
-						} else {
-							fmt.Printf("failed to find table '%s'", fkTableName)
-						}
+	for j := 0; j < len(schema.Tables); j++ {
+		table := schema.Tables[j]
+		for k := 0; k < len(table.Columns); k++ {
+			column := table.Columns[k]
+			if column.ForeignKey != "" {
+				if fkTableName, fkColumnName, found := strings.Cut(column.ForeignKey, "."); found {
+					if fkTable, ok := tableMap[fkTableName]; ok {
+						fkTable.References = append(fkTable.References, &model.Reference{
+							ColumnName: fkColumnName,
+							Foreign:    []*model.ForeignTable{{Table: table.Name, Column: column.Name}},
+						})
+					} else {
+						fmt.Printf("failed to find table '%s'", fkTableName)
 					}
 				}
 			}
@@ -225,14 +222,46 @@ func (s *LoadBuilder) updateReferenceTables(dataDef *model.DataDef) {
 }
 
 // Expand fixed columns to each tables.
-func (s *LoadBuilder) expandFixColumns(dataDef *model.DataDef) {
+func (s *LoadBuilder) expandFixColumns(schema *model.Schema) {
 	// copy fixed columns to each tables
-	for i := 0; i < len(dataDef.Schemas); i++ {
-		schema := dataDef.Schemas[i]
-		for j := 0; j < len(schema.Tables); j++ {
-			schema.Tables[j].Columns = append(schema.Tables[j].Columns, dataDef.Fixed...)
+	// for j := 0; j < len(schema.Tables); j++ {
+	// 	schema.Tables[j].Columns = append(schema.Tables[j].Columns, dataDef.Fixed...)
+	// }
+}
+
+func (s *LoadBuilder) Filter(srcSchema model.Schema) (model.Schema, error) {
+	var isPatternMatch = func(pattern, value string) bool {
+		return pattern == "" || util.WildCardMatchWithCommaPattern(pattern, value)
+	}
+
+	dstSchema := model.Schema{}
+	var dstTables []*model.Table
+
+	// Filter tables that match the table pattern specified in settings
+	// Uses wildcard matching to include/exclude tables based on their names
+	matchedTables := lo.Filter(srcSchema.Tables, func(t *model.Table, _ int) bool {
+		return isPatternMatch(s.options.tablePattern, t.Name)
+	})
+
+	// return empty schema if no tables match the filter pattern
+	if len(matchedTables) == 0 {
+		return model.Schema{}, tracerr.New(fmt.Sprintf("no tables matched the filter pattern '%s'", s.options.tablePattern))
+	}
+
+	for j := 0; j < len(matchedTables); j++ {
+		columns := lo.Filter(matchedTables[j].Columns, func(c *model.Column, _ int) bool {
+			return isPatternMatch(s.options.columnPattern, c.Name)
+		})
+		if len(columns) > 0 {
+			matchedTables[j].Columns = columns
+			dstTables = append(dstTables, matchedTables[j])
 		}
 	}
-	// clean the fixed column
-	dataDef.Fixed = []*model.Column{}
+
+	if len(dstTables) > 0 {
+		dstSchema.Tables = dstTables
+	} else {
+		return model.Schema{}, tracerr.New(fmt.Sprintf("no tables with matching columns found for filter pattern '%s'", s.options.columnPattern))
+	}
+	return dstSchema, nil
 }

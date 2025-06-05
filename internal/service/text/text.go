@@ -19,35 +19,35 @@ import (
 )
 
 func Generate() error {
-	data, err := service.NewLoadBuilder(
-		service.WithSchemaPattern(config.Setting.Text.SchemaFilter),
-		service.WithTablePattern(config.Setting.Text.TableFilter),
-		service.WithColumnPattern(config.Setting.Text.ColumnFilter)).
-		LoadFromFile(config.Setting.Text.Input) // the data does not filter by schema and table
+	schema, err := service.NewLoadBuilder(
+		service.WithSchemaPattern(config.Setting.SchemaFilter),
+		service.WithTablePattern(config.Setting.TableFilter),
+		service.WithColumnPattern(config.Setting.ColumnFilter)).
+		LoadFromFile(config.Setting.Input) // the data does not filter by schema and table
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	if config.Setting.Text.Template == "" {
-		return ddwriter.OutputYml(data, config.Setting.Text.Output)
+	if config.Setting.Template == "" {
+		return ddwriter.OutputYml(schema, config.Setting.Output)
 	}
-	return WriteWithFileLoader(data, config.Setting.Text.Template, config.Setting.Text.Output)
+	return WriteWithFileLoader(schema, config.Setting.Template, config.Setting.Output)
 }
 
-func WriteWithFileLoader(data *model.DataDef, tplf string, out string) error {
-	return WriteWithLoader(jet.NewOSFileSystemLoader(filepath.Dir(tplf)), data, tplf, out)
+func WriteWithFileLoader(schema *model.Schema, tplf string, out string) error {
+	return WriteWithLoader(jet.NewOSFileSystemLoader(filepath.Dir(tplf)), schema, tplf, out)
 }
 
-func WriteWithEmbedFSLoader(fs embed.FS, data *model.DataDef, tplf string, out string) error {
-	return WriteWithLoader(embedfs.NewLoader(filepath.Dir(tplf), fs), data, tplf, out)
+func WriteWithEmbedFSLoader(fs embed.FS, schema *model.Schema, tplf string, out string) error {
+	return WriteWithLoader(embedfs.NewLoader(filepath.Dir(tplf), fs), schema, tplf, out)
 }
 
-func WriteWithInMemoryLoader(data *model.DataDef, tplf, tplc string, out string) error {
+func WriteWithInMemoryLoader(schema *model.Schema, tplf, tplc string, out string) error {
 	loader := jet.NewInMemLoader()
 	loader.Set(filepath.Base(tplf), tplc)
-	return WriteWithLoader(loader, data, tplf, out)
+	return WriteWithLoader(loader, schema, tplf, out)
 }
 
-func WriteWithLoader(loader jet.Loader, data *model.DataDef, tplf string, out string) error {
+func WriteWithLoader(loader jet.Loader, schema *model.Schema, tplf string, out string) error {
 	views := jet.NewSet(loader)
 	setJetFunc(views)
 	view, err := views.GetTemplate(filepath.Base(tplf))
@@ -56,7 +56,7 @@ func WriteWithLoader(loader jet.Loader, data *model.DataDef, tplf string, out st
 	}
 
 	var fh *os.File
-	if out == "" || out == "stdout" {
+	if out == "" {
 		fh = os.Stdout
 	} else {
 		fh, err = os.Create(out)
@@ -67,7 +67,7 @@ func WriteWithLoader(loader jet.Loader, data *model.DataDef, tplf string, out st
 	}
 
 	// merge
-	if err := view.Execute(fh, nil, *data); err != nil {
+	if err := view.Execute(fh, nil, *schema); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil

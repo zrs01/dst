@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type DataDef struct {
+type SchemaDef struct {
 	Fixed   []*Column `yaml:"fixed,omitempty"`
 	Schemas []*Schema `yaml:"schemas,omitempty"`
 }
@@ -67,6 +67,15 @@ type Routine struct {
 	Name string `yaml:"name,omitempty"`
 	Code string `yaml:"code,omitempty"`
 }
+
+// func (t *Table) MarshalYAML() (any, error) {
+// 	content := getContent(*t, nil, nil)
+// 	node := &yaml.Node{
+// 		Kind:    yaml.MappingNode,
+// 		Content: content,
+// 	}
+// 	return node, nil
+// }
 
 // MarshalYAML is a method that marshals a Column struct into a YAML Node
 func (c *Column) MarshalYAML() (any, error) {

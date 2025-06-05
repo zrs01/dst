@@ -12,160 +12,204 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type DDLBuilder struct {
-	dataDef            *model.Schema
-	targetDatabaseName string
-	targetTableName    string
-	commonColumnFile   string
+// DDBuilder is a builder for generating DDL statements
+type DDBuilder struct {
+	schemaModel      *model.Schema
+	databaseName     string
+	tableName        string
+	commonColumnFile string
 }
 
-func NewDDLBuilder() db.DDL {
-	return &DDLBuilder{}
+func NewDDBuilder() db.DDL {
+	return &DDBuilder{}
 }
 
-func (m *DDLBuilder) WithDataDef(dataDef *model.Schema) *DDLBuilder {
-	m.dataDef = dataDef
+func (m *DDBuilder) WithDataDef(dataDef *model.Schema) *DDBuilder {
+	m.schemaModel = dataDef
 	return m
 }
 
-func (m *DDLBuilder) WithDatabaseName(targetDatabaseName string) *DDLBuilder {
-	m.targetDatabaseName = targetDatabaseName
+func (m *DDBuilder) WithDatabaseName(targetDatabaseName string) *DDBuilder {
+	m.databaseName = targetDatabaseName
 	return m
 }
 
-func (m *DDLBuilder) WithTableName(targetTableName string) *DDLBuilder {
-	m.targetTableName = targetTableName
+func (m *DDBuilder) WithTableName(targetTableName string) *DDBuilder {
+	m.tableName = targetTableName
 	return m
 }
 
-func (m *DDLBuilder) WithCommonColumnFile(commonColumnFile string) *DDLBuilder {
+func (m *DDBuilder) WithCommonColumnFile(commonColumnFile string) *DDBuilder {
 	m.commonColumnFile = commonColumnFile
 	return m
 }
 
-// CreateDatabase implements db.DDL.
-func (m *DDLBuilder) CreateDatabase() {
-	panic("unimplemented")
+// CreateDatabase generates the DDL statement for creating the database
+func (m *DDBuilder) CreateDatabase() (string, error) {
+	var stmt strings.Builder
+	var args []any
+	stmt.WriteString("CREATE DATABASE IF NOT EXISTS %s CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+	args = append(args, m.schemaModel.Name)
+	if m.schemaModel.Desc != "" {
+		stmt.WriteString(" COMMENT '%s'")
+		args = append(args, m.schemaModel.Desc)
+	}
+	stmt.WriteString(";")
+	return fmt.Sprintf(stmt.String(), args...), nil
 }
 
 // CreateFunction implements db.DDL.
-func (m *DDLBuilder) CreateFunction() {
+func (m *DDBuilder) CreateFunction() {
 	panic("unimplemented")
 }
 
 // CreateIndex implements db.DDL.
-func (m *DDLBuilder) CreateIndex() {
-	panic("unimplemented")
+func (m *DDBuilder) CreateIndex() ([]string, error) {
+	var stmts []string
+	for _, table := range m.schemaModel.Tables {
+		for _, column := range table.Columns {
+			index := m.createIndexStmtFromColumnModel(table.Name, column)
+			if index != "" {
+				stmts = append(stmts, index)
+			}
+		}
+
+		// additional index
+		for i, index := range table.Indexes {
+			indexName := index.Name
+			if indexName == "" {
+				indexName = m.indexName(table.Name, fmt.Sprintf("%03d", (i+1)))
+			}
+			stmts = append(stmts, m.createIndexStmt(indexName, table.Name, index.Columns, util.IsYes(index.Unique)))
+		}
+	}
+	return stmts, nil
 }
 
 // CreateProcedure implements db.DDL.
-func (m *DDLBuilder) CreateProcedure() {
+func (m *DDBuilder) CreateProcedure() {
 	panic("unimplemented")
 }
 
 // CreateTable implements db.DDL.
-func (m *DDLBuilder) CreateTable() {
+func (m *DDBuilder) CreateTable() {
 	panic("unimplemented")
 }
 
 // CreateTrigger implements db.DDL.
-func (m *DDLBuilder) CreateTrigger() {
+func (m *DDBuilder) CreateTrigger() {
 	panic("unimplemented")
 }
 
 // CreateUser implements db.DDL.
-func (m *DDLBuilder) CreateUser() {
+func (m *DDBuilder) CreateUser() {
 	panic("unimplemented")
 }
 
 // CreateView implements db.DDL.
-func (m *DDLBuilder) CreateView() {
+func (m *DDBuilder) CreateView() {
 	panic("unimplemented")
 }
 
 // AlterDatabase implements db.DDL.
-func (m *DDLBuilder) AlterDatabase() {
+func (m *DDBuilder) AlterDatabase() {
 	panic("unimplemented")
 }
 
 // AlterFunction implements db.DDL.
-func (m *DDLBuilder) AlterFunction() {
+func (m *DDBuilder) AlterFunction() {
 	panic("unimplemented")
 }
 
 // AlterIndex implements db.DDL.
-func (m *DDLBuilder) AlterIndex() {
+func (m *DDBuilder) AlterIndex() {
 	panic("unimplemented")
 }
 
 // AlterProcedure implements db.DDL.
-func (m *DDLBuilder) AlterProcedure() {
+func (m *DDBuilder) AlterProcedure() {
 	panic("unimplemented")
 }
 
 // AlterTable implements db.DDL.
-func (m *DDLBuilder) AlterTable() {
+func (m *DDBuilder) AlterTable() {
 	panic("unimplemented")
 }
 
 // AlterTrigger implements db.DDL.
-func (m *DDLBuilder) AlterTrigger() {
+func (m *DDBuilder) AlterTrigger() {
 	panic("unimplemented")
 }
 
 // AlterUser implements db.DDL.
-func (m *DDLBuilder) AlterUser() {
+func (m *DDBuilder) AlterUser() {
 	panic("unimplemented")
 }
 
 // AlterView implements db.DDL.
-func (m *DDLBuilder) AlterView() {
+func (m *DDBuilder) AlterView() {
 	panic("unimplemented")
 }
 
 // DropDatabase implements db.DDL.
-func (m *DDLBuilder) DropDatabase() {
+func (m *DDBuilder) DropDatabase() {
 	panic("unimplemented")
 }
 
 // DropFunction implements db.DDL.
-func (m *DDLBuilder) DropFunction() {
+func (m *DDBuilder) DropFunction() {
 	panic("unimplemented")
 }
 
 // DropIndex implements db.DDL.
-func (m *DDLBuilder) DropIndex() {
+func (m *DDBuilder) DropIndex() {
 	panic("unimplemented")
 }
 
 // DropProcedure implements db.DDL.
-func (m *DDLBuilder) DropProcedure() {
+func (m *DDBuilder) DropProcedure() {
 	panic("unimplemented")
 }
 
 // DropTable implements db.DDL.
-func (m *DDLBuilder) DropTable() {
+func (m *DDBuilder) DropTable() {
 	panic("unimplemented")
 }
 
 // DropTrigger implements db.DDL.
-func (m *DDLBuilder) DropTrigger() {
+func (m *DDBuilder) DropTrigger() {
 	panic("unimplemented")
 }
 
 // DropUser implements db.DDL.
-func (m *DDLBuilder) DropUser() {
+func (m *DDBuilder) DropUser() {
 	panic("unimplemented")
 }
 
 // DropView implements db.DDL.
-func (m *DDLBuilder) DropView() {
+func (m *DDBuilder) DropView() {
 	panic("unimplemented")
+}
+
+func (m *DDBuilder) createIndexStmtFromColumnModel(tableName string, column *model.Column) string {
+	if util.IsYes(column.Index) {
+		return m.createIndexStmt(m.indexName(tableName, column.Name), tableName, []string{column.Name}, util.IsYes(column.Unique))
+	}
+	return ""
+}
+
+func (m *DDBuilder) createIndexStmt(indexName, tableName string, fields []string, isUnique bool) string {
+	unique := lo.If(isUnique, "UNIQUE ").Else("")
+	return fmt.Sprintf("CREATE %sINDEX IF NOT EXISTS `%s` ON `%s` (`%s`);", unique, indexName, tableName, strings.Join(fields, "`,`"))
+}
+
+func (m *DDBuilder) indexName(tableName, columnName string) string {
+	return fmt.Sprintf("idx_%s_%s", tableName, columnName)
 }
 
 /* -------------------------------- Separator ------------------------------- */
 type DDLService struct {
-	targetTableName string
+	tableName string
 }
 
 func NewDDLService() *DDLService {
@@ -173,7 +217,7 @@ func NewDDLService() *DDLService {
 }
 
 func (m *DDLService) WithTableName(tableName string) *DDLService {
-	m.targetTableName = tableName
+	m.tableName = tableName
 	return m
 }
 
@@ -190,9 +234,9 @@ func (m *DDLService) GenerateStatement(db *model.Schema, stmtType string) (*stri
 
 func (m *DDLService) createStmt(mdb *model.Schema) (*string, error) {
 	mTables := mdb.Tables
-	if m.targetTableName != "" {
+	if m.tableName != "" {
 		mTables = lo.Filter(mTables, func(mTable *model.Table, _ int) bool {
-			return mTable.Name == m.targetTableName
+			return mTable.Name == m.tableName
 		})
 	}
 
@@ -261,9 +305,9 @@ func (m *DDLService) createTableStmt(mTable *model.Table) ([]string, error) {
 
 func (m *DDLService) alterStmt(mdb *model.Schema) (*string, error) {
 	mTables := mdb.Tables
-	if m.targetTableName != "" {
+	if m.tableName != "" {
 		mTables = lo.Filter(mTables, func(mTable *model.Table, _ int) bool {
-			return mTable.Name == m.targetTableName
+			return mTable.Name == m.tableName
 		})
 	}
 
@@ -282,7 +326,7 @@ func (m *DDLService) alterStmt(mdb *model.Schema) (*string, error) {
 
 func (m *DDLService) alterTableStmt(srcDBName string, srcTB *model.Table) ([]string, error) {
 	// map current database schema to model
-	expDB, err := NewExportService().WithDatabaseName(srcDBName).ToModel()
+	expDB, err := NewExportBuilder().WithDatabaseName(srcDBName).ToSchemaModel()
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}

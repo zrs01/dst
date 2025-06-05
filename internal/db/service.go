@@ -12,17 +12,17 @@ const (
 
 type Service interface {
 	DDLBuilder() DDL
-	Load(tableFilter string) (*model.DataDef, error)
+	Load(tableFilter string) (*model.Schema, error)
 }
 
 type DDL interface {
-	CreateDatabase()
+	CreateDatabase() (string, error)
 	CreateTable()
 	CreateView()
 	CreateUser()
 	CreateTrigger()
 	CreateFunction()
-	CreateIndex()
+	CreateIndex() ([]string, error)
 	CreateProcedure()
 
 	AlterDatabase()

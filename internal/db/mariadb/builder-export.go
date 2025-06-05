@@ -3,7 +3,6 @@ package mariadb
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/samber/lo"
@@ -12,45 +11,45 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-type ExportService struct {
-	driverName         string
-	dataSourceName     string
-	targetDatabaseName string
-	targetTableName    string
-	commonColumnFile   string
+type ExportBuilder struct {
+	driverName       string
+	dataSourceName   string
+	databaseName     string
+	tableName        string
+	commonColumnFile string
 }
 
-func NewExportService() *ExportService {
-	return &ExportService{}
+func NewExportBuilder() *ExportBuilder {
+	return &ExportBuilder{}
 }
 
-func (m *ExportService) WithDriverName(driverName string) *ExportService {
+func (m *ExportBuilder) WithDriverName(driverName string) *ExportBuilder {
 	m.driverName = driverName
 	return m
 }
 
-func (m *ExportService) WithDataSourceName(dataSourceName string) *ExportService {
+func (m *ExportBuilder) WithDataSourceName(dataSourceName string) *ExportBuilder {
 	m.dataSourceName = dataSourceName
 	return m
 }
 
-func (m *ExportService) WithDatabaseName(targetDatabaseName string) *ExportService {
-	m.targetDatabaseName = targetDatabaseName
+func (m *ExportBuilder) WithDatabaseName(targetDatabaseName string) *ExportBuilder {
+	m.databaseName = targetDatabaseName
 	return m
 }
 
-func (m *ExportService) WithTableName(targetTableName string) *ExportService {
-	m.targetTableName = targetTableName
+func (m *ExportBuilder) WithTableName(targetTableName string) *ExportBuilder {
+	m.tableName = targetTableName
 	return m
 }
 
-func (m *ExportService) WithCommonColumnFile(commonColumnFile string) *ExportService {
+func (m *ExportBuilder) WithCommonColumnFile(commonColumnFile string) *ExportBuilder {
 	m.commonColumnFile = commonColumnFile
 	return m
 }
 
-func (m *ExportService) ToModel() (*model.Schema, error) {
-	if m.targetDatabaseName == "" {
+func (m *ExportBuilder) ToSchemaModel() (*model.Schema, error) {
+	if m.databaseName == "" {
 		return nil, tracerr.Errorf("database name is required")
 	}
 
@@ -74,12 +73,12 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 
 	/* ----------------------- Get the database definition ---------------------- */
 	scrDbm := NewDatabaseManager()
-	scrDbs, error := scrDbm.WithSchemaName(m.targetDatabaseName).GetDef(db)
+	scrDbs, error := scrDbm.WithSchemaName(m.databaseName).GetDef(db)
 	if error != nil {
 		return nil, tracerr.Wrap(error)
 	}
 	if len(scrDbs) == 0 {
-		return nil, tracerr.Errorf("The database (%s) was not found", m.targetDatabaseName)
+		return nil, tracerr.Errorf("The database (%s) was not found", m.databaseName)
 	}
 
 	desDb := &model.Schema{}
@@ -89,10 +88,10 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 	/* ------------------------ Get the table definition ------------------------ */
 	{
 		srcTbm := NewTableManager()
-		if m.targetTableName != "" {
-			srcTbm.WithTableName(m.targetTableName)
+		if m.tableName != "" {
+			srcTbm.WithTableName(m.tableName)
 		}
-		srcTbs, err := srcTbm.WithTableSchema(m.targetDatabaseName).WithTableType("BASE TABLE").GetDef(db)
+		srcTbs, err := srcTbm.WithTableSchema(m.databaseName).WithTableType("BASE TABLE").GetDef(db)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
@@ -110,14 +109,14 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 	/* ------------------------ Get the column definition ----------------------- */
 	{
 		scrColm := NewColumnManager()
-		scrCols, err := scrColm.WithTableSchema(m.targetDatabaseName).GetDef(db)
+		scrCols, err := scrColm.WithTableSchema(m.databaseName).GetDef(db)
 		if err != nil {
 			return nil, tracerr.Wrap(err)
 		}
 		for _, t := range desDb.Tables {
 
-			cids := []string{} // storage of column ID of the table
-			cidRe := regexp.MustCompile(`\[(\d+)\]`)
+			// cids := []string{} // storage of column ID of the table
+			// cidRe := regexp.MustCompile(`\[(\d+)\]`)
 
 			t.Columns = []*model.Column{}
 			for _, sc := range scrCols {
@@ -145,33 +144,33 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 						}
 
 						// collect column ID
-						match := cidRe.FindStringSubmatch(desCol.Desc)
-						if len(match) > 1 { // column ID found
-							cids = append(cids, match[1])
-						}
+						// match := cidRe.FindStringSubmatch(desCol.Desc)
+						// if len(match) > 1 { // column ID found
+						// 	cids = append(cids, match[1])
+						// }
 						t.Columns = append(t.Columns, desCol)
 					}
 				}
 			}
 
 			// fix column ID
-			if len(cids) != len(t.Columns) {
-				count := 1
-				for i := 0; i < len(t.Columns); i++ {
-					dc := t.Columns[i]
-					match := cidRe.FindStringSubmatch(dc.Desc)
-					if len(match) < 2 { // column ID doesn't found
-						countStr := fmt.Sprintf("%03d", count)
-						for lo.Contains(cids, countStr) {
-							count++
-							countStr = fmt.Sprintf("%03d", count)
-						}
-						// add ID to desc
-						dc.Desc = fmt.Sprintf("[%s] %s", countStr, dc.Desc)
-						cids = append(cids, countStr)
-					}
-				}
-			}
+			// if len(cids) != len(t.Columns) {
+			// 	count := 1
+			// 	for i := 0; i < len(t.Columns); i++ {
+			// 		dc := t.Columns[i]
+			// 		match := cidRe.FindStringSubmatch(dc.Desc)
+			// 		if len(match) < 2 { // column ID doesn't found
+			// 			countStr := fmt.Sprintf("%03d", count)
+			// 			for lo.Contains(cids, countStr) {
+			// 				count++
+			// 				countStr = fmt.Sprintf("%03d", count)
+			// 			}
+			// 			// add ID to desc
+			// 			dc.Desc = fmt.Sprintf("[%s] %s", countStr, dc.Desc)
+			// 			cids = append(cids, countStr)
+			// 		}
+			// 	}
+			// }
 		}
 	}
 
@@ -180,7 +179,7 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 		srcConstm := NewConstraintManager()
 		for _, desTb := range desDb.Tables {
 			// Get constraints of the table
-			scrConsts, err := srcConstm.WithTableSchema(m.targetDatabaseName).WithTableName(desTb.Name).GetDef(db)
+			scrConsts, err := srcConstm.WithTableSchema(m.databaseName).WithTableName(desTb.Name).GetDef(db)
 			if err != nil {
 				return nil, tracerr.Wrap(err)
 			}
@@ -189,7 +188,7 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 				for _, srcCol := range desTb.Columns {
 					// Get foreign key
 					found, ok := lo.Find(scrConsts, func(i *Constraint) bool {
-						return i.ConstraintName != "PRIMARY" && i.TableSchema == m.targetDatabaseName && i.TableName == desTb.Name && i.ColumnName == srcCol.Name
+						return i.ConstraintName != "PRIMARY" && i.TableSchema == m.databaseName && i.TableName == desTb.Name && i.ColumnName == srcCol.Name
 					})
 					if ok {
 						srcCol.ForeignKey = fmt.Sprintf("%s.%s", found.ReferencedTableName, found.ReferencedColumnName)
@@ -204,7 +203,7 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 		srcIdxm := NewIndexManager()
 		for _, desTb := range desDb.Tables {
 			// Get indexes of the table
-			scrIdxs, err := srcIdxm.WithTableSchema(m.targetDatabaseName).WithTableName(desTb.Name).GetDef(db)
+			scrIdxs, err := srcIdxm.WithTableSchema(m.databaseName).WithTableName(desTb.Name).GetDef(db)
 			if err != nil {
 				return nil, tracerr.Wrap(err)
 			}
@@ -212,7 +211,7 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 			if len(scrIdxs) > 0 {
 				for _, srcCol := range desTb.Columns {
 					_, ok := lo.Find(scrIdxs, func(i *Index) bool {
-						return i.TableSchema == m.targetDatabaseName && i.TableName == desTb.Name && i.IndexName != "PRIMARY" && len(i.Columns) == 1 && i.Columns[0] == srcCol.Name
+						return i.TableSchema == m.databaseName && i.TableName == desTb.Name && i.IndexName != "PRIMARY" && len(i.Columns) == 1 && i.Columns[0] == srcCol.Name
 					})
 					if ok {
 						srcCol.Index = "Y"
@@ -220,7 +219,7 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 				}
 				// multi column index
 				desTb.Indexes = lo.FilterMap(scrIdxs, func(i *Index, _ int) (*model.Index, bool) {
-					if i.TableSchema == m.targetDatabaseName && i.TableName == desTb.Name && len(i.Columns) > 1 {
+					if i.TableSchema == m.databaseName && i.TableName == desTb.Name && len(i.Columns) > 1 {
 						return &model.Index{
 							Name:    i.IndexName,
 							Unique:  lo.If(i.Unique, "Y").Else("N"),
@@ -236,7 +235,7 @@ func (m *ExportService) ToModel() (*model.Schema, error) {
 	return desDb, nil
 }
 
-func (m *ExportService) ToRoutines() ([]*model.Routine, error) {
+func (m *ExportBuilder) ToRoutineModel() ([]*model.Routine, error) {
 	db, err := util.OpenSqlDb(m.driverName, m.dataSourceName)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
@@ -244,7 +243,7 @@ func (m *ExportService) ToRoutines() ([]*model.Routine, error) {
 	defer db.Close()
 
 	routineManager := NewRoutineManager()
-	srcRoutines, err := routineManager.WithRoutineSchema(m.targetDatabaseName).GetDef(db)
+	srcRoutines, err := routineManager.WithRoutineSchema(m.databaseName).GetDef(db)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}

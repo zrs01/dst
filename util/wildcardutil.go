@@ -27,7 +27,11 @@ func WildCardToRegexp(pattern string) string {
 	return "^" + "(?i)" + sb.String() + "$"
 }
 
-func WildCardMatchs(pattern []string, value string) bool {
+func WildCardMatchWithCommaPattern(pattern string, value string) bool {
+	return WildCardMatchWithArrayPattern(SplitWithTrim(pattern, ","), value)
+}
+
+func WildCardMatchWithArrayPattern(pattern []string, value string) bool {
 	return lo.SomeBy(pattern, func(x string) bool {
 		return WildCardMatch(x, value)
 	})

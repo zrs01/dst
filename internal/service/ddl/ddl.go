@@ -11,9 +11,9 @@ import (
 func Generate() error {
 	logrus.Info("Generating DDL...")
 	data, err := service.NewLoadBuilder(
-		service.WithSchemaPattern(config.Setting.Ddl.SchemaFilter),
-		service.WithTablePattern(config.Setting.Ddl.TableFilter)).
-		LoadFromFile(config.Setting.Ddl.Input)
+		service.WithSchemaPattern(config.Setting.SchemaFilter),
+		service.WithTablePattern(config.Setting.TableFilter)).
+		LoadFromFile(config.Setting.Input)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
