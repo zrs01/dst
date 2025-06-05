@@ -19,24 +19,24 @@ func Launch() {
 
 	cmd := &cli.Command{
 		Name:    "dst",
-		Usage:   "Database schema tool",
+		Usage:   "database schema tool",
 		Version: config.Version,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:        "debug",
 				Aliases:     []string{"d"},
-				Usage:       "Debug mode",
+				Usage:       "debug mode",
 				Required:    false,
 				Destination: &config.Debug,
 			},
 		},
 	}
 
-	cmd.Commands = append(cmd.Commands, RegisterTextCmd())   // Template
-	cmd.Commands = append(cmd.Commands, RegisterExcelCmd())  // Excel
-	cmd.Commands = append(cmd.Commands, RegisterERDCmd())    // ER diagram
 	cmd.Commands = append(cmd.Commands, RegisterDLLCmd())    // SQL DDL statement
+	cmd.Commands = append(cmd.Commands, RegisterERDCmd())    // ER diagram
+	cmd.Commands = append(cmd.Commands, RegisterExcelCmd())  // Excel
 	cmd.Commands = append(cmd.Commands, RegisterExportCmd()) // Export
+	cmd.Commands = append(cmd.Commands, RegisterTextCmd())   // Template
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		if config.Debug {

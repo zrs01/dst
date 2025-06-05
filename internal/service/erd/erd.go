@@ -23,7 +23,6 @@ var templateFS embed.FS
 func Generate() error {
 	logrus.Info("Generating ER Diagram...")
 	data, err := service.NewLoadBuilder(
-		service.WithSchemaPattern(config.Setting.SchemaFilter),
 		service.WithTablePattern(config.Setting.TableFilter)).
 		LoadFromFile(config.Setting.Input)
 	if err != nil {

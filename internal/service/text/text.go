@@ -20,7 +20,7 @@ import (
 
 func Generate() error {
 	schema, err := service.NewLoadBuilder(
-		service.WithSchemaPattern(config.Setting.SchemaFilter),
+		// service.WithSchemaPattern(config.Setting.SchemaFilter),
 		service.WithTablePattern(config.Setting.TableFilter),
 		service.WithColumnPattern(config.Setting.ColumnFilter)).
 		LoadFromFile(config.Setting.Input) // the data does not filter by schema and table

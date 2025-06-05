@@ -7,11 +7,12 @@ import (
 )
 
 type ConfigDef struct {
-	Dsn     string // default database source name
 	DataDef SettingDef
+	Dsn     string // default database source name
+	Erd     SettingDef
+	Excel   SettingDef
 	Export  SettingDef
 	Text    SettingDef
-	Erd     SettingDef
 }
 
 type SettingDef struct {
@@ -20,7 +21,6 @@ type SettingDef struct {
 	Output           string // output file
 	DbType           string // database type (mariadb, mssql)
 	Template         string // template file
-	SchemaFilter     string // schema name filter
 	TableFilter      string // table name filter
 	ColumnFilter     string // column name filter
 	PlantumlLib      string // plantuml library path
@@ -30,10 +30,11 @@ type SettingDef struct {
 type ConfigType int
 
 const (
-	TextConf = iota
-	ExportConf
+	DataDefConf = iota
 	ERDConf
-	DataDefConf
+	ExcelConf
+	ExportConf
+	TextConf
 )
 
 var (
@@ -61,8 +62,8 @@ func InitSetting(configType ConfigType, source any) {
 		if err := mergo.Merge(&Setting, configDef.DataDef, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)
 		}
-	case ExportConf:
-		if err := mergo.Merge(&Setting, configDef.Export, mergo.WithOverride); err != nil {
+	case ExcelConf:
+		if err := mergo.Merge(&Setting, configDef.Excel, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)
 		}
 	case ERDConf:
@@ -71,6 +72,10 @@ func InitSetting(configType ConfigType, source any) {
 		}
 		Setting.Output = "output.png"
 		Setting.PlantumlLib = "plantuml.jar"
+	case ExportConf:
+		if err := mergo.Merge(&Setting, configDef.Export, mergo.WithOverride); err != nil {
+			logrus.Fatal(err)
+		}
 	case TextConf:
 		if err := mergo.Merge(&Setting, configDef.Text, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)

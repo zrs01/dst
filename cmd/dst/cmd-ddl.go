@@ -31,7 +31,7 @@ func RegisterDLLCmd() *cli.Command {
 	var ifile, ofile, schema, table, db string
 	setOptions := func() {
 		config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
-		config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
+		// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
 		config.Setting.TableFilter = lo.If(table != "", table).Else(config.Setting.TableFilter)
 		config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
 	}
@@ -51,7 +51,7 @@ func RegisterDLLCmd() *cli.Command {
 				setOptions()
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table)).
 					LoadFromFile(ifile)
 				if err != nil {
@@ -77,7 +77,7 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table)).
 					LoadFromFile(ifile)
 				if err != nil {
@@ -104,7 +104,7 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table),
 					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
@@ -132,7 +132,7 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table),
 					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
@@ -159,7 +159,7 @@ func RegisterDLLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table),
 					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
@@ -187,7 +187,7 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table),
 					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
@@ -215,7 +215,7 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
 				config.Setting.Output = lo.If(output != "", output).Else(config.Setting.Output)
-				config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
+				// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
 				config.Setting.TableFilter = lo.If(table != "", table).Else(config.Setting.TableFilter)
 				config.Setting.ColumnFilter = lo.If(col != "", col).Else(config.Setting.ColumnFilter)
 
@@ -223,7 +223,7 @@ func RegisterDLLCmd() *cli.Command {
 
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table),
 					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)
@@ -251,7 +251,7 @@ func RegisterDLLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
 				data, err := service.NewLoadBuilder(
-					service.WithSchemaPattern(schema),
+					// service.WithSchemaPattern(schema),
 					service.WithTablePattern(table),
 					service.WithColumnPattern(col)).
 					LoadFromFile(ifile)

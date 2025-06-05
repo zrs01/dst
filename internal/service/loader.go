@@ -14,7 +14,7 @@ import (
 
 type LoadBuilder struct {
 	options struct {
-		schemaPattern         string
+		// schemaPattern         string
 		tablePattern          string
 		columnPattern         string
 		updateReferenceTables bool
@@ -22,17 +22,11 @@ type LoadBuilder struct {
 	}
 }
 
-// const (
-// 	MYSQL_PREFIX   = "mysql://"
-// 	MSSQL_PREFIX   = "sqlserver://"
-// 	MARIADB_PREFIX = "mariadb://"
-// )
-
-func WithSchemaPattern(pattern string) func(*LoadBuilder) {
-	return func(s *LoadBuilder) {
-		s.options.schemaPattern = pattern
-	}
-}
+// func WithSchemaPattern(pattern string) func(*LoadBuilder) {
+// 	return func(s *LoadBuilder) {
+// 		s.options.schemaPattern = pattern
+// 	}
+// }
 
 func WithTablePattern(pattern string) func(*LoadBuilder) {
 	return func(s *LoadBuilder) {

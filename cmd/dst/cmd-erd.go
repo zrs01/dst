@@ -11,7 +11,6 @@ import (
 
 func RegisterERDCmd() *cli.Command {
 	var options config.SettingDef
-	// var input, output, template, schema, table, lib string
 
 	return &cli.Command{
 		Name:  "erd",
@@ -19,7 +18,6 @@ func RegisterERDCmd() *cli.Command {
 		Flags: []cli.Flag{
 			flagbuilder.SchemaFileFlag().WithDestination(&options.Input).Build(),
 			flagbuilder.OutputFileFlag().WithUsage("output file (file extension must be either .puml or .png)").WithDestination(&options.Output).Build(),
-			// flagbuilder.SchemaNameFlag().WithDestination(&options.SchemaFilter).Build(),
 			flagbuilder.TableNameFlag().WithDestination(&options.TableFilter).Build(),
 			flagbuilder.TemplateFileFlag().WithDestination(&options.Template).Build(),
 			flagbuilder.NewStringFlag("umllib").WithUsage("Path of plantuml.jar file (required when output is .png").WithDestination(&options.PlantumlLib).Build(),
