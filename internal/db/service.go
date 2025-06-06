@@ -3,6 +3,7 @@ package db
 import (
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/db/dbcm"
 	"github.com/zrs01/dst/internal/db/mariadb"
@@ -17,6 +18,9 @@ func NewService() dbcm.Service {
 	case strings.HasPrefix(config.Setting.Dsn, dbcm.MARIADB_PREFIX):
 		return mariadb.NewMariadbService()
 	default:
-		return nil
+		if config.Setting.Dsn == "" {
+			logrus.Panic("The database source name was not provided in configuration")
+		}
 	}
+	panic("Unsupported database type: " + config.Setting.Dsn)
 }
