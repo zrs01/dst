@@ -227,7 +227,6 @@ func (s *LoadBuilder) Filter(srcSchema *model.Schema) (*model.Schema, error) {
 		return pattern == "" || util.WildCardMatchWithCommaPattern(pattern, value)
 	}
 
-	dstSchema := model.Schema{}
 	var dstTables []*model.Table
 
 	// Filter tables that match the table pattern specified in settings
@@ -252,9 +251,9 @@ func (s *LoadBuilder) Filter(srcSchema *model.Schema) (*model.Schema, error) {
 	}
 
 	if len(dstTables) > 0 {
-		dstSchema.Tables = dstTables
+		srcSchema.Tables = dstTables
 	} else {
 		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables with matching columns found for filter pattern '%s'", s.options.columnPattern))
 	}
-	return &dstSchema, nil
+	return srcSchema, nil
 }

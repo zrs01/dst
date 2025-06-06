@@ -13,11 +13,11 @@ func RegisterExportCmd() *cli.Command {
 	var options config.SettingDef
 
 	return &cli.Command{
-		Name:  "exp",
+		Name:  "export",
 		Usage: "export the database schema",
 		Flags: []cli.Flag{
 			flagbuilder.DsnFlag().WithDestination(&options.Dsn).Build(),
-			flagbuilder.CommonColumnFlag().WithDestination(&options.CommonColumnFile).Build(),
+			flagbuilder.CommonColumnFlag().WithDestination(&options.Ccf).Build(),
 			flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 		},

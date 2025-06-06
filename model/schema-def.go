@@ -15,7 +15,7 @@ type SchemaDef struct {
 }
 
 type Schema struct {
-	Name    string   `yaml:"name,omitempty" default:"Schema"`
+	Name    string   `yaml:"name,omitempty"`
 	Desc    string   `yaml:"desc,omitempty"`
 	Tables  []*Table `yaml:"tables,omitempty"`
 	Indexes []*Index `yaml:"indexes,omitempty"`

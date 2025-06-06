@@ -213,7 +213,7 @@ func RegisterDDLCmd() *cli.Command {
 				columnFlagBuilder().WithDestination(&col).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
+				config.Setting.Sdf = lo.If(input != "", input).Else(config.Setting.Sdf)
 				config.Setting.Output = lo.If(output != "", output).Else(config.Setting.Output)
 				// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
 				config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)

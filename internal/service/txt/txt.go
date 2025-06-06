@@ -24,7 +24,7 @@ func Generate() error {
 		service.WithTablePattern(config.Setting.TableName),
 		service.WithColumnPattern(config.Setting.ColumnName))
 	schema, err := builder.
-		LoadFromFile(config.Setting.Input) // the data does not filter by schema and table
+		LoadFromFile(config.Setting.Sdf) // the data does not filter by schema and table
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

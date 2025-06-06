@@ -24,7 +24,7 @@ func Generate() error {
 	logrus.Info("Generating ER Diagram...")
 	builder := service.NewLoadBuilder(
 		service.WithTablePattern(config.Setting.TableName))
-	schema, err := builder.LoadFromFile(config.Setting.Input)
+	schema, err := builder.LoadFromFile(config.Setting.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

@@ -12,34 +12,57 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
+type StyleType string
+
+const (
+	StyleHeader StyleType = "header"
+	StyleTable  StyleType = "table"
+	StyleKey    StyleType = "keydata"
+)
+
 func Generate() error {
-	simple := false
-	schemaDef, err := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableName)).
-		LoadFromFile(config.Setting.Input)
+	builder := service.NewLoadBuilder(
+		service.WithTablePattern(config.Setting.TableName))
+	schema, err := builder.LoadFromFile(config.Setting.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
+	// filter the data if table name is provided
+	schema, err = builder.Filter(schema)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	// append common columns
+	if err := service.AppendCommonColumns(schema); err != nil {
+		return tracerr.Wrap(err)
+	}
+
 	if !strings.HasSuffix(config.Setting.Output, ".xlsx") {
 		config.Setting.Output = config.Setting.Output + ".xlsx"
 	}
-
-	if err := WriteXlsx(schemaDef, config.Setting.Output, simple); err != nil {
+	if err := WriteXlsx(schema, config.Setting.Output); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil
 }
 
-func WriteXlsx(schema *model.Schema, out string, simple bool) error {
-	if simple {
-		return writeSimpleDataDict(schema, out)
+func WriteXlsx(schema *model.Schema, out string) error {
+	excel := excelize.NewFile()
+	if err := createColumnSheet(excel, schema); err != nil {
+		return tracerr.Wrap(err)
 	}
-	return writeDataDict(schema, out)
+	if err := createTableSheet(excel, schema); err != nil {
+		return tracerr.Wrap(err)
+	}
+	excel.DeleteSheet("Sheet1")
+	if err := excel.SaveAs(out); err != nil {
+		return tracerr.Wrap(err)
+	}
+	return nil
 }
 
-func writeSimpleDataDict(schema *model.Schema, out string) error {
-	excel := excelize.NewFile()
-	sheet := "Tables Description"
+func createColumnSheet(excel *excelize.File, schema *model.Schema) error {
+	sheet := fmt.Sprintf("%s (columns)", schema.Name)
 	excel.NewSheet(sheet)
 
 	style, err := definedExcelStyle(excel)
@@ -47,33 +70,75 @@ func writeSimpleDataDict(schema *model.Schema, out string) error {
 		return tracerr.Wrap(err)
 	}
 
-	// heading
-	headings := []string{"Table ID", "Title Name", "Table Description", "Key Data Item"}
-	for i, heading := range headings {
+	// header
+	header := []string{"#", "Table Name", "Column Name", "Data Type", "Identity", "Not Null", "Default", "Foreign Key", "Description"}
+	for i, item := range header {
 		cell := fmt.Sprintf("%c1", 65+i)
-		excel.SetCellValue(sheet, cell, heading)
+		excel.SetCellValue(sheet, cell, item)
 	}
-	// styling
-	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)-1), (*style)["header"])
+	// header style
+	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(header)-1), (*style)[StyleHeader])
 	// column width
-	widths := []float64{8, 15, 60, 30}
+	widths := []float64{4, 26, 20, 15, 8, 8, 10, 25, 50}
 	for i, width := range widths {
 		col := fmt.Sprintf("%c", 65+i)
 		excel.SetColWidth(sheet, col, col, width)
 	}
 
-	rowctnr := 2 // row counter
-	// schema name
-	excel.SetCellValue(sheet, fmt.Sprintf("A%d", rowctnr), schema.Name)
-	for j := 0; j < len(headings); j++ {
-		excel.SetCellStyle(sheet, fmt.Sprintf("A%d", rowctnr), fmt.Sprintf("%c%d", 65+len(headings)-1, rowctnr), (*style)["table"])
+	// content starts under the header
+	rowCounter := 2
+
+	for _, table := range schema.Tables {
+		// table columns
+		{
+			for i, column := range table.Columns {
+				index := i + rowCounter
+				excel.SetCellValue(sheet, fmt.Sprintf("A%d", index), i+1)
+				excel.SetCellValue(sheet, fmt.Sprintf("B%d", index), table.Name)
+				excel.SetCellValue(sheet, fmt.Sprintf("C%d", index), column.Name)
+				excel.SetCellValue(sheet, fmt.Sprintf("D%d", index), column.DataType)
+				excel.SetCellValue(sheet, fmt.Sprintf("E%d", index), column.Identity)
+				excel.SetCellValue(sheet, fmt.Sprintf("F%d", index), column.NotNull)
+				excel.SetCellValue(sheet, fmt.Sprintf("G%d", index), column.Value)
+				excel.SetCellValue(sheet, fmt.Sprintf("H%d", index), column.ForeignKey)
+				excel.SetCellValue(sheet, fmt.Sprintf("I%d", index), column.Desc)
+			}
+			rowCounter += len(table.Columns)
+		}
+	}
+	return nil
+}
+
+func createTableSheet(excel *excelize.File, schema *model.Schema) error {
+	sheet := fmt.Sprintf("%s (tables)", schema.Name)
+	excel.NewSheet(sheet)
+
+	style, err := definedExcelStyle(excel)
+	if err != nil {
+		return tracerr.Wrap(err)
 	}
 
-	for j, table := range schema.Tables {
-		rowctnr += 1
-		excel.SetCellValue(sheet, fmt.Sprintf("A%d", rowctnr), fmt.Sprintf("T%d", (j+1)*100+j))
-		excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowctnr), table.Name)
-		excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowctnr), table.Desc)
+	// header
+	header := []string{"#", "Title Name", "Table Description", "Key Data Item"}
+	for i, item := range header {
+		cell := fmt.Sprintf("%c1", 65+i)
+		excel.SetCellValue(sheet, cell, item)
+	}
+	// header style
+	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(header)-1), (*style)[StyleHeader])
+	// column width
+	widths := []float64{4, 26, 60, 50}
+	for i, width := range widths {
+		col := fmt.Sprintf("%c", 65+i)
+		excel.SetColWidth(sheet, col, col, width)
+	}
+
+	rowCounter := 2
+
+	for i, table := range schema.Tables {
+		excel.SetCellValue(sheet, fmt.Sprintf("A%d", rowCounter), i+1)
+		excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowCounter), table.Name)
+		excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowCounter), table.Desc)
 
 		// find PK and all FK of the table
 		keyData := ""
@@ -92,101 +157,20 @@ func writeSimpleDataDict(schema *model.Schema, out string) error {
 				}
 			}
 		}
-		excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowctnr), keyData)
+		excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowCounter), keyData)
+		excel.SetCellStyle(sheet, fmt.Sprintf("D%d", rowCounter), fmt.Sprintf("D%d", rowCounter), (*style)[StyleKey])
 
 		h, _ := excel.GetRowHeight(sheet, 1)
-		excel.SetRowHeight(sheet, rowctnr, h*float64(keyDataRow))
-		rowctnr += 1
-	}
-	excel.DeleteSheet("Sheet1")
-	if err := excel.SaveAs(out); err != nil {
-		return tracerr.Wrap(err)
+		excel.SetRowHeight(sheet, rowCounter, h*float64(keyDataRow))
+		rowCounter += 1
 	}
 	return nil
 }
 
-func writeDataDict(schema *model.Schema, out string) error {
-	excel := excelize.NewFile()
+func definedExcelStyle(excel *excelize.File) (*map[StyleType]int, error) {
+	style := make(map[StyleType]int, 0)
 
-	style, err := definedExcelStyle(excel)
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
-
-	sheet := schema.Name
-	excel.NewSheet(sheet)
-
-	// heading
-	headings := []string{"Column Name", "Title", "Data Type", "Identity", "Not Null", "Default", "Foreign Key", "Description"}
-	for i, heading := range headings {
-		cell := fmt.Sprintf("%c1", 66+i) // start from column 2
-		excel.SetCellValue(sheet, cell, heading)
-	}
-	// styling
-	excel.SetCellStyle(sheet, "A1", fmt.Sprintf("%c1", 65+len(headings)), (*style)["header"])
-	// column width
-	widths := []float64{2, 20, 20, 15, 8, 8, 10, 25, 50}
-	for i, width := range widths {
-		col := fmt.Sprintf("%c", 65+i)
-		excel.SetColWidth(sheet, col, col, width)
-	}
-
-	setColValue := func(rowIndex int, column *model.Column) {
-		excel.SetCellValue(sheet, fmt.Sprintf("B%d", rowIndex), column.Name)
-		excel.SetCellValue(sheet, fmt.Sprintf("C%d", rowIndex), column.Title)
-		excel.SetCellValue(sheet, fmt.Sprintf("D%d", rowIndex), column.DataType)
-		excel.SetCellValue(sheet, fmt.Sprintf("E%d", rowIndex), column.Identity)
-		excel.SetCellValue(sheet, fmt.Sprintf("F%d", rowIndex), column.NotNull)
-		excel.SetCellValue(sheet, fmt.Sprintf("G%d", rowIndex), column.Value)
-		excel.SetCellValue(sheet, fmt.Sprintf("H%d", rowIndex), column.ForeignKey)
-		excel.SetCellValue(sheet, fmt.Sprintf("I%d", rowIndex), column.Desc)
-	}
-
-	rowctnr := 2 // row counter
-
-	for _, table := range schema.Tables {
-		{
-			// table infomation
-			text := table.Name
-			if table.Title != "" {
-				text += " - " + table.Title
-			}
-			if table.Desc != "" {
-				text += " - " + table.Desc
-			}
-			cell := fmt.Sprintf("A%d", rowctnr)
-			excel.SetCellValue(sheet, cell, text)
-			excel.SetCellStyle(sheet, cell, fmt.Sprintf("%c%d", 65+len(headings), rowctnr), (*style)["table"])
-			rowctnr += 1
-		}
-
-		// table columns
-		for i, column := range table.Columns {
-			index := i + rowctnr
-			setColValue(index, column)
-		}
-		rowctnr += len(table.Columns)
-
-		// fixed columns
-		// for i, column := range data.Fixed {
-		// 	index := i + rowctnr
-		// 	setColValue(index, column)
-		// 	excel.SetCellStyle(sheet, fmt.Sprintf("B%d", index), fmt.Sprintf("%c%d", 65+len(headings), index), (*style)["fixcol"])
-		// }
-
-		// rowctnr += len(data.Fixed)
-	}
-	excel.DeleteSheet("Sheet1")
-	if err := excel.SaveAs(out); err != nil {
-		return tracerr.Wrap(err)
-	}
-	return nil
-}
-
-func definedExcelStyle(excel *excelize.File) (*map[string]int, error) {
-	style := make(map[string]int, 0)
-
-	// style for the header cell
+	/* ------------------------ style for the header cell ----------------------- */
 	header, err := excel.NewStyle(&excelize.Style{
 		Font: &excelize.Font{Bold: true},
 		Fill: excelize.Fill{Type: "pattern", Color: []string{"#b4c7dc"}, Pattern: 1},
@@ -194,9 +178,9 @@ func definedExcelStyle(excel *excelize.File) (*map[string]int, error) {
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
-	style["header"] = header
+	style[StyleHeader] = header
 
-	// style for the table name cell
+	/* ---------------------- style for the table name cell --------------------- */
 	table, err := excel.NewStyle(&excelize.Style{
 		Font: &excelize.Font{Bold: true},
 		Fill: excelize.Fill{Type: "pattern", Color: []string{"#dee6ef"}, Pattern: 1},
@@ -204,16 +188,16 @@ func definedExcelStyle(excel *excelize.File) (*map[string]int, error) {
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
-	style["table"] = table
+	style[StyleTable] = table
 
-	// style for the fix column cell
-	fixColStyle, err := excel.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Color: "#205375"},
+	/* ----------------------- style for the key data cell ---------------------- */
+	keyStyle, err := excel.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{WrapText: true},
 	})
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
-	style["fixcol"] = fixColStyle
+	style[StyleKey] = keyStyle
 
 	return &style, nil
 }

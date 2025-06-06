@@ -7,24 +7,26 @@ import (
 )
 
 type ConfigDef struct {
-	DataDef SettingDef
 	Dsn     string // default database source name
+	Sdf     string `yaml:"schemaDefinitionFile"` // default input file
+	Ccf     string `yaml:"commonColumnFile"`     // default common column file
+	DataDef SettingDef
 	Erd     SettingDef
-	Excel   SettingDef
+	Xls     SettingDef
 	Export  SettingDef
 	Text    SettingDef
 }
 
 type SettingDef struct {
-	Dsn              string // database source name
-	Input            string // schema definition file
-	Output           string // output file
-	DbType           string // database type (mariadb, mssql)
-	Template         string // template file
-	TableName        string // table name filter
-	ColumnName       string // column name filter
-	Plantuml         string // plantuml library path
-	CommonColumnFile string // common column file
+	Dsn        string // database source name
+	Sdf        string `yaml:"schemaDefinitionFile"` // schema definition file
+	Output     string // output file
+	DbType     string // database type (mariadb, mssql)
+	Template   string // template file
+	TableName  string // table name filter
+	ColumnName string // column name filter
+	Plantuml   string // plantuml library path
+	Ccf        string `yaml:"commonColumnFile"` // common column file
 }
 
 type ConfigType int
@@ -57,13 +59,16 @@ func InitSetting(configType ConfigType, source any) {
 	config.Load(configDef, Filename)
 
 	Setting.Dsn = configDef.Dsn
+	Setting.Sdf = configDef.Sdf
+	Setting.Ccf = configDef.Ccf
+
 	switch configType {
 	case DataDefConf:
 		if err := mergo.Merge(&Setting, configDef.DataDef, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)
 		}
 	case ExcelConf:
-		if err := mergo.Merge(&Setting, configDef.Excel, mergo.WithOverride); err != nil {
+		if err := mergo.Merge(&Setting, configDef.Xls, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)
 		}
 	case ERDConf:

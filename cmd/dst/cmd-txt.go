@@ -16,7 +16,7 @@ func RegisterTextCmd() *cli.Command {
 		Name:  "txt",
 		Usage: "transform using a template into a text file",
 		Flags: []cli.Flag{
-			flagbuilder.InputFileFlag().WithDestination(&options.Input).Build(),
+			flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
 			flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			flagbuilder.TemplateFileFlag().WithDestination(&options.Template).Build(),
