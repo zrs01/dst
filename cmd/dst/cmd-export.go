@@ -19,7 +19,7 @@ func RegisterExportCmd() *cli.Command {
 			flagbuilder.DsnFlag().WithDestination(&options.Dsn).Build(),
 			flagbuilder.CommonColumnFlag().WithDestination(&options.CommonColumnFile).Build(),
 			flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
-			flagbuilder.TableNameFlag().WithDestination(&options.TableFilter).Build(),
+			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			config.InitSetting(config.ExportConf, options)

@@ -22,9 +22,14 @@ var templateFS embed.FS
 
 func Generate() error {
 	logrus.Info("Generating ER Diagram...")
-	data, err := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableFilter)).
-		LoadFromFile(config.Setting.Input)
+	builder := service.NewLoadBuilder(
+		service.WithTablePattern(config.Setting.TableName))
+	schema, err := builder.LoadFromFile(config.Setting.Input)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	// filter the data if table name provided
+	schema, err = builder.Filter(schema)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -43,22 +48,22 @@ func Generate() error {
 	ext := filepath.Ext(config.Setting.Output)
 	switch ext {
 	case ".puml":
-		if err := text.WriteWithLoader(loader, data, config.Setting.Template, config.Setting.Output); err != nil {
+		if err := text.WriteWithLoader(loader, schema, config.Setting.Template, config.Setting.Output); err != nil {
 			return tracerr.Wrap(err)
 		}
 		logrus.Infof("Generated file: %s", config.Setting.Output)
 	case ".png":
-		if config.Setting.PlantumlLib == "" {
+		if config.Setting.Plantuml == "" {
 			return tracerr.New("plantuml library path is not specified")
 		}
-		if _, err := os.Stat(config.Setting.PlantumlLib); os.IsNotExist(err) {
+		if _, err := os.Stat(config.Setting.Plantuml); os.IsNotExist(err) {
 			return tracerr.Wrap(err)
 		}
-		if err := text.WriteWithLoader(loader, data, config.Setting.Template, "output.puml"); err != nil {
+		if err := text.WriteWithLoader(loader, schema, config.Setting.Template, "output.puml"); err != nil {
 			return tracerr.Wrap(err)
 		}
 		defer os.Remove("output.puml")
-		if err := sh.Command("java", "-jar", config.Setting.PlantumlLib, "-o", filepath.Dir(config.Setting.Output), "output.puml").Run(); err != nil {
+		if err := sh.Command("java", "-jar", config.Setting.Plantuml, "-o", filepath.Dir(config.Setting.Output), "output.puml").Run(); err != nil {
 			return tracerr.Wrap(err)
 		}
 		logrus.Infof("Generated file: %s", config.Setting.Output)

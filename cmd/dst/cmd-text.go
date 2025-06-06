@@ -16,9 +16,9 @@ func RegisterTextCmd() *cli.Command {
 		Name:  "text",
 		Usage: "transform using a template into a text file",
 		Flags: []cli.Flag{
-			flagbuilder.SchemaFileFlag().WithDestination(&options.Input).Build(),
+			flagbuilder.InputFileFlag().WithDestination(&options.Input).Build(),
 			flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
-			flagbuilder.TableNameFlag().WithDestination(&options.TableFilter).Build(),
+			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			flagbuilder.TemplateFileFlag().WithDestination(&options.Template).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {

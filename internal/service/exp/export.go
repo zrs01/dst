@@ -14,7 +14,7 @@ import (
 
 func Generate() error {
 	service := factory.NewService(config.Setting.Dsn, config.Setting.CommonColumnFile)
-	schemaDef, err := service.Load(config.Setting.TableFilter)
+	schemaDef, err := service.Load(config.Setting.TableName)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

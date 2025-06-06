@@ -77,7 +77,7 @@ func OutputYml(dataDef *model.Schema, outfile string) error {
 	if outfile == "" {
 		fmt.Println(string(bytes))
 	} else {
-		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o744)); err != nil {
+		if err := os.WriteFile(outfile, bytes, fs.FileMode(0o664)); err != nil {
 			return tracerr.Wrap(err)
 		}
 	}

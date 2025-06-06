@@ -21,9 +21,9 @@ type SettingDef struct {
 	Output           string // output file
 	DbType           string // database type (mariadb, mssql)
 	Template         string // template file
-	TableFilter      string // table name filter
-	ColumnFilter     string // column name filter
-	PlantumlLib      string // plantuml library path
+	TableName        string // table name filter
+	ColumnName       string // column name filter
+	Plantuml         string // plantuml library path
 	CommonColumnFile string // common column file
 }
 
@@ -70,8 +70,6 @@ func InitSetting(configType ConfigType, source any) {
 		if err := mergo.Merge(&Setting, configDef.Erd, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)
 		}
-		Setting.Output = "output.png"
-		Setting.PlantumlLib = "plantuml.jar"
 	case ExportConf:
 		if err := mergo.Merge(&Setting, configDef.Export, mergo.WithOverride); err != nil {
 			logrus.Fatal(err)

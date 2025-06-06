@@ -87,8 +87,7 @@ func (s *LoadBuilder) LoadFromFile(file string) (*model.Schema, error) {
 		return nil, tracerr.Errorf("invalid data")
 	}
 
-	fd, err := s.Filter(d)
-	return &fd, err
+	return &d, err
 }
 
 // func (s *LoadBuilder) LoadFromDB(dsn string, ccf string) (*model.DataDef, error) {
@@ -223,7 +222,7 @@ func (s *LoadBuilder) expandFixColumns(schema *model.Schema) {
 	// }
 }
 
-func (s *LoadBuilder) Filter(srcSchema model.Schema) (model.Schema, error) {
+func (s *LoadBuilder) Filter(srcSchema *model.Schema) (*model.Schema, error) {
 	var isPatternMatch = func(pattern, value string) bool {
 		return pattern == "" || util.WildCardMatchWithCommaPattern(pattern, value)
 	}
@@ -239,7 +238,7 @@ func (s *LoadBuilder) Filter(srcSchema model.Schema) (model.Schema, error) {
 
 	// return empty schema if no tables match the filter pattern
 	if len(matchedTables) == 0 {
-		return model.Schema{}, tracerr.New(fmt.Sprintf("no tables matched the filter pattern '%s'", s.options.tablePattern))
+		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables matched the filter pattern '%s'", s.options.tablePattern))
 	}
 
 	for j := 0; j < len(matchedTables); j++ {
@@ -255,7 +254,7 @@ func (s *LoadBuilder) Filter(srcSchema model.Schema) (model.Schema, error) {
 	if len(dstTables) > 0 {
 		dstSchema.Tables = dstTables
 	} else {
-		return model.Schema{}, tracerr.New(fmt.Sprintf("no tables with matching columns found for filter pattern '%s'", s.options.columnPattern))
+		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables with matching columns found for filter pattern '%s'", s.options.columnPattern))
 	}
-	return dstSchema, nil
+	return &dstSchema, nil
 }

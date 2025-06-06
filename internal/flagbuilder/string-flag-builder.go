@@ -42,20 +42,20 @@ func (b *StringFlag) WithUsage(usage string) *StringFlag {
 // 	return b
 // }
 
-// TakesFile sets whether the flag accepts a file path as input
-func (b *StringFlag) TakesFile(takesFile bool) *StringFlag {
+// WithTakesFile sets whether the flag accepts a file path as input
+func (b *StringFlag) WithTakesFile(takesFile bool) *StringFlag {
 	b.flag.TakesFile = takesFile
 	return b
 }
 
-// Required sets whether the flag is required
-func (b *StringFlag) Required(required bool) *StringFlag {
+// WithRequired sets whether the flag is required
+func (b *StringFlag) WithRequired(required bool) *StringFlag {
 	b.flag.Required = required
 	return b
 }
 
-// Hidden sets whether the flag is hidden from help messages
-func (b *StringFlag) Hidden(hidden bool) *StringFlag {
+// WithHidden sets whether the flag is hidden from help messages
+func (b *StringFlag) WithHidden(hidden bool) *StringFlag {
 	b.flag.Hidden = hidden
 	return b
 }

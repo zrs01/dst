@@ -19,11 +19,17 @@ import (
 )
 
 func Generate() error {
-	schema, err := service.NewLoadBuilder(
+	builder := service.NewLoadBuilder(
 		// service.WithSchemaPattern(config.Setting.SchemaFilter),
-		service.WithTablePattern(config.Setting.TableFilter),
-		service.WithColumnPattern(config.Setting.ColumnFilter)).
+		service.WithTablePattern(config.Setting.TableName),
+		service.WithColumnPattern(config.Setting.ColumnName))
+	schema, err := builder.
 		LoadFromFile(config.Setting.Input) // the data does not filter by schema and table
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	// filter the data if table name and column name provided
+	schema, err = builder.Filter(schema)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

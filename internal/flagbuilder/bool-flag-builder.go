@@ -42,14 +42,14 @@ func (b *BoolFlag) WithUsage(usage string) *BoolFlag {
 // 	return b
 // }
 
-// Required sets whether the flag is required
-func (b *BoolFlag) Required(required bool) *BoolFlag {
+// WithRequired sets whether the flag is required
+func (b *BoolFlag) WithRequired(required bool) *BoolFlag {
 	b.flag.Required = required
 	return b
 }
 
-// Hidden sets whether the flag is hidden from help messages
-func (b *BoolFlag) Hidden(hidden bool) *BoolFlag {
+// WithHidden sets whether the flag is hidden from help messages
+func (b *BoolFlag) WithHidden(hidden bool) *BoolFlag {
 	b.flag.Hidden = hidden
 	return b
 }

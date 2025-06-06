@@ -15,14 +15,14 @@ import (
 /* -------------------------------------------------------------------------- */
 /*                                     SQL                                    */
 /* -------------------------------------------------------------------------- */
-func RegisterDLLCmd() *cli.Command {
+func RegisterDDLCmd() *cli.Command {
 	cmd := &cli.Command{
 		Name:  "ddl",
 		Usage: "Generate SQL DDL",
 	}
 
 	databaseFlagBuilder := func() *flagbuilder.StringFlag {
-		return flagbuilder.NewStringFlag("database").WithAliases("d").Required(true).WithUsage("database (mariadb, mssql)")
+		return flagbuilder.NewStringFlag("database").WithAliases("d").WithRequired(true).WithUsage("database (mariadb, mssql)")
 	}
 	columnFlagBuilder := func() *flagbuilder.StringFlag {
 		return flagbuilder.NewStringFlag("column").WithAliases("c").WithUsage("column")
@@ -32,7 +32,7 @@ func RegisterDLLCmd() *cli.Command {
 	setOptions := func() {
 		config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
 		// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
-		config.Setting.TableFilter = lo.If(table != "", table).Else(config.Setting.TableFilter)
+		config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
 		config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
 	}
 
@@ -41,7 +41,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "ct",
 			Usage: "create table",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -68,7 +68,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "dt",
 			Usage: "drop table",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -94,7 +94,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "ac",
 			Usage: "add column",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -122,7 +122,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "dc",
 			Usage: "drop column",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -150,7 +150,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "rc",
 			Usage: "rename column",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -177,7 +177,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "mc",
 			Usage: "modify column type",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -205,7 +205,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "ci",
 			Usage: "create index DDL",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&input).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&input).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&output).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
@@ -216,8 +216,8 @@ func RegisterDLLCmd() *cli.Command {
 				config.Setting.Input = lo.If(input != "", input).Else(config.Setting.Input)
 				config.Setting.Output = lo.If(output != "", output).Else(config.Setting.Output)
 				// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
-				config.Setting.TableFilter = lo.If(table != "", table).Else(config.Setting.TableFilter)
-				config.Setting.ColumnFilter = lo.If(col != "", col).Else(config.Setting.ColumnFilter)
+				config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
+				config.Setting.ColumnName = lo.If(col != "", col).Else(config.Setting.ColumnName)
 
 				// factory.NewService()
 
@@ -241,7 +241,7 @@ func RegisterDLLCmd() *cli.Command {
 			Name:  "di",
 			Usage: "drop index",
 			Flags: []cli.Flag{
-				flagbuilder.SchemaFileFlag().WithDestination(&ifile).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
 				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
 				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
