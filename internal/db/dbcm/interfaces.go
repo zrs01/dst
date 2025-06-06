@@ -28,11 +28,12 @@ type DDL interface {
 	// AlterProcedure()
 
 	// DropDatabase()
-	// DropTable()
+	DropTable(table *model.Table) []string
 	// DropView()
 	// DropUser()
 	// DropTrigger()
 	// DropFunction()
-	// DropIndex()
+	DropIndex(tableName, columnName string) string
+	DropConstraint(tableName, columnName string) string
 	// DropProcedure()
 }

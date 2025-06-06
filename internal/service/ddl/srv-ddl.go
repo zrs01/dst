@@ -12,19 +12,19 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-func GenerateCreateDatabase() error {
-	schema, err := service.NewLoadBuilder().LoadFromFile(config.Setting.Sdf)
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
-	builder := db.NewService().DDLBuilder()
-	output, err := builder.CreateDatabase(schema)
-	if err != nil {
-		return tracerr.Wrap(err)
-	}
-	fmt.Println(output)
-	return nil
-}
+// func GenerateCreateDatabase() error {
+// 	schema, err := service.NewLoadBuilder().LoadFromFile(config.Setting.Sdf)
+// 	if err != nil {
+// 		return tracerr.Wrap(err)
+// 	}
+// 	builder := db.NewService().DDLBuilder()
+// 	output, err := builder.CreateDatabase(schema)
+// 	if err != nil {
+// 		return tracerr.Wrap(err)
+// 	}
+// 	fmt.Println(output)
+// 	return nil
+// }
 
 func GenerateCreateTable() error {
 	loadBuilder := service.NewLoadBuilder(
@@ -41,10 +41,10 @@ func GenerateCreateTable() error {
 	builder := db.NewService().DDLBuilder()
 	for _, table := range schema.Tables {
 		fmt.Println(builder.CreateTable(table))
-		for _, index := range buildCreateIndexForTable(builder, table) {
+		for _, index := range createIndexForTable(builder, table) {
 			fmt.Println(index)
 		}
-		for i, constraint := range buildAddConstraintForTable(builder, table) {
+		for i, constraint := range addConstraintForTable(builder, table) {
 			if i == 0 {
 				fmt.Println()
 			}
@@ -55,7 +55,7 @@ func GenerateCreateTable() error {
 	return nil
 }
 
-func GenerateCreateIndex() error {
+func GenerateDropTable() error {
 	loadBuilder := service.NewLoadBuilder(
 		service.WithTablePattern(config.Setting.TableName),
 	)
@@ -70,15 +70,41 @@ func GenerateCreateIndex() error {
 	builder := db.NewService().DDLBuilder()
 	var stmts []string
 	for _, table := range schema.Tables {
-		stmts = append(stmts, buildCreateIndexForTable(builder, table)...)
+		stmts = append(stmts, dropIndexForTable(builder, table)...)
+		stmts = append(stmts, dropConstraintForTable(builder, table)...)
+		stmts = append(stmts, builder.DropTable(table)...)
 	}
 	for _, stmt := range stmts {
 		fmt.Println(stmt)
 	}
+	fmt.Println()
 	return nil
 }
 
-func buildCreateIndexForTable(builder dbcm.DDL, table *model.Table) []string {
+// func GenerateCreateIndex() error {
+// 	loadBuilder := service.NewLoadBuilder(
+// 		service.WithTablePattern(config.Setting.TableName),
+// 	)
+// 	schema, err := loadBuilder.LoadFromFile(config.Setting.Sdf)
+// 	if err != nil {
+// 		return tracerr.Wrap(err)
+// 	}
+// 	schema, err = loadBuilder.Filter(schema)
+// 	if err != nil {
+// 		return tracerr.Wrap(err)
+// 	}
+// 	builder := db.NewService().DDLBuilder()
+// 	var stmts []string
+// 	for _, table := range schema.Tables {
+// 		stmts = append(stmts, createIndexForTable(builder, table)...)
+// 	}
+// 	for _, stmt := range stmts {
+// 		fmt.Println(stmt)
+// 	}
+// 	return nil
+// }
+
+func createIndexForTable(builder dbcm.DDL, table *model.Table) []string {
 	getIndexName := func(tableName, columnName string) string {
 		return fmt.Sprintf("idx_%s_%s", tableName, columnName)
 	}
@@ -103,11 +129,31 @@ func buildCreateIndexForTable(builder dbcm.DDL, table *model.Table) []string {
 	return stmts
 }
 
-func buildAddConstraintForTable(builder dbcm.DDL, table *model.Table) []string {
+func addConstraintForTable(builder dbcm.DDL, table *model.Table) []string {
 	var stmts []string
 	for _, column := range table.Columns {
 		if column.ForeignKey != "" {
 			stmts = append(stmts, builder.AddConstraint(table.Name, column))
+		}
+	}
+	return stmts
+}
+
+func dropIndexForTable(builder dbcm.DDL, table *model.Table) []string {
+	var stmts []string
+	for _, column := range table.Columns {
+		if util.IsYes(column.Index) {
+			stmts = append(stmts, builder.DropIndex(table.Name, column.Name))
+		}
+	}
+	return stmts
+}
+
+func dropConstraintForTable(builder dbcm.DDL, table *model.Table) []string {
+	var stmts []string
+	for _, column := range table.Columns {
+		if column.ForeignKey != "" {
+			stmts = append(stmts, builder.DropConstraint(table.Name, column.Name))
 		}
 	}
 	return stmts
