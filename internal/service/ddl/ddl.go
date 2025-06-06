@@ -1,22 +1,48 @@
 package ddl
 
 import (
-	"github.com/davecgh/go-spew/spew"
+	"fmt"
+
 	"github.com/zrs01/dst/config"
+	"github.com/zrs01/dst/internal/db"
 	"github.com/zrs01/dst/internal/service"
 	"github.com/ztrue/tracerr"
 )
 
 func GenerateCreateDatabase() error {
-	data, err := service.NewLoadBuilder(
-		// service.WithSchemaPattern(config.Setting.SchemaFilter),
-		service.WithTablePattern(config.Setting.TableName)).
-		LoadFromFile(config.Setting.Sdf)
+	schemaModel, err := service.NewLoadBuilder().LoadFromFile(config.Setting.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	// builder := factory.NewService(config.Setting.Dsn, config.Setting.Ccf).DDLBuilder()
-	// builder.WithDataDef(data).CreateDatabase()
-	spew.Dump(data)
+	builder := db.NewService().DDLBuilder()
+	output, err := builder.CreateDatabase(schemaModel)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	fmt.Println(output)
+	return nil
+}
+
+func GenerateCreateIndex() error {
+	loadBuilder := service.NewLoadBuilder(
+		service.WithTablePattern(config.Setting.TableName),
+	)
+	schemaModel, err := loadBuilder.LoadFromFile(config.Setting.Sdf)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	schemaModel, err = loadBuilder.Filter(schemaModel)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+
+	builder := db.NewService().DDLBuilder()
+	output, err := builder.CreateIndex(schemaModel)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	for _, o := range output {
+		fmt.Println(o)
+	}
 	return nil
 }

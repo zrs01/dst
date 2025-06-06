@@ -6,67 +6,42 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
-	"github.com/zrs01/dst/internal/db"
+	"github.com/zrs01/dst/internal/db/common"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
 )
 
-// DDBuilder is a builder for generating DDL statements
-type DDBuilder struct {
-	schemaModel      *model.Schema
-	databaseName     string
-	tableName        string
-	commonColumnFile string
-}
+// DDLBuilder is a builder for generating DDL statements
+type DDLBuilder struct{}
 
-func NewDDBuilder() db.DDL {
-	return &DDBuilder{}
-}
-
-func (m *DDBuilder) WithDataDef(dataDef *model.Schema) *DDBuilder {
-	m.schemaModel = dataDef
-	return m
-}
-
-func (m *DDBuilder) WithDatabaseName(targetDatabaseName string) *DDBuilder {
-	m.databaseName = targetDatabaseName
-	return m
-}
-
-func (m *DDBuilder) WithTableName(targetTableName string) *DDBuilder {
-	m.tableName = targetTableName
-	return m
-}
-
-func (m *DDBuilder) WithCommonColumnFile(commonColumnFile string) *DDBuilder {
-	m.commonColumnFile = commonColumnFile
-	return m
+func NewDDBuilder() common.DDL {
+	return &DDLBuilder{}
 }
 
 // CreateDatabase generates the DDL statement for creating the database
-func (m *DDBuilder) CreateDatabase() (string, error) {
+func (m *DDLBuilder) CreateDatabase(schemaModel *model.Schema) (string, error) {
 	var stmt strings.Builder
 	var args []any
 	stmt.WriteString("CREATE DATABASE IF NOT EXISTS %s CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
-	args = append(args, m.schemaModel.Name)
-	if m.schemaModel.Desc != "" {
+	args = append(args, schemaModel.Name)
+	if schemaModel.Desc != "" {
 		stmt.WriteString(" COMMENT '%s'")
-		args = append(args, m.schemaModel.Desc)
+		args = append(args, schemaModel.Desc)
 	}
 	stmt.WriteString(";")
 	return fmt.Sprintf(stmt.String(), args...), nil
 }
 
 // CreateFunction implements db.DDL.
-func (m *DDBuilder) CreateFunction() {
+func (m *DDLBuilder) CreateFunction() {
 	panic("unimplemented")
 }
 
 // CreateIndex implements db.DDL.
-func (m *DDBuilder) CreateIndex() ([]string, error) {
+func (m *DDLBuilder) CreateIndex(schemaModel *model.Schema) ([]string, error) {
 	var stmts []string
-	for _, table := range m.schemaModel.Tables {
+	for _, table := range schemaModel.Tables {
 		for _, column := range table.Columns {
 			index := m.createIndexStmtFromColumnModel(table.Name, column)
 			if index != "" {
@@ -87,123 +62,123 @@ func (m *DDBuilder) CreateIndex() ([]string, error) {
 }
 
 // CreateProcedure implements db.DDL.
-func (m *DDBuilder) CreateProcedure() {
+func (m *DDLBuilder) CreateProcedure() {
 	panic("unimplemented")
 }
 
 // CreateTable implements db.DDL.
-func (m *DDBuilder) CreateTable() {
+func (m *DDLBuilder) CreateTable() {
 	panic("unimplemented")
 }
 
 // CreateTrigger implements db.DDL.
-func (m *DDBuilder) CreateTrigger() {
+func (m *DDLBuilder) CreateTrigger() {
 	panic("unimplemented")
 }
 
 // CreateUser implements db.DDL.
-func (m *DDBuilder) CreateUser() {
+func (m *DDLBuilder) CreateUser() {
 	panic("unimplemented")
 }
 
 // CreateView implements db.DDL.
-func (m *DDBuilder) CreateView() {
+func (m *DDLBuilder) CreateView() {
 	panic("unimplemented")
 }
 
 // AlterDatabase implements db.DDL.
-func (m *DDBuilder) AlterDatabase() {
+func (m *DDLBuilder) AlterDatabase() {
 	panic("unimplemented")
 }
 
 // AlterFunction implements db.DDL.
-func (m *DDBuilder) AlterFunction() {
+func (m *DDLBuilder) AlterFunction() {
 	panic("unimplemented")
 }
 
 // AlterIndex implements db.DDL.
-func (m *DDBuilder) AlterIndex() {
+func (m *DDLBuilder) AlterIndex() {
 	panic("unimplemented")
 }
 
 // AlterProcedure implements db.DDL.
-func (m *DDBuilder) AlterProcedure() {
+func (m *DDLBuilder) AlterProcedure() {
 	panic("unimplemented")
 }
 
 // AlterTable implements db.DDL.
-func (m *DDBuilder) AlterTable() {
+func (m *DDLBuilder) AlterTable() {
 	panic("unimplemented")
 }
 
 // AlterTrigger implements db.DDL.
-func (m *DDBuilder) AlterTrigger() {
+func (m *DDLBuilder) AlterTrigger() {
 	panic("unimplemented")
 }
 
 // AlterUser implements db.DDL.
-func (m *DDBuilder) AlterUser() {
+func (m *DDLBuilder) AlterUser() {
 	panic("unimplemented")
 }
 
 // AlterView implements db.DDL.
-func (m *DDBuilder) AlterView() {
+func (m *DDLBuilder) AlterView() {
 	panic("unimplemented")
 }
 
 // DropDatabase implements db.DDL.
-func (m *DDBuilder) DropDatabase() {
+func (m *DDLBuilder) DropDatabase() {
 	panic("unimplemented")
 }
 
 // DropFunction implements db.DDL.
-func (m *DDBuilder) DropFunction() {
+func (m *DDLBuilder) DropFunction() {
 	panic("unimplemented")
 }
 
 // DropIndex implements db.DDL.
-func (m *DDBuilder) DropIndex() {
+func (m *DDLBuilder) DropIndex() {
 	panic("unimplemented")
 }
 
 // DropProcedure implements db.DDL.
-func (m *DDBuilder) DropProcedure() {
+func (m *DDLBuilder) DropProcedure() {
 	panic("unimplemented")
 }
 
 // DropTable implements db.DDL.
-func (m *DDBuilder) DropTable() {
+func (m *DDLBuilder) DropTable() {
 	panic("unimplemented")
 }
 
 // DropTrigger implements db.DDL.
-func (m *DDBuilder) DropTrigger() {
+func (m *DDLBuilder) DropTrigger() {
 	panic("unimplemented")
 }
 
 // DropUser implements db.DDL.
-func (m *DDBuilder) DropUser() {
+func (m *DDLBuilder) DropUser() {
 	panic("unimplemented")
 }
 
 // DropView implements db.DDL.
-func (m *DDBuilder) DropView() {
+func (m *DDLBuilder) DropView() {
 	panic("unimplemented")
 }
 
-func (m *DDBuilder) createIndexStmtFromColumnModel(tableName string, column *model.Column) string {
+func (m *DDLBuilder) createIndexStmtFromColumnModel(tableName string, column *model.Column) string {
 	if util.IsYes(column.Index) {
 		return m.createIndexStmt(m.indexName(tableName, column.Name), tableName, []string{column.Name}, util.IsYes(column.Unique))
 	}
 	return ""
 }
 
-func (m *DDBuilder) createIndexStmt(indexName, tableName string, fields []string, isUnique bool) string {
+func (m *DDLBuilder) createIndexStmt(indexName, tableName string, fields []string, isUnique bool) string {
 	unique := lo.If(isUnique, "UNIQUE ").Else("")
 	return fmt.Sprintf("CREATE %sINDEX IF NOT EXISTS `%s` ON `%s` (`%s`);", unique, indexName, tableName, strings.Join(fields, "`,`"))
 }
 
-func (m *DDBuilder) indexName(tableName, columnName string) string {
+func (m *DDLBuilder) indexName(tableName, columnName string) string {
 	return fmt.Sprintf("idx_%s_%s", tableName, columnName)
 }
 

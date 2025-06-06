@@ -21,7 +21,6 @@ type SettingDef struct {
 	Dsn        string // database source name
 	Sdf        string `yaml:"schemaDefinitionFile"` // schema definition file
 	Output     string // output file
-	DbType     string // database type (mariadb, mssql)
 	Template   string // template file
 	TableName  string // table name filter
 	ColumnName string // column name filter

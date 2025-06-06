@@ -13,9 +13,6 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-/* -------------------------------------------------------------------------- */
-/*                                     SQL                                    */
-/* -------------------------------------------------------------------------- */
 func RegisterDDLCmd() *cli.Command {
 	cmd := &cli.Command{
 		Name:  "ddl",
@@ -31,7 +28,7 @@ func RegisterDDLCmd() *cli.Command {
 
 	var ifile, ofile, schema, table, db string
 	setOptions := func() {
-		config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
+		// config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
 		// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
 		config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
 		config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
@@ -44,8 +41,6 @@ func RegisterDDLCmd() *cli.Command {
 			Usage: "create database",
 			Flags: []cli.Flag{
 				flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
-				flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
-				databaseFlagBuilder().WithDestination(&options.DbType).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.InitSetting(config.DataDefConf, options)
@@ -76,6 +71,22 @@ func RegisterDDLCmd() *cli.Command {
 					return tracerr.Wrap(err)
 				}
 				return sql.CreateTable(data, db, ofile)
+			},
+		}
+	}())
+
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
+		var options config.SettingDef
+		return &cli.Command{
+			Name:  "ci",
+			Usage: "create index",
+			Flags: []cli.Flag{
+				flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				config.InitSetting(config.DataDefConf, options)
+				return ddl.GenerateCreateIndex()
 			},
 		}
 	}())

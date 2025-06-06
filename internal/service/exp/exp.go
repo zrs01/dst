@@ -2,14 +2,14 @@ package exp
 
 import (
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/db/factory"
+	"github.com/zrs01/dst/internal/db"
 	"github.com/zrs01/dst/internal/ddwriter"
 	"github.com/zrs01/dst/internal/service"
 	"github.com/ztrue/tracerr"
 )
 
 func Generate() error {
-	dbService := factory.NewService(config.Setting.Dsn, config.Setting.Ccf)
+	dbService := db.NewService()
 	schemaDef, err := dbService.Load(config.Setting.TableName)
 	if err != nil {
 		return tracerr.Wrap(err)
