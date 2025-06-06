@@ -34,7 +34,7 @@ func Launch() {
 
 	cmd.Commands = append(cmd.Commands, RegisterDDLCmd())    // SQL DDL statement
 	cmd.Commands = append(cmd.Commands, RegisterERDCmd())    // ER diagram
-	cmd.Commands = append(cmd.Commands, RegisterExcelCmd())  // Excel
+	cmd.Commands = append(cmd.Commands, RegisterXlsCmd())    // Excel
 	cmd.Commands = append(cmd.Commands, RegisterExportCmd()) // Export
 	cmd.Commands = append(cmd.Commands, RegisterTextCmd())   // Template
 

@@ -6,24 +6,24 @@ import (
 	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
-	"github.com/zrs01/dst/internal/service/exp"
+	"github.com/zrs01/dst/internal/service/txt"
 )
 
-func RegisterExportCmd() *cli.Command {
+func RegisterTextCmd() *cli.Command {
 	var options config.SettingDef
 
 	return &cli.Command{
-		Name:  "export",
-		Usage: "export the database schema",
+		Name:  "txt",
+		Usage: "transform using a template into a text file",
 		Flags: []cli.Flag{
-			flagbuilder.DsnFlag().WithDestination(&options.Dsn).Build(),
-			flagbuilder.CommonColumnFlag().WithDestination(&options.CommonColumnFile).Build(),
+			flagbuilder.InputFileFlag().WithDestination(&options.Input).Build(),
 			flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
+			flagbuilder.TemplateFileFlag().WithDestination(&options.Template).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.InitSetting(config.ExportConf, options)
-			return exp.Generate()
+			config.InitSetting(config.TextConf, options)
+			return txt.Generate()
 		},
 	}
 }

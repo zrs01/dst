@@ -4,7 +4,7 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/zrs01/dst/internal/service/text"
+	"github.com/zrs01/dst/internal/service/txt"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
@@ -45,7 +45,7 @@ func DropIndex(schema *model.Schema, db string, out string) error {
 }
 
 func writeDDL(schema *model.Schema, template string, out string) error {
-	if err := text.WriteWithEmbedFSLoader(fs, schema, template, out); err != nil {
+	if err := txt.WriteWithEmbedFSLoader(fs, schema, template, out); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil

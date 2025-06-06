@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/service"
-	"github.com/zrs01/dst/internal/service/text"
+	"github.com/zrs01/dst/internal/service/txt"
 	"github.com/ztrue/tracerr"
 )
 
@@ -48,7 +48,7 @@ func Generate() error {
 	ext := filepath.Ext(config.Setting.Output)
 	switch ext {
 	case ".puml":
-		if err := text.WriteWithLoader(loader, schema, config.Setting.Template, config.Setting.Output); err != nil {
+		if err := txt.WriteWithLoader(loader, schema, config.Setting.Template, config.Setting.Output); err != nil {
 			return tracerr.Wrap(err)
 		}
 		logrus.Infof("Generated file: %s", config.Setting.Output)
@@ -59,7 +59,7 @@ func Generate() error {
 		if _, err := os.Stat(config.Setting.Plantuml); os.IsNotExist(err) {
 			return tracerr.Wrap(err)
 		}
-		if err := text.WriteWithLoader(loader, schema, config.Setting.Template, "output.puml"); err != nil {
+		if err := txt.WriteWithLoader(loader, schema, config.Setting.Template, "output.puml"); err != nil {
 			return tracerr.Wrap(err)
 		}
 		defer os.Remove("output.puml")
