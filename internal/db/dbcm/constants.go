@@ -1,4 +1,4 @@
-package common
+package dbcm
 
 const (
 	MYSQL_PREFIX   = "mysql://"

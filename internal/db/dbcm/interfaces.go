@@ -1,4 +1,4 @@
-package common
+package dbcm
 
 import "github.com/zrs01/dst/model"
 
@@ -14,7 +14,7 @@ type DDL interface {
 	CreateUser()
 	CreateTrigger()
 	CreateFunction()
-	CreateIndex(schemaModel *model.Schema) ([]string, error)
+	CreateIndex(indexName, tableName string, fields []string, isUnique bool) string
 	CreateProcedure()
 
 	AlterDatabase()

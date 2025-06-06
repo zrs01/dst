@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
-	"github.com/zrs01/dst/internal/db/common"
+	"github.com/zrs01/dst/internal/db/dbcm"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
@@ -15,7 +15,7 @@ import (
 // DDLBuilder is a builder for generating DDL statements
 type DDLBuilder struct{}
 
-func NewDDBuilder() common.DDL {
+func NewDDBuilder() dbcm.DDL {
 	return &DDLBuilder{}
 }
 
@@ -38,27 +38,9 @@ func (m *DDLBuilder) CreateFunction() {
 	panic("unimplemented")
 }
 
-// CreateIndex implements db.DDL.
-func (m *DDLBuilder) CreateIndex(schemaModel *model.Schema) ([]string, error) {
-	var stmts []string
-	for _, table := range schemaModel.Tables {
-		for _, column := range table.Columns {
-			index := m.createIndexStmtFromColumnModel(table.Name, column)
-			if index != "" {
-				stmts = append(stmts, index)
-			}
-		}
-
-		// additional index
-		for i, index := range table.Indexes {
-			indexName := index.Name
-			if indexName == "" {
-				indexName = m.indexName(table.Name, fmt.Sprintf("%03d", (i+1)))
-			}
-			stmts = append(stmts, m.createIndexStmt(indexName, table.Name, index.Columns, util.IsYes(index.Unique)))
-		}
-	}
-	return stmts, nil
+func (m *DDLBuilder) CreateIndex(indexName, tableName string, fields []string, isUnique bool) string {
+	unique := lo.If(isUnique, "UNIQUE ").Else("")
+	return fmt.Sprintf("CREATE %sINDEX IF NOT EXISTS `%s` ON `%s` (`%s`);", unique, indexName, tableName, strings.Join(fields, "`,`"))
 }
 
 // CreateProcedure implements db.DDL.
@@ -164,22 +146,6 @@ func (m *DDLBuilder) DropUser() {
 // DropView implements db.DDL.
 func (m *DDLBuilder) DropView() {
 	panic("unimplemented")
-}
-
-func (m *DDLBuilder) createIndexStmtFromColumnModel(tableName string, column *model.Column) string {
-	if util.IsYes(column.Index) {
-		return m.createIndexStmt(m.indexName(tableName, column.Name), tableName, []string{column.Name}, util.IsYes(column.Unique))
-	}
-	return ""
-}
-
-func (m *DDLBuilder) createIndexStmt(indexName, tableName string, fields []string, isUnique bool) string {
-	unique := lo.If(isUnique, "UNIQUE ").Else("")
-	return fmt.Sprintf("CREATE %sINDEX IF NOT EXISTS `%s` ON `%s` (`%s`);", unique, indexName, tableName, strings.Join(fields, "`,`"))
-}
-
-func (m *DDLBuilder) indexName(tableName, columnName string) string {
-	return fmt.Sprintf("idx_%s_%s", tableName, columnName)
 }
 
 /* -------------------------------- Separator ------------------------------- */

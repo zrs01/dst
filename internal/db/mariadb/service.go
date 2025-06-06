@@ -5,14 +5,14 @@ import (
 	"strings"
 
 	"github.com/zrs01/dst/config"
-	"github.com/zrs01/dst/internal/db/common"
+	"github.com/zrs01/dst/internal/db/dbcm"
 	"github.com/zrs01/dst/model"
 	"github.com/ztrue/tracerr"
 )
 
 type MariadbService struct{}
 
-func NewMariadbService() common.Service {
+func NewMariadbService() dbcm.Service {
 	return &MariadbService{}
 }
 
@@ -43,6 +43,6 @@ func (s *MariadbService) Load(tableFilter string) (*model.Schema, error) {
 	return schemaModel, nil
 }
 
-func (s *MariadbService) DDLBuilder() common.DDL {
+func (s *MariadbService) DDLBuilder() dbcm.DDL {
 	return NewDDBuilder()
 }
