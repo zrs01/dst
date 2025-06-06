@@ -8,6 +8,7 @@ import (
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/service"
+	"github.com/zrs01/dst/internal/service/ddl"
 	"github.com/zrs01/dst/internal/service/sql"
 	"github.com/ztrue/tracerr"
 )
@@ -35,6 +36,23 @@ func RegisterDDLCmd() *cli.Command {
 		config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
 		config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
 	}
+
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
+		var options config.SettingDef
+		return &cli.Command{
+			Name:  "cd",
+			Usage: "create database",
+			Flags: []cli.Flag{
+				flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+				flagbuilder.OutputFileFlag().WithDestination(&options.Output).Build(),
+				databaseFlagBuilder().WithDestination(&options.DbType).Build(),
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				config.InitSetting(config.DataDefConf, options)
+				return ddl.GenerateCreateDatabase()
+			},
+		}
+	}())
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		return &cli.Command{
