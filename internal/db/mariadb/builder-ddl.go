@@ -43,109 +43,153 @@ func (m *DDLBuilder) CreateIndex(indexName, tableName string, fields []string, i
 	return fmt.Sprintf("CREATE %sINDEX IF NOT EXISTS `%s` ON `%s` (`%s`);", unique, indexName, tableName, strings.Join(fields, "`,`"))
 }
 
-// CreateProcedure implements db.DDL.
-func (m *DDLBuilder) CreateProcedure() {
-	panic("unimplemented")
-}
+// // CreateProcedure implements db.DDL.
+// func (m *DDLBuilder) CreateProcedure() {
+// 	panic("unimplemented")
+// }
 
 // CreateTable implements db.DDL.
-func (m *DDLBuilder) CreateTable() {
-	panic("unimplemented")
+func (m *DDLBuilder) CreateTable(table *model.Table) string {
+	var colStmts []string
+	for _, mColumn := range table.Columns {
+		col := fmt.Sprintf("\t`%s` %s", mColumn.Name, mColumn.DataType)
+		col += m.buildColumnAttribues(mColumn)
+		colStmts = append(colStmts, col)
+	}
+
+	// primary index
+	for _, column := range table.Columns {
+		if util.IsYes(column.Identity) {
+			colStmts = append(colStmts, fmt.Sprintf("\tPRIMARY KEY (`%s`)", column.Name))
+		}
+	}
+
+	joinedItems := strings.Join(colStmts, ",\n")
+	if table.Desc == "" {
+		table.Desc = table.Name
+	}
+	return fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n) COMMENT `%s`;\n", table.Name, joinedItems, table.Desc)
 }
 
-// CreateTrigger implements db.DDL.
-func (m *DDLBuilder) CreateTrigger() {
-	panic("unimplemented")
+func (m *DDLBuilder) AddConstraint(tableName string, column *model.Column) string {
+	ref := strings.Split(column.ForeignKey, ".")
+	return fmt.Sprintf("ALTER TABLE `%s` ADD CONSTRAINT `fk_%s_%s` FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`);",
+		tableName, tableName, column.Name, column.Name, ref[0], ref[1])
 }
 
-// CreateUser implements db.DDL.
-func (m *DDLBuilder) CreateUser() {
-	panic("unimplemented")
-}
+// // CreateTrigger implements db.DDL.
+// func (m *DDLBuilder) CreateTrigger() {
+// 	panic("unimplemented")
+// }
 
-// CreateView implements db.DDL.
-func (m *DDLBuilder) CreateView() {
-	panic("unimplemented")
-}
+// // CreateUser implements db.DDL.
+// func (m *DDLBuilder) CreateUser() {
+// 	panic("unimplemented")
+// }
 
-// AlterDatabase implements db.DDL.
-func (m *DDLBuilder) AlterDatabase() {
-	panic("unimplemented")
-}
+// // CreateView implements db.DDL.
+// func (m *DDLBuilder) CreateView() {
+// 	panic("unimplemented")
+// }
 
-// AlterFunction implements db.DDL.
-func (m *DDLBuilder) AlterFunction() {
-	panic("unimplemented")
-}
+// // AlterDatabase implements db.DDL.
+// func (m *DDLBuilder) AlterDatabase() {
+// 	panic("unimplemented")
+// }
 
-// AlterIndex implements db.DDL.
-func (m *DDLBuilder) AlterIndex() {
-	panic("unimplemented")
-}
+// // AlterFunction implements db.DDL.
+// func (m *DDLBuilder) AlterFunction() {
+// 	panic("unimplemented")
+// }
 
-// AlterProcedure implements db.DDL.
-func (m *DDLBuilder) AlterProcedure() {
-	panic("unimplemented")
-}
+// // AlterIndex implements db.DDL.
+// func (m *DDLBuilder) AlterIndex() {
+// 	panic("unimplemented")
+// }
 
-// AlterTable implements db.DDL.
-func (m *DDLBuilder) AlterTable() {
-	panic("unimplemented")
-}
+// // AlterProcedure implements db.DDL.
+// func (m *DDLBuilder) AlterProcedure() {
+// 	panic("unimplemented")
+// }
 
-// AlterTrigger implements db.DDL.
-func (m *DDLBuilder) AlterTrigger() {
-	panic("unimplemented")
-}
+// // AlterTable implements db.DDL.
+// func (m *DDLBuilder) AlterTable() {
+// 	panic("unimplemented")
+// }
 
-// AlterUser implements db.DDL.
-func (m *DDLBuilder) AlterUser() {
-	panic("unimplemented")
-}
+// // AlterTrigger implements db.DDL.
+// func (m *DDLBuilder) AlterTrigger() {
+// 	panic("unimplemented")
+// }
 
-// AlterView implements db.DDL.
-func (m *DDLBuilder) AlterView() {
-	panic("unimplemented")
-}
+// // AlterUser implements db.DDL.
+// func (m *DDLBuilder) AlterUser() {
+// 	panic("unimplemented")
+// }
 
-// DropDatabase implements db.DDL.
-func (m *DDLBuilder) DropDatabase() {
-	panic("unimplemented")
-}
+// // AlterView implements db.DDL.
+// func (m *DDLBuilder) AlterView() {
+// 	panic("unimplemented")
+// }
 
-// DropFunction implements db.DDL.
-func (m *DDLBuilder) DropFunction() {
-	panic("unimplemented")
-}
+// // DropDatabase implements db.DDL.
+// func (m *DDLBuilder) DropDatabase() {
+// 	panic("unimplemented")
+// }
 
-// DropIndex implements db.DDL.
-func (m *DDLBuilder) DropIndex() {
-	panic("unimplemented")
-}
+// // DropFunction implements db.DDL.
+// func (m *DDLBuilder) DropFunction() {
+// 	panic("unimplemented")
+// }
 
-// DropProcedure implements db.DDL.
-func (m *DDLBuilder) DropProcedure() {
-	panic("unimplemented")
-}
+// // DropIndex implements db.DDL.
+// func (m *DDLBuilder) DropIndex() {
+// 	panic("unimplemented")
+// }
 
-// DropTable implements db.DDL.
-func (m *DDLBuilder) DropTable() {
-	panic("unimplemented")
-}
+// // DropProcedure implements db.DDL.
+// func (m *DDLBuilder) DropProcedure() {
+// 	panic("unimplemented")
+// }
 
-// DropTrigger implements db.DDL.
-func (m *DDLBuilder) DropTrigger() {
-	panic("unimplemented")
-}
+// // DropTable implements db.DDL.
+// func (m *DDLBuilder) DropTable() {
+// 	panic("unimplemented")
+// }
 
-// DropUser implements db.DDL.
-func (m *DDLBuilder) DropUser() {
-	panic("unimplemented")
-}
+// // DropTrigger implements db.DDL.
+// func (m *DDLBuilder) DropTrigger() {
+// 	panic("unimplemented")
+// }
 
-// DropView implements db.DDL.
-func (m *DDLBuilder) DropView() {
-	panic("unimplemented")
+// // DropUser implements db.DDL.
+// func (m *DDLBuilder) DropUser() {
+// 	panic("unimplemented")
+// }
+
+// // DropView implements db.DDL.
+// func (m *DDLBuilder) DropView() {
+// 	panic("unimplemented")
+// }
+
+func (m *DDLBuilder) buildColumnAttribues(col *model.Column) string {
+	attr := ""
+	if col.Compute != "" {
+		attr += fmt.Sprintf(" GENERATED ALWAYS AS (%s)", col.Compute)
+	}
+	if util.IsYes(col.NotNull) {
+		attr += " NOT NULL"
+	}
+	if col.Value != "" {
+		attr += fmt.Sprintf(" DEFAULT %s", col.Value)
+	}
+	// if util.IsYes(col.AutoIncrement) {
+	// 	attr += " AUTO_INCREMENT"
+	// }
+	if col.Desc != "" {
+		attr += fmt.Sprintf(" COMMENT `%s`", col.Desc)
+	}
+	return attr
 }
 
 /* -------------------------------- Separator ------------------------------- */

@@ -3,7 +3,6 @@ package dst
 import (
 	"context"
 
-	"github.com/samber/lo"
 	"github.com/urfave/cli/v3"
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
@@ -26,13 +25,13 @@ func RegisterDDLCmd() *cli.Command {
 		return flagbuilder.NewStringFlag("column").WithAliases("c").WithUsage("column")
 	}
 
-	var ifile, ofile, schema, table, db string
-	setOptions := func() {
-		// config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
-		// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
-		config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
-		config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
-	}
+	// var ifile, ofile string
+	// setOptions := func() {
+	// 	// config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
+	// 	// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
+	// 	config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
+	// 	config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
+	// }
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var options config.SettingDef
@@ -50,27 +49,27 @@ func RegisterDDLCmd() *cli.Command {
 	}())
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
+		var options config.SettingDef
 		return &cli.Command{
 			Name:  "ct",
 			Usage: "create table",
 			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
-				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
-				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
-				databaseFlagBuilder().WithDestination(&db).Build(),
+				flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				setOptions()
-				// data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				data, err := service.NewLoadBuilder(
-					// service.WithSchemaPattern(schema),
-					service.WithTablePattern(table)).
-					LoadFromFile(ifile)
-				if err != nil {
-					return tracerr.Wrap(err)
-				}
-				return sql.CreateTable(data, db, ofile)
+				config.InitSetting(config.DataDefConf, options)
+				return ddl.GenerateCreateTable()
+				// setOptions()
+				// // data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
+				// data, err := service.NewLoadBuilder(
+				// 	// service.WithSchemaPattern(schema),
+				// 	service.WithTablePattern(table)).
+				// 	LoadFromFile(ifile)
+				// if err != nil {
+				// 	return tracerr.Wrap(err)
+				// }
+				// return sql.CreateTable(data, db, ofile)
 			},
 		}
 	}())
@@ -173,124 +172,124 @@ func RegisterDDLCmd() *cli.Command {
 		}
 	}())
 
-	cmd.Commands = append(cmd.Commands, func() *cli.Command {
-		var ifile, ofile, schema, table, db, col string
-		return &cli.Command{
-			Name:  "rc",
-			Usage: "rename column",
-			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
-				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
-				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
-				databaseFlagBuilder().WithDestination(&db).Build(),
-				columnFlagBuilder().WithDestination(&col).Build(),
-			},
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				data, err := service.NewLoadBuilder(
-					// service.WithSchemaPattern(schema),
-					service.WithTablePattern(table),
-					service.WithColumnPattern(col)).
-					LoadFromFile(ifile)
-				if err != nil {
-					return tracerr.Wrap(err)
-				}
-				return sql.RenameColumn(data, db, ofile)
-			},
-		}
-	}())
+	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
+	// 	var ifile, ofile, schema, table, db, col string
+	// 	return &cli.Command{
+	// 		Name:  "rc",
+	// 		Usage: "rename column",
+	// 		Flags: []cli.Flag{
+	// 			flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
+	// 			flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+	// 			flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+	// 			flagbuilder.TableNameFlag().WithDestination(&table).Build(),
+	// 			databaseFlagBuilder().WithDestination(&db).Build(),
+	// 			columnFlagBuilder().WithDestination(&col).Build(),
+	// 		},
+	// 		Action: func(ctx context.Context, cmd *cli.Command) error {
+	// 			data, err := service.NewLoadBuilder(
+	// 				// service.WithSchemaPattern(schema),
+	// 				service.WithTablePattern(table),
+	// 				service.WithColumnPattern(col)).
+	// 				LoadFromFile(ifile)
+	// 			if err != nil {
+	// 				return tracerr.Wrap(err)
+	// 			}
+	// 			return sql.RenameColumn(data, db, ofile)
+	// 		},
+	// 	}
+	// }())
 
-	cmd.Commands = append(cmd.Commands, func() *cli.Command {
-		var ifile, ofile, schema, table, db, col string
-		return &cli.Command{
-			Name:  "mc",
-			Usage: "modify column type",
-			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
-				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
-				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
-				databaseFlagBuilder().WithDestination(&db).Build(),
-				columnFlagBuilder().WithDestination(&col).Build(),
-			},
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := service.NewLoadBuilder(
-					// service.WithSchemaPattern(schema),
-					service.WithTablePattern(table),
-					service.WithColumnPattern(col)).
-					LoadFromFile(ifile)
-				if err != nil {
-					return tracerr.Wrap(err)
-				}
-				return sql.ModifyColumn(data, db, ofile)
-			},
-		}
-	}())
+	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
+	// 	var ifile, ofile, schema, table, db, col string
+	// 	return &cli.Command{
+	// 		Name:  "mc",
+	// 		Usage: "modify column type",
+	// 		Flags: []cli.Flag{
+	// 			flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
+	// 			flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+	// 			flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+	// 			flagbuilder.TableNameFlag().WithDestination(&table).Build(),
+	// 			databaseFlagBuilder().WithDestination(&db).Build(),
+	// 			columnFlagBuilder().WithDestination(&col).Build(),
+	// 		},
+	// 		Action: func(ctx context.Context, cmd *cli.Command) error {
+	// 			// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+	// 			data, err := service.NewLoadBuilder(
+	// 				// service.WithSchemaPattern(schema),
+	// 				service.WithTablePattern(table),
+	// 				service.WithColumnPattern(col)).
+	// 				LoadFromFile(ifile)
+	// 			if err != nil {
+	// 				return tracerr.Wrap(err)
+	// 			}
+	// 			return sql.ModifyColumn(data, db, ofile)
+	// 		},
+	// 	}
+	// }())
 
-	cmd.Commands = append(cmd.Commands, func() *cli.Command {
-		var input, output, schema, table, db, col string
-		return &cli.Command{
-			Name:  "ci",
-			Usage: "create index DDL",
-			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&input).Build(),
-				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&output).Build(),
-				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
-				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
-				databaseFlagBuilder().WithDestination(&db).Build(),
-				columnFlagBuilder().WithDestination(&col).Build(),
-			},
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.Setting.Sdf = lo.If(input != "", input).Else(config.Setting.Sdf)
-				config.Setting.Output = lo.If(output != "", output).Else(config.Setting.Output)
-				// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
-				config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
-				config.Setting.ColumnName = lo.If(col != "", col).Else(config.Setting.ColumnName)
+	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
+	// 	var input, output, schema, table, db, col string
+	// 	return &cli.Command{
+	// 		Name:  "ci",
+	// 		Usage: "create index DDL",
+	// 		Flags: []cli.Flag{
+	// 			flagbuilder.InputFileFlag().WithDestination(&input).Build(),
+	// 			flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&output).Build(),
+	// 			flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+	// 			flagbuilder.TableNameFlag().WithDestination(&table).Build(),
+	// 			databaseFlagBuilder().WithDestination(&db).Build(),
+	// 			columnFlagBuilder().WithDestination(&col).Build(),
+	// 		},
+	// 		Action: func(ctx context.Context, cmd *cli.Command) error {
+	// 			config.Setting.Sdf = lo.If(input != "", input).Else(config.Setting.Sdf)
+	// 			config.Setting.Output = lo.If(output != "", output).Else(config.Setting.Output)
+	// 			// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
+	// 			config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
+	// 			config.Setting.ColumnName = lo.If(col != "", col).Else(config.Setting.ColumnName)
 
-				// factory.NewService()
+	// 			// factory.NewService()
 
-				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := service.NewLoadBuilder(
-					// service.WithSchemaPattern(schema),
-					service.WithTablePattern(table),
-					service.WithColumnPattern(col)).
-					LoadFromFile(ifile)
-				if err != nil {
-					return tracerr.Wrap(err)
-				}
-				return sql.CreateIndex(data, db, ofile)
-			},
-		}
-	}())
+	// 			// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+	// 			data, err := service.NewLoadBuilder(
+	// 				// service.WithSchemaPattern(schema),
+	// 				service.WithTablePattern(table),
+	// 				service.WithColumnPattern(col)).
+	// 				LoadFromFile(ifile)
+	// 			if err != nil {
+	// 				return tracerr.Wrap(err)
+	// 			}
+	// 			return sql.CreateIndex(data, db, ofile)
+	// 		},
+	// 	}
+	// }())
 
-	cmd.Commands = append(cmd.Commands, func() *cli.Command {
-		var ifile, ofile, schema, table, db, col string
-		return &cli.Command{
-			Name:  "di",
-			Usage: "drop index",
-			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
-				flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
-				flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
-				flagbuilder.TableNameFlag().WithDestination(&table).Build(),
-				databaseFlagBuilder().WithDestination(&db).Build(),
-				columnFlagBuilder().WithDestination(&col).Build(),
-			},
-			Action: func(ctx context.Context, cmd *cli.Command) error {
-				// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
-				data, err := service.NewLoadBuilder(
-					// service.WithSchemaPattern(schema),
-					service.WithTablePattern(table),
-					service.WithColumnPattern(col)).
-					LoadFromFile(ifile)
-				if err != nil {
-					return tracerr.Wrap(err)
-				}
-				return sql.DropIndex(data, db, ofile)
-			},
-		}
-	}())
+	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
+	// 	var ifile, ofile, schema, table, db, col string
+	// 	return &cli.Command{
+	// 		Name:  "di",
+	// 		Usage: "drop index",
+	// 		Flags: []cli.Flag{
+	// 			flagbuilder.InputFileFlag().WithDestination(&ifile).Build(),
+	// 			flagbuilder.OutputFileFlag().WithUsage("output file (text file)").WithDestination(&ofile).Build(),
+	// 			flagbuilder.SchemaNameFlag().WithDestination(&schema).Build(),
+	// 			flagbuilder.TableNameFlag().WithDestination(&table).Build(),
+	// 			databaseFlagBuilder().WithDestination(&db).Build(),
+	// 			columnFlagBuilder().WithDestination(&col).Build(),
+	// 		},
+	// 		Action: func(ctx context.Context, cmd *cli.Command) error {
+	// 			// data, err := ddloader.LoadWithFilter(ifile, schema, table, col)
+	// 			data, err := service.NewLoadBuilder(
+	// 				// service.WithSchemaPattern(schema),
+	// 				service.WithTablePattern(table),
+	// 				service.WithColumnPattern(col)).
+	// 				LoadFromFile(ifile)
+	// 			if err != nil {
+	// 				return tracerr.Wrap(err)
+	// 			}
+	// 			return sql.DropIndex(data, db, ofile)
+	// 		},
+	// 	}
+	// }())
 
 	return cmd
 }
