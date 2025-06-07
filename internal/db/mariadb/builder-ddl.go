@@ -40,7 +40,7 @@ func (m *DDLBuilder) CreateIndex(indexName, tableName string, fields []string, i
 func (m *DDLBuilder) CreateTable(table *model.Table) string {
 	var colStmts []string
 	for _, mColumn := range table.Columns {
-		col := fmt.Sprintf("\t`%s` %s", mColumn.Name, mColumn.DataType)
+		col := fmt.Sprintf("  `%s` %s", mColumn.Name, mColumn.DataType)
 		col += m.buildColumnAttribues(mColumn)
 		colStmts = append(colStmts, col)
 	}
@@ -48,7 +48,7 @@ func (m *DDLBuilder) CreateTable(table *model.Table) string {
 	// primary index
 	for _, column := range table.Columns {
 		if util.IsYes(column.Identity) {
-			colStmts = append(colStmts, fmt.Sprintf("\tPRIMARY KEY (`%s`)", column.Name))
+			colStmts = append(colStmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", column.Name))
 		}
 	}
 

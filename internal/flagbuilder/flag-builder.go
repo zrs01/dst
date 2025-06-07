@@ -1,6 +1,6 @@
 package flagbuilder
 
-func InputFileFlag() *StringFlag {
+func SdfFlag() *StringFlag {
 	return NewStringFlag("input").WithAliases("i").WithUsage("schema definition file (yaml format)")
 }
 

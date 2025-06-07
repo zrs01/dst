@@ -16,7 +16,8 @@ func RegisterXlsCmd() *cli.Command {
 		Name:  "xls",
 		Usage: "transform from yaml to excel",
 		Flags: []cli.Flag{
-			flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+			flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
+			flagbuilder.CommonColumnFlag().WithDestination(&options.Ccf).Build(),
 			flagbuilder.OutputFileFlag().WithUsage("output file (.xlsx)").WithDestination(&options.Output).Build(),
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 		},

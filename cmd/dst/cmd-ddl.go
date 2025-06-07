@@ -51,7 +51,7 @@ func RegisterDDLCmd() *cli.Command {
 			Name:  "ct",
 			Usage: "create table",
 			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -93,7 +93,7 @@ func RegisterDDLCmd() *cli.Command {
 			Name:  "dt",
 			Usage: "drop table",
 			Flags: []cli.Flag{
-				flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {

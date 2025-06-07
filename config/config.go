@@ -1,7 +1,7 @@
 package config
 
 import (
-	"dario.cat/mergo"
+	mp "github.com/geraldo-labs/merge-struct"
 	"github.com/jinzhu/configor"
 	"github.com/sirupsen/logrus"
 )
@@ -63,27 +63,27 @@ func InitSetting(configType ConfigType, source any) {
 
 	switch configType {
 	case DataDefConf:
-		if err := mergo.Merge(&Setting, configDef.DataDef, mergo.WithOverride); err != nil {
+		if _, err := mp.Struct(&Setting, configDef.DataDef); err != nil {
 			logrus.Fatal(err)
 		}
 	case ExcelConf:
-		if err := mergo.Merge(&Setting, configDef.Xls, mergo.WithOverride); err != nil {
+		if _, err := mp.Struct(&Setting, configDef.Xls); err != nil {
 			logrus.Fatal(err)
 		}
 	case ERDConf:
-		if err := mergo.Merge(&Setting, configDef.Erd, mergo.WithOverride); err != nil {
+		if _, err := mp.Struct(&Setting, configDef.Erd); err != nil {
 			logrus.Fatal(err)
 		}
 	case ExportConf:
-		if err := mergo.Merge(&Setting, configDef.Export, mergo.WithOverride); err != nil {
+		if _, err := mp.Struct(&Setting, configDef.Export); err != nil {
 			logrus.Fatal(err)
 		}
 	case TextConf:
-		if err := mergo.Merge(&Setting, configDef.Text, mergo.WithOverride); err != nil {
+		if _, err := mp.Struct(&Setting, configDef.Text); err != nil {
 			logrus.Fatal(err)
 		}
 	}
-	if err := mergo.Merge(&Setting, source, mergo.WithOverride); err != nil {
+	if _, err := mp.Struct(&Setting, source); err != nil {
 		logrus.Fatal(err)
 	}
 }

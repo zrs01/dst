@@ -16,7 +16,7 @@ func RegisterERDCmd() *cli.Command {
 		Name:  "erd",
 		Usage: "Generate ERD diagram",
 		Flags: []cli.Flag{
-			flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
+			flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
 			flagbuilder.OutputFileFlag().WithRequired(true).
 				WithUsage("output file (file extension must be either .puml or .png)").WithDestination(&options.Output).Build(),
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
