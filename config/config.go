@@ -26,6 +26,7 @@ type SettingDef struct {
 	ColumnName string // column name filter
 	Plantuml   string // plantuml library path
 	Ccf        string `yaml:"commonColumnFile"` // common column file
+	IsAlter    bool   // used int table creation
 }
 
 type ConfigType int

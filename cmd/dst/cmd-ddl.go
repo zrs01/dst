@@ -53,6 +53,7 @@ func RegisterDDLCmd() *cli.Command {
 			Flags: []cli.Flag{
 				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
+				flagbuilder.NewBoolFlag("alter").WithUsage("generate alter table statement").WithDestination(&options.IsAlter).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.InitSetting(config.DataDefConf, options)

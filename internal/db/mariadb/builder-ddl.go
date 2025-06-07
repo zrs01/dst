@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/db/dbcm"
 	"github.com/zrs01/dst/model"
 	"github.com/zrs01/dst/util"
@@ -38,25 +39,59 @@ func (m *DDLBuilder) CreateIndex(indexName, tableName string, fields []string, i
 
 // CreateTable implements db.DDL.
 func (m *DDLBuilder) CreateTable(table *model.Table) string {
-	var colStmts []string
-	for _, mColumn := range table.Columns {
-		col := fmt.Sprintf("  `%s` %s", mColumn.Name, mColumn.DataType)
-		col += m.buildColumnAttribues(mColumn)
-		colStmts = append(colStmts, col)
-	}
 
-	// primary index
-	for _, column := range table.Columns {
-		if util.IsYes(column.Identity) {
-			colStmts = append(colStmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", column.Name))
-		}
-	}
-
-	joinedItems := strings.Join(colStmts, ",\n")
 	if table.Desc == "" {
 		table.Desc = table.Name
 	}
-	return fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n) COMMENT `%s`;\n", table.Name, joinedItems, table.Desc)
+
+	/* -------------------------- CREATE TABLE DIRECTLY ------------------------- */
+	if !config.Setting.IsAlter {
+		var stmts []string
+		for _, column := range table.Columns {
+			col := fmt.Sprintf("  `%s` %s", column.Name, column.DataType)
+			col += m.buildColumnAttribues(column)
+			stmts = append(stmts, col)
+		}
+
+		// primary index
+		for _, column := range table.Columns {
+			if util.IsYes(column.Identity) {
+				stmts = append(stmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", column.Name))
+			}
+		}
+
+		joinedRows := strings.Join(stmts, ",\n")
+		return fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n) COMMENT `%s`;\n", table.Name, joinedRows, table.Desc)
+	}
+
+	/* ------------------- CREATE TABLE WITH ALTER ADD COLUMN ------------------- */
+	{
+		var colStmts []string
+		var stmts []string
+		for _, column := range table.Columns {
+			if util.IsYes(column.Identity) {
+				col := fmt.Sprintf("  `%s` %s", column.Name, column.DataType)
+				col += m.buildColumnAttribues(column)
+				colStmts = append(colStmts, col)
+				colStmts = append(colStmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", column.Name))
+			}
+		}
+		joinedCols := strings.Join(colStmts, ",\n")
+
+		stmts = append(stmts, fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n) COMMENT `%s`;\n", table.Name, joinedCols, table.Desc))
+
+		for i, mColumn := range table.Columns {
+			if !util.IsYes(mColumn.Identity) {
+				col := fmt.Sprintf("ALTER TABLE `%s` ADD COLUMN IF NOT EXISTS `%s` %s", table.Name, mColumn.Name, mColumn.DataType)
+				col += m.buildColumnAttribues(mColumn)
+				col += fmt.Sprintf(" AFTER `%s`", table.Columns[i-1].Name)
+				col += ";"
+				stmts = append(stmts, col)
+			}
+		}
+		stmts = append(stmts, "")
+		return strings.Join(stmts, "\n")
+	}
 }
 
 func (m *DDLBuilder) AddConstraint(tableName string, column *model.Column) string {
