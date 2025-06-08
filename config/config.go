@@ -8,8 +8,8 @@ import (
 
 type ConfigDef struct {
 	Dsn     string // default database source name
-	Sdf     string `yaml:"schemaDefinitionFile"` // default input file
-	Ccf     string `yaml:"commonColumnFile"`     // default common column file
+	Sdf     string // default input file
+	Ccf     string // default common column file
 	DataDef SettingDef
 	Erd     SettingDef
 	Xls     SettingDef
@@ -19,13 +19,13 @@ type ConfigDef struct {
 
 type SettingDef struct {
 	Dsn        string // database source name
-	Sdf        string `yaml:"schemaDefinitionFile"` // schema definition file
+	Sdf        string // schema definition file
 	Output     string // output file
 	Template   string // template file
 	TableName  string // table name filter
 	ColumnName string // column name filter
 	Plantuml   string // plantuml library path
-	Ccf        string `yaml:"commonColumnFile"` // common column file
+	Ccf        string // common column file
 	IsAlter    bool   // used int table creation
 }
 

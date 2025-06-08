@@ -12,19 +12,19 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-// func GenerateCreateDatabase() error {
-// 	schema, err := service.NewLoadBuilder().LoadFromFile(config.Setting.Sdf)
-// 	if err != nil {
-// 		return tracerr.Wrap(err)
-// 	}
-// 	builder := db.NewService().DDLBuilder()
-// 	output, err := builder.CreateDatabase(schema)
-// 	if err != nil {
-// 		return tracerr.Wrap(err)
-// 	}
-// 	fmt.Println(output)
-// 	return nil
-// }
+func GenerateCreateDatabase() error {
+	schema, err := service.NewLoadBuilder().LoadFromFile(config.Setting.Sdf)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	builder := db.NewService().DDLBuilder()
+	output, err := builder.CreateDatabase(schema)
+	if err != nil {
+		return tracerr.Wrap(err)
+	}
+	fmt.Println(output)
+	return nil
+}
 
 func GenerateCreateTable() error {
 	loadBuilder := service.NewLoadBuilder(

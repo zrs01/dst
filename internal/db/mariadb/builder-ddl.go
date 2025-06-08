@@ -39,46 +39,39 @@ func (m *DDLBuilder) CreateIndex(indexName, tableName string, fields []string, i
 
 // CreateTable implements db.DDL.
 func (m *DDLBuilder) CreateTable(table *model.Table) string {
-
-	if table.Desc == "" {
-		table.Desc = table.Name
-	}
-
-	/* -------------------------- CREATE TABLE DIRECTLY ------------------------- */
-	if !config.Setting.IsAlter {
+	buildCreateStmt := func(columns []*model.Column) string {
 		var stmts []string
-		for _, column := range table.Columns {
+		var pkColumn *model.Column
+		for _, column := range columns {
 			col := fmt.Sprintf("  `%s` %s", column.Name, column.DataType)
 			col += m.buildColumnAttribues(column)
 			stmts = append(stmts, col)
-		}
 
-		// primary index
-		for _, column := range table.Columns {
 			if util.IsYes(column.Identity) {
-				stmts = append(stmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", column.Name))
+				pkColumn = column
 			}
 		}
-
+		// primary index
+		if pkColumn != nil {
+			stmts = append(stmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", pkColumn.Name))
+		}
 		joinedRows := strings.Join(stmts, ",\n")
-		return fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n) COMMENT `%s`;\n", table.Name, joinedRows, table.Desc)
+		return fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n)%s;\n",
+			table.Name, joinedRows, lo.If(table.Desc != "", fmt.Sprintf(" COMMENT `%s`", table.Desc)).Else(""))
 	}
 
-	/* ------------------- CREATE TABLE WITH ALTER ADD COLUMN ------------------- */
-	{
-		var colStmts []string
-		var stmts []string
-		for _, column := range table.Columns {
-			if util.IsYes(column.Identity) {
-				col := fmt.Sprintf("  `%s` %s", column.Name, column.DataType)
-				col += m.buildColumnAttribues(column)
-				colStmts = append(colStmts, col)
-				colStmts = append(colStmts, fmt.Sprintf("  PRIMARY KEY (`%s`)", column.Name))
-			}
-		}
-		joinedCols := strings.Join(colStmts, ",\n")
+	// create all columns in one statement
+	if !config.Setting.IsAlter {
+		return buildCreateStmt(table.Columns)
+	}
 
-		stmts = append(stmts, fmt.Sprintf("CREATE TABLE `%s` IF NOT EXISTS (\n%s\n) COMMENT `%s`;\n", table.Name, joinedCols, table.Desc))
+	// add columns incrementally
+	{
+		var stmts []string
+		columns := lo.Filter(table.Columns, func(column *model.Column, index int) bool {
+			return util.IsYes(column.Identity)
+		})
+		stmts = []string{buildCreateStmt(columns)}
 
 		for i, mColumn := range table.Columns {
 			if !util.IsYes(mColumn.Identity) {

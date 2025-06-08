@@ -15,35 +15,20 @@ func RegisterDDLCmd() *cli.Command {
 		Usage: "Generate SQL DDL",
 	}
 
-	// databaseFlagBuilder := func() *flagbuilder.StringFlag {
-	// 	return flagbuilder.NewStringFlag("database").WithAliases("d").WithRequired(true).WithUsage("database (mariadb, mssql)")
-	// }
-	// columnFlagBuilder := func() *flagbuilder.StringFlag {
-	// 	return flagbuilder.NewStringFlag("column").WithAliases("c").WithUsage("column")
-	// }
-
-	// var ifile, ofile string
-	// setOptions := func() {
-	// 	// config.Setting.DbType = lo.If(db != "", db).Else(config.Setting.DbType)
-	// 	// config.Setting.SchemaFilter = lo.If(schema != "", schema).Else(config.Setting.SchemaFilter)
-	// 	config.Setting.TableName = lo.If(table != "", table).Else(config.Setting.TableName)
-	// 	config.Setting.Output = lo.If(ofile != "", ofile).Else(config.Setting.Output)
-	// }
-
-	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
-	// 	var options config.SettingDef
-	// 	return &cli.Command{
-	// 		Name:  "cd",
-	// 		Usage: "create database",
-	// 		Flags: []cli.Flag{
-	// 			flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
-	// 		},
-	// 		Action: func(ctx context.Context, cmd *cli.Command) error {
-	// 			config.InitSetting(config.DataDefConf, options)
-	// 			return ddl.GenerateCreateDatabase()
-	// 		},
-	// 	}
-	// }())
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
+		var options config.SettingDef
+		return &cli.Command{
+			Name:  "cd",
+			Usage: "create database",
+			Flags: []cli.Flag{
+				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				config.InitSetting(config.DataDefConf, options)
+				return ddl.GenerateCreateDatabase()
+			},
+		}
+	}())
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var options config.SettingDef
@@ -58,35 +43,9 @@ func RegisterDDLCmd() *cli.Command {
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.InitSetting(config.DataDefConf, options)
 				return ddl.GenerateCreateTable()
-				// setOptions()
-				// // data, err := ddloader.LoadWithFilter(ifile, schema, table, "")
-				// data, err := service.NewLoadBuilder(
-				// 	// service.WithSchemaPattern(schema),
-				// 	service.WithTablePattern(table)).
-				// 	LoadFromFile(ifile)
-				// if err != nil {
-				// 	return tracerr.Wrap(err)
-				// }
-				// return sql.CreateTable(data, db, ofile)
 			},
 		}
 	}())
-
-	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
-	// 	var options config.SettingDef
-	// 	return &cli.Command{
-	// 		Name:  "ci",
-	// 		Usage: "create index",
-	// 		Flags: []cli.Flag{
-	// 			flagbuilder.InputFileFlag().WithDestination(&options.Sdf).Build(),
-	// 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
-	// 		},
-	// 		Action: func(ctx context.Context, cmd *cli.Command) error {
-	// 			config.InitSetting(config.DataDefConf, options)
-	// 			return ddl.GenerateCreateIndex()
-	// 		},
-	// 	}
-	// }())
 
 	cmd.Commands = append(cmd.Commands, func() *cli.Command {
 		var options config.SettingDef

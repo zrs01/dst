@@ -1,7 +1,7 @@
 package flagbuilder
 
 func SdfFlag() *StringFlag {
-	return NewStringFlag("input").WithAliases("i").WithUsage("schema definition file (yaml format)")
+	return NewStringFlag("sdf").WithAliases("i").WithUsage("schema definition file (yaml format)")
 }
 
 func TemplateFileFlag() *StringFlag {
