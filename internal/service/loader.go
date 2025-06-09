@@ -61,6 +61,9 @@ func NewLoadBuilder(opts ...func(*LoadBuilder)) *LoadBuilder {
 }
 
 func (s *LoadBuilder) LoadFromFile(file string) (*model.Schema, error) {
+	if file == "" {
+		return nil, tracerr.New("file name is required")
+	}
 	yamlFile, err := os.ReadFile(file)
 	if err != nil {
 		return nil, tracerr.Wrap(err)

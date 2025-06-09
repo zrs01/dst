@@ -25,7 +25,7 @@ func RegisterDDLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.InitSetting(config.DataDefConf, options)
-				return ddl.GenerateCreateDatabase()
+				return ddl.CreateDatabase()
 			},
 		}
 	}())
@@ -42,7 +42,7 @@ func RegisterDDLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.InitSetting(config.DataDefConf, options)
-				return ddl.GenerateCreateTable()
+				return ddl.CreateTable()
 			},
 		}
 	}())
@@ -58,7 +58,7 @@ func RegisterDDLCmd() *cli.Command {
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
 				config.InitSetting(config.DataDefConf, options)
-				return ddl.GenerateDropTable()
+				return ddl.DropTable()
 			},
 		}
 	}())

@@ -9,8 +9,7 @@ import (
 )
 
 func Generate() error {
-	dbService := db.NewService()
-	schemaDef, err := dbService.Load(config.Setting.TableName)
+	schemaDef, err := db.NewService().Load(config.Setting.TableName)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

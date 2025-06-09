@@ -11,7 +11,6 @@ require (
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/go-sqlx/sqlx v1.3.8
-	github.com/goforj/godump v1.1.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jinzhu/configor v1.2.2
 	github.com/jmoiron/sqlx v1.4.0
