@@ -113,12 +113,31 @@ func Diff() error {
 				if !found {
 					// new column
 					fmt.Println(ddlBuilder.AddColumn(table.Name, column, table.Columns[i-1].Name))
+					indexStmt := createIndexForColumn(ddlBuilder, table.Name, column)
+					if indexStmt != "" {
+						fmt.Printf("\n%s\n", indexStmt)
+					}
 				} else {
 					// update column
-					if dbColumn.DataType != column.DataType || dbColumn.NotNull != column.NotNull || dbColumn.Desc != column.Desc || dbColumn.Unique != column.Unique {
+					if dbColumn.DataType != column.DataType ||
+						lo.If(dbColumn.NotNull == "N", "").Else(dbColumn.NotNull) != column.NotNull ||
+						dbColumn.Desc != column.Desc ||
+						lo.If(dbColumn.Unique == "N", "").Else(dbColumn.Unique) != column.Unique {
 						fmt.Println(ddlBuilder.AlterTableModifyColumn(table.Name, column))
 					}
 				}
+			}
+		}
+	}
+
+	for _, table := range dbSchema.Tables {
+		_, found := lo.Find(schema.Tables, func(t *model.Table) bool {
+			return t.Name == table.Name
+		})
+		if !found {
+			// drop table
+			for _, stmt := range ddlBuilder.DropTable(table) {
+				fmt.Println(stmt)
 			}
 		}
 	}
@@ -155,8 +174,8 @@ func createTableForTable(builder dbcm.DDL, table *model.Table) string {
 	} else {
 		stmts = append(stmts, builder.CreateTableWithDirect(table))
 	}
-	for _, index := range createIndexForTable(builder, table) {
-		stmts = append(stmts, index)
+	for _, indexStmt := range createIndexForTable(builder, table) {
+		stmts = append(stmts, indexStmt)
 	}
 	stmts = append(stmts, "")
 	for _, constraint := range addConstraintForTable(builder, table) {
@@ -166,17 +185,11 @@ func createTableForTable(builder dbcm.DDL, table *model.Table) string {
 }
 
 func createIndexForTable(builder dbcm.DDL, table *model.Table) []string {
-	getIndexName := func(tableName, columnName string) string {
-		return fmt.Sprintf("idx_%s_%s", tableName, columnName)
-	}
 	var stmts []string
 	for _, column := range table.Columns {
-		if util.IsYes(column.Index) {
-			indexName := getIndexName(table.Name, column.Name)
-			index := builder.CreateIndex(indexName, table.Name, []string{column.Name}, util.IsYes(column.Unique))
-			if index != "" {
-				stmts = append(stmts, index)
-			}
+		indexStmt := createIndexForColumn(builder, table.Name, column)
+		if indexStmt != "" {
+			stmts = append(stmts, indexStmt)
 		}
 	}
 	// additional index
@@ -188,6 +201,15 @@ func createIndexForTable(builder dbcm.DDL, table *model.Table) []string {
 		stmts = append(stmts, builder.CreateIndex(indexName, table.Name, index.Columns, util.IsYes(index.Unique)))
 	}
 	return stmts
+}
+
+func createIndexForColumn(builder dbcm.DDL, tableName string, column *model.Column) string {
+	var index string
+	if util.IsYes(column.Index) {
+		indexName := fmt.Sprintf("idx_%s_%s", tableName, column.Name)
+		index = builder.CreateIndex(indexName, tableName, []string{column.Name}, util.IsYes(column.Unique))
+	}
+	return index
 }
 
 func addConstraintForTable(builder dbcm.DDL, table *model.Table) []string {
