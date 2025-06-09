@@ -9,7 +9,9 @@ type Service interface {
 
 type DDL interface {
 	CreateDatabase(schemaModel *model.Schema) (string, error)
-	CreateTable(table *model.Table) string
+	CreateTableWithDirect(table *model.Table) string
+	CreateTableWithAlter(table *model.Table) string
+	AddColumn(tableName string, column *model.Column, previousColumnName string) string
 	AddConstraint(tableName string, column *model.Column) string
 	// CreateView()
 	// CreateUser()
@@ -18,6 +20,7 @@ type DDL interface {
 	CreateIndex(indexName, tableName string, fields []string, isUnique bool) string
 	// CreateProcedure()
 
+	AlterTableModifyColumn(tableName string, column *model.Column) string
 	// AlterDatabase()
 	// AlterTable()
 	// AlterView()

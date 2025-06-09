@@ -63,6 +63,23 @@ func RegisterDDLCmd() *cli.Command {
 		}
 	}())
 
+	cmd.Commands = append(cmd.Commands, func() *cli.Command {
+		var options config.SettingDef
+		return &cli.Command{
+			Name:  "diff",
+			Usage: "generate DDL to sync the database with the schema definition",
+			Flags: []cli.Flag{
+				flagbuilder.DsnFlag().WithDestination(&options.Dsn).Build(),
+				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
+				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
+			},
+			Action: func(ctx context.Context, cmd *cli.Command) error {
+				config.InitSetting(config.DataDefConf, options)
+				return ddl.Diff()
+			},
+		}
+	}())
+
 	// cmd.Commands = append(cmd.Commands, func() *cli.Command {
 	// 	var ifile, ofile, schema, table, db, col string
 	// 	return &cli.Command{

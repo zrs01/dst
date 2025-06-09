@@ -75,24 +75,27 @@ func DropTable() error {
 
 func Diff() error {
 	// get model from database
+	fmt.Printf("Retrieving database definition from '%s' ... ", config.Setting.Dsn)
 	dbSchema, err := db.NewService().Load(config.Setting.TableName)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
+	fmt.Printf("done\n")
 
 	// get model from schema definition file
 	loadBuilder := service.NewLoadBuilder(
 		service.WithTablePattern(config.Setting.TableName),
 	)
+	fmt.Printf("Retrieving schema definition from '%s' ... ", config.Setting.Sdf)
 	schema, err := loadBuilder.LoadFromFile(config.Setting.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
+	fmt.Printf("done\n\n")
 	schema, err = loadBuilder.Filter(schema)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-
 	ddlBuilder := db.NewService().DDLBuilder()
 	for _, table := range schema.Tables {
 		dbTable, found := lo.Find(dbSchema.Tables, func(t *model.Table) bool {
@@ -103,24 +106,22 @@ func Diff() error {
 			fmt.Println(createTableForTable(ddlBuilder, table))
 		} else {
 			// compare columns of table
-			for _, column := range table.Columns {
+			for i, column := range table.Columns {
 				dbColumn, found := lo.Find(dbTable.Columns, func(c *model.Column) bool {
 					return c.Name == column.Name
 				})
 				if !found {
 					// new column
-					fmt.Println(dbColumn)
-					// fmt.Println(ddlBuilder.AddColumn(table, column))
+					fmt.Println(ddlBuilder.AddColumn(table.Name, column, table.Columns[i-1].Name))
 				} else {
-					// compare column
-					// if dbColumn.DataType != column.DataType || dbColumn.NotNull != column.NotNull || dbColumn.Value != column.Value || dbColumn.Desc != column.Desc || dbColumn.Unique != column.Unique {
-					// 	fmt.Println(ddlBuilder.ModifyColumn(table, column))
-					// }
+					// update column
+					if dbColumn.DataType != column.DataType || dbColumn.NotNull != column.NotNull || dbColumn.Desc != column.Desc || dbColumn.Unique != column.Unique {
+						fmt.Println(ddlBuilder.AlterTableModifyColumn(table.Name, column))
+					}
 				}
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -149,7 +150,11 @@ func Diff() error {
 
 func createTableForTable(builder dbcm.DDL, table *model.Table) string {
 	var stmts []string
-	stmts = append(stmts, builder.CreateTable(table))
+	if config.Setting.IsAlter {
+		stmts = append(stmts, builder.CreateTableWithAlter(table))
+	} else {
+		stmts = append(stmts, builder.CreateTableWithDirect(table))
+	}
 	for _, index := range createIndexForTable(builder, table) {
 		stmts = append(stmts, index)
 	}
