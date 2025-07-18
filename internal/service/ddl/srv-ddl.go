@@ -36,8 +36,7 @@ func CreateTable() error {
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	schema, err = loadBuilder.Filter(schema)
-	if err != nil {
+	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	builder := db.NewService().DDLBuilder()
@@ -55,8 +54,7 @@ func DropTable() error {
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	schema, err = loadBuilder.Filter(schema)
-	if err != nil {
+	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	builder := db.NewService().DDLBuilder()
@@ -92,8 +90,7 @@ func Diff() error {
 		return tracerr.Wrap(err)
 	}
 	fmt.Printf("done\n\n")
-	schema, err = loadBuilder.Filter(schema)
-	if err != nil {
+	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	ddlBuilder := db.NewService().DDLBuilder()

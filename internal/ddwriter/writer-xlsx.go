@@ -20,13 +20,13 @@ const (
 	CDesc       = 8
 )
 
-func ReadXlsx(infile string) (*model.SchemaDef, error) {
+func ReadXlsx(infile string) (*model.Root, error) {
 	excel, err := excelize.OpenFile(infile)
 	if err != nil {
 		return nil, tracerr.Wrap(err)
 	}
 
-	var data model.SchemaDef
+	var data model.Root
 
 	sheets := excel.GetSheetList()
 	for _, sheet := range sheets {

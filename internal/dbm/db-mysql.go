@@ -25,8 +25,8 @@ func (s *MysqlService) DataSourceName() string {
 	return s.dataSourceName
 }
 
-func (s *MysqlService) Read(schemaName string) (*model.SchemaDef, error) {
-	dataDef := model.SchemaDef{}
+func (s *MysqlService) Read(schemaName string) (*model.Root, error) {
+	dataDef := model.Root{}
 
 	fmt.Println("Connecting to MySQL ...")
 	db, err := sqlx.Connect("mysql", s.dataSourceName)

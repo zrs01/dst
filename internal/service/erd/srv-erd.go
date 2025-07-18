@@ -29,8 +29,7 @@ func Generate() error {
 		return tracerr.Wrap(err)
 	}
 	// filter the data if table name provided
-	schema, err = builder.Filter(schema)
-	if err != nil {
+	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 

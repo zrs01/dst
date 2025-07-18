@@ -28,8 +28,8 @@ func (s *MssqlService) DataSourceName() string {
 	return s.dataSourceName
 }
 
-func (s *MssqlService) Read(dbName string) (*model.SchemaDef, error) {
-	dataDef := model.SchemaDef{}
+func (s *MssqlService) Read(dbName string) (*model.Root, error) {
+	dataDef := model.Root{}
 
 	fmt.Println("Connecting to SqlServer ...")
 	db, err := sqlx.Connect("sqlserver", s.dataSourceName)

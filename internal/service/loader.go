@@ -7,7 +7,6 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/zrs01/dst/model"
-	"github.com/zrs01/dst/util"
 	"github.com/ztrue/tracerr"
 	yamlIn "gopkg.in/yaml.v3"
 )
@@ -225,38 +224,38 @@ func (s *LoadBuilder) expandFixColumns(schema *model.Schema) {
 	// }
 }
 
-func (s *LoadBuilder) Filter(srcSchema *model.Schema) (*model.Schema, error) {
-	var isPatternMatch = func(pattern, value string) bool {
-		return pattern == "" || util.WildCardMatchWithCommaPattern(pattern, value)
-	}
+// func (s *LoadBuilder) Filter(srcSchema *model.Schema) (*model.Schema, error) {
+// 	var isPatternMatch = func(pattern, value string) bool {
+// 		return pattern == "" || util.WildCardMatchWithCommaPattern(pattern, value)
+// 	}
 
-	var dstTables []*model.Table
+// 	var dstTables []*model.Table
 
-	// Filter tables that match the table pattern specified in settings
-	// Uses wildcard matching to include/exclude tables based on their names
-	matchedTables := lo.Filter(srcSchema.Tables, func(t *model.Table, _ int) bool {
-		return isPatternMatch(s.options.tablePattern, t.Name)
-	})
+// 	// Filter tables that match the table pattern specified in settings
+// 	// Uses wildcard matching to include/exclude tables based on their names
+// 	matchedTables := lo.Filter(srcSchema.Tables, func(t *model.Table, _ int) bool {
+// 		return isPatternMatch(s.options.tablePattern, t.Name)
+// 	})
 
-	// return empty schema if no tables match the filter pattern
-	if len(matchedTables) == 0 {
-		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables matched the filter pattern '%s'", s.options.tablePattern))
-	}
+// 	// return empty schema if no tables match the filter pattern
+// 	if len(matchedTables) == 0 {
+// 		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables matched the filter pattern '%s'", s.options.tablePattern))
+// 	}
 
-	for j := 0; j < len(matchedTables); j++ {
-		columns := lo.Filter(matchedTables[j].Columns, func(c *model.Column, _ int) bool {
-			return isPatternMatch(s.options.columnPattern, c.Name)
-		})
-		if len(columns) > 0 {
-			matchedTables[j].Columns = columns
-			dstTables = append(dstTables, matchedTables[j])
-		}
-	}
+// 	for j := 0; j < len(matchedTables); j++ {
+// 		columns := lo.Filter(matchedTables[j].Columns, func(c *model.Column, _ int) bool {
+// 			return isPatternMatch(s.options.columnPattern, c.Name)
+// 		})
+// 		if len(columns) > 0 {
+// 			matchedTables[j].Columns = columns
+// 			dstTables = append(dstTables, matchedTables[j])
+// 		}
+// 	}
 
-	if len(dstTables) > 0 {
-		srcSchema.Tables = dstTables
-	} else {
-		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables with matching columns found for filter pattern '%s'", s.options.columnPattern))
-	}
-	return srcSchema, nil
-}
+// 	if len(dstTables) > 0 {
+// 		srcSchema.Tables = dstTables
+// 	} else {
+// 		return &model.Schema{}, tracerr.New(fmt.Sprintf("no tables with matching columns found for filter pattern '%s'", s.options.columnPattern))
+// 	}
+// 	return srcSchema, nil
+// }

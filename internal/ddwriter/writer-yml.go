@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func restoreFixColumns(data *model.SchemaDef) {
+func restoreFixColumns(data *model.Root) {
 	type tb struct {
 		tableName  string
 		columnName string
