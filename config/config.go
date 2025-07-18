@@ -7,9 +7,9 @@ import (
 )
 
 type ConfigDef struct {
-	Dsn     string // default database source name
-	Sdf     string // default input file
-	Ccf     string // default common column file
+	Dsn     string // Global Data Source Name (ex: mariadb://root:DockerMySQL@tcp(10.24.64.157:10076)/mdis_dc_new_sit)
+	Sdf     string // Global Schema Definition File
+	Ccf     string // Global Common Column File
 	DataDef SettingDef
 	Erd     SettingDef
 	Xls     SettingDef
@@ -18,8 +18,8 @@ type ConfigDef struct {
 }
 
 type SettingDef struct {
-	Dsn        string // database source name
-	Sdf        string // schema definition file
+	Dsn        string // Specific Data Source Name
+	Sdf        string // Specific Schema Definition File
 	Output     string // output file
 	Template   string // template file
 	TableName  string // table name filter
