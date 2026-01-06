@@ -22,7 +22,7 @@ func RegisterExportCmd() *cli.Command {
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.InitSetting(config.ExportConf, options)
+			config.LoadConfig(config.ExportConf, options)
 			return exp.Generate()
 		},
 	}

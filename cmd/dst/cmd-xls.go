@@ -22,7 +22,7 @@ func RegisterXlsCmd() *cli.Command {
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.InitSetting(config.ExcelConf, options)
+			config.LoadConfig(config.ExcelConf, options)
 			return xls.Generate()
 		},
 	}

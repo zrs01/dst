@@ -22,7 +22,7 @@ func RegisterTextCmd() *cli.Command {
 			flagbuilder.TemplateFileFlag().WithDestination(&options.Template).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.InitSetting(config.TextConf, options)
+			config.LoadConfig(config.TextConf, options)
 			return txt.Generate()
 		},
 	}

@@ -25,7 +25,7 @@ func RegisterERDCmd() *cli.Command {
 				WithUsage("Path of plantuml.jar file (required when output is .png").WithDestination(&options.Plantuml).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.InitSetting(config.ERDConf, options)
+			config.LoadConfig(config.ERDConf, options)
 			return erd.Generate()
 		},
 	}

@@ -24,7 +24,7 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.InitSetting(config.DataDefConf, options)
+				config.LoadConfig(config.DataDefConf, options)
 				return ddl.CreateDatabase()
 			},
 		}
@@ -41,7 +41,7 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.NewBoolFlag("alter").WithUsage("generate alter table statement").WithDestination(&options.IsAlter).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.InitSetting(config.DataDefConf, options)
+				config.LoadConfig(config.DataDefConf, options)
 				return ddl.CreateTable()
 			},
 		}
@@ -57,7 +57,7 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.InitSetting(config.DataDefConf, options)
+				config.LoadConfig(config.DataDefConf, options)
 				return ddl.DropTable()
 			},
 		}
@@ -74,7 +74,7 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.InitSetting(config.DataDefConf, options)
+				config.LoadConfig(config.DataDefConf, options)
 				return ddl.Diff()
 			},
 		}

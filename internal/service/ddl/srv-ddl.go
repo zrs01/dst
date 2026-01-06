@@ -15,7 +15,7 @@ import (
 )
 
 func CreateDatabase() error {
-	schema, err := service.NewLoadBuilder().LoadFromFile(config.Setting.Sdf)
+	schema, err := service.NewLoadBuilder().LoadFromFile(config.Default.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -30,13 +30,13 @@ func CreateDatabase() error {
 
 func CreateTable() error {
 	loadBuilder := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableName),
+		service.WithTablePattern(config.Default.TableName),
 	)
-	schema, err := loadBuilder.LoadFromFile(config.Setting.Sdf)
+	schema, err := loadBuilder.LoadFromFile(config.Default.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
+	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	builder := db.NewService().DDLBuilder()
@@ -48,13 +48,13 @@ func CreateTable() error {
 
 func DropTable() error {
 	loadBuilder := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableName),
+		service.WithTablePattern(config.Default.TableName),
 	)
-	schema, err := loadBuilder.LoadFromFile(config.Setting.Sdf)
+	schema, err := loadBuilder.LoadFromFile(config.Default.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
-	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
+	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	builder := db.NewService().DDLBuilder()
@@ -73,8 +73,8 @@ func DropTable() error {
 
 func Diff() error {
 	// get model from database
-	fmt.Printf("Retrieving database definition from '%s' ... ", config.Setting.Dsn)
-	dbSchema, err := db.NewService().Load(config.Setting.TableName)
+	fmt.Printf("Retrieving database definition from '%s' ... ", config.Default.Dsn)
+	dbSchema, err := db.NewService().Load(config.Default.TableName)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -82,15 +82,15 @@ func Diff() error {
 
 	// get model from schema definition file
 	loadBuilder := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableName),
+		service.WithTablePattern(config.Default.TableName),
 	)
-	fmt.Printf("Retrieving schema definition from '%s' ... ", config.Setting.Sdf)
-	schema, err := loadBuilder.LoadFromFile(config.Setting.Sdf)
+	fmt.Printf("Retrieving schema definition from '%s' ... ", config.Default.Sdf)
+	schema, err := loadBuilder.LoadFromFile(config.Default.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	fmt.Printf("done\n\n")
-	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
+	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	ddlBuilder := db.NewService().DDLBuilder()
@@ -166,7 +166,7 @@ func Diff() error {
 
 func createTableForTable(builder dbcm.DDL, table *model.Table) string {
 	var stmts []string
-	if config.Setting.IsAlter {
+	if config.Default.IsAlter {
 		stmts = append(stmts, builder.CreateTableWithAlter(table))
 	} else {
 		stmts = append(stmts, builder.CreateTableWithDirect(table))

@@ -23,51 +23,51 @@ var templateFS embed.FS
 func Generate() error {
 	logrus.Info("Generating ER Diagram...")
 	builder := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableName))
-	schema, err := builder.LoadFromFile(config.Setting.Sdf)
+		service.WithTablePattern(config.Default.TableName))
+	schema, err := builder.LoadFromFile(config.Default.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	// filter the data if table name provided
-	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
+	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 
 	var loader jet.Loader
 	// Use default template if not specified
-	if config.Setting.Template == "" {
+	if config.Default.Template == "" {
 		logrus.Info("Template not provided, using default template")
-		config.Setting.Template = "templates/default.jet"
-		loader = embedfs.NewLoader(filepath.Dir(config.Setting.Template), templateFS)
+		config.Default.Template = "templates/default.jet"
+		loader = embedfs.NewLoader(filepath.Dir(config.Default.Template), templateFS)
 	} else {
-		logrus.Infof("Using template: %s", config.Setting.Template)
-		loader = jet.NewOSFileSystemLoader(filepath.Dir(config.Setting.Template))
+		logrus.Infof("Using template: %s", config.Default.Template)
+		loader = jet.NewOSFileSystemLoader(filepath.Dir(config.Default.Template))
 	}
 
-	ext := filepath.Ext(config.Setting.Output)
+	ext := filepath.Ext(config.Default.Output)
 	switch ext {
 	case ".puml":
-		if err := txt.WriteWithLoader(loader, schema, config.Setting.Template, config.Setting.Output); err != nil {
+		if err := txt.WriteWithLoader(loader, schema, config.Default.Template, config.Default.Output); err != nil {
 			return tracerr.Wrap(err)
 		}
-		logrus.Infof("Generated file: %s", config.Setting.Output)
+		logrus.Infof("Generated file: %s", config.Default.Output)
 	case ".png":
-		if config.Setting.Plantuml == "" {
+		if config.Default.Plantuml == "" {
 			return tracerr.New("plantuml library path is not specified")
 		}
-		if _, err := os.Stat(config.Setting.Plantuml); os.IsNotExist(err) {
+		if _, err := os.Stat(config.Default.Plantuml); os.IsNotExist(err) {
 			return tracerr.Wrap(err)
 		}
-		if err := txt.WriteWithLoader(loader, schema, config.Setting.Template, "output.puml"); err != nil {
+		if err := txt.WriteWithLoader(loader, schema, config.Default.Template, "output.puml"); err != nil {
 			return tracerr.Wrap(err)
 		}
 		defer os.Remove("output.puml")
-		if err := sh.Command("java", "-jar", config.Setting.Plantuml, "-o", filepath.Dir(config.Setting.Output), "output.puml").Run(); err != nil {
+		if err := sh.Command("java", "-jar", config.Default.Plantuml, "-o", filepath.Dir(config.Default.Output), "output.puml").Run(); err != nil {
 			return tracerr.Wrap(err)
 		}
-		logrus.Infof("Generated file: %s", config.Setting.Output)
+		logrus.Infof("Generated file: %s", config.Default.Output)
 	default:
-		return tracerr.New(fmt.Sprintf("Output file extension '%s' is not supported", config.Setting.Output))
+		return tracerr.New(fmt.Sprintf("Output file extension '%s' is not supported", config.Default.Output))
 	}
 	return nil
 }

@@ -11,12 +11,12 @@ import (
 )
 
 func RemoveCommonColumns(schema *model.Schema) error {
-	if config.Setting.Ccf == "" {
+	if config.Default.Ccf == "" {
 		return nil
 	}
 
 	// read common column table
-	cct, err := util.UnmarshalYml(config.Setting.Ccf, &model.Table{})
+	cct, err := util.UnmarshalYml(config.Default.Ccf, &model.Table{})
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
@@ -39,12 +39,12 @@ func RemoveCommonColumns(schema *model.Schema) error {
 }
 
 func AppendCommonColumns(schema *model.Schema) error {
-	if config.Setting.Ccf == "" {
+	if config.Default.Ccf == "" {
 		return nil
 	}
 
 	// read common column table
-	cct, err := util.UnmarshalYml(config.Setting.Ccf, &model.Table{})
+	cct, err := util.UnmarshalYml(config.Default.Ccf, &model.Table{})
 	if err != nil {
 		return tracerr.Wrap(err)
 	}

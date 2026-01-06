@@ -9,12 +9,12 @@ import (
 )
 
 func Generate() error {
-	schemaDef, err := db.NewService().Load(config.Setting.TableName)
+	schemaDef, err := db.NewService().Load(config.Default.TableName)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	if err := service.RemoveCommonColumns(schemaDef); err != nil {
 		return tracerr.Wrap(err)
 	}
-	return ddwriter.OutputYml(schemaDef, config.Setting.Output)
+	return ddwriter.OutputYml(schemaDef, config.Default.Output)
 }

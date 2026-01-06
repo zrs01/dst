@@ -22,13 +22,13 @@ const (
 
 func Generate() error {
 	builder := service.NewLoadBuilder(
-		service.WithTablePattern(config.Setting.TableName))
-	schema, err := builder.LoadFromFile(config.Setting.Sdf)
+		service.WithTablePattern(config.Default.TableName))
+	schema, err := builder.LoadFromFile(config.Default.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	// filter the data if table name is provided
-	if err := schema.Filter(config.Setting.TableName, config.Setting.ColumnName); err != nil {
+	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	// append common columns
@@ -36,10 +36,10 @@ func Generate() error {
 		return tracerr.Wrap(err)
 	}
 
-	if !strings.HasSuffix(config.Setting.Output, ".xlsx") {
-		config.Setting.Output = config.Setting.Output + ".xlsx"
+	if !strings.HasSuffix(config.Default.Output, ".xlsx") {
+		config.Default.Output = config.Default.Output + ".xlsx"
 	}
-	if err := WriteXlsx(schema, config.Setting.Output); err != nil {
+	if err := WriteXlsx(schema, config.Default.Output); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil
