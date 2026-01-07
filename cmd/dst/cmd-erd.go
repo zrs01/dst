@@ -7,6 +7,7 @@ import (
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/service/erd"
+	"github.com/ztrue/tracerr"
 )
 
 func RegisterERDCmd() *cli.Command {
@@ -25,7 +26,9 @@ func RegisterERDCmd() *cli.Command {
 				WithUsage("Path of plantuml.jar file (required when output is .png").WithDestination(&options.Plantuml).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.LoadConfig(config.ERDConf, options)
+			if err := config.LoadConfig(config.ERDConf, options); err != nil {
+				return tracerr.Wrap(err)
+			}
 			return erd.Generate()
 		},
 	}

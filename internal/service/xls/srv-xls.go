@@ -22,13 +22,13 @@ const (
 
 func Generate() error {
 	builder := service.NewLoadBuilder(
-		service.WithTablePattern(config.Default.TableName))
-	schema, err := builder.LoadFromFile(config.Default.Sdf)
+		service.WithTablePattern(config.MergeSetting.TableName))
+	schema, err := builder.LoadFromFile(config.MergeSetting.Sdf)
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	// filter the data if table name is provided
-	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
+	if err := schema.Filter(config.MergeSetting.TableName, config.MergeSetting.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
 	// append common columns
@@ -36,10 +36,10 @@ func Generate() error {
 		return tracerr.Wrap(err)
 	}
 
-	if !strings.HasSuffix(config.Default.Output, ".xlsx") {
-		config.Default.Output = config.Default.Output + ".xlsx"
+	if !strings.HasSuffix(config.MergeSetting.Output, ".xlsx") {
+		config.MergeSetting.Output = config.MergeSetting.Output + ".xlsx"
 	}
-	if err := WriteXlsx(schema, config.Default.Output); err != nil {
+	if err := WriteXlsx(schema, config.MergeSetting.Output); err != nil {
 		return tracerr.Wrap(err)
 	}
 	return nil

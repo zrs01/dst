@@ -7,6 +7,7 @@ import (
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/service/ddl"
+	"github.com/ztrue/tracerr"
 )
 
 func RegisterDDLCmd() *cli.Command {
@@ -24,7 +25,9 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.SdfFlag().WithDestination(&options.Sdf).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.LoadConfig(config.DataDefConf, options)
+				if err := config.LoadConfig(config.DataDefConf, options); err != nil {
+					return tracerr.Wrap(err)
+				}
 				return ddl.CreateDatabase()
 			},
 		}
@@ -41,7 +44,9 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.NewBoolFlag("alter").WithUsage("generate alter table statement").WithDestination(&options.IsAlter).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.LoadConfig(config.DataDefConf, options)
+				if err := config.LoadConfig(config.DataDefConf, options); err != nil {
+					return tracerr.Wrap(err)
+				}
 				return ddl.CreateTable()
 			},
 		}
@@ -57,7 +62,9 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.LoadConfig(config.DataDefConf, options)
+				if err := config.LoadConfig(config.DataDefConf, options); err != nil {
+					return tracerr.Wrap(err)
+				}
 				return ddl.DropTable()
 			},
 		}
@@ -74,7 +81,9 @@ func RegisterDDLCmd() *cli.Command {
 				flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 			},
 			Action: func(ctx context.Context, cmd *cli.Command) error {
-				config.LoadConfig(config.DataDefConf, options)
+				if err := config.LoadConfig(config.DataDefConf, options); err != nil {
+					return tracerr.Wrap(err)
+				}
 				return ddl.Diff()
 			},
 		}

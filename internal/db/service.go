@@ -15,12 +15,12 @@ func NewService() dbcm.Service {
 	// 	return mariadb.NewMariadbService(dsn, ccf)
 	// case strings.HasPrefix(dsn, MSSQL_PREFIX):
 	// 	return mssql.NewMssqlService(dsn)
-	case strings.HasPrefix(config.Default.Dsn, dbcm.MARIADB_PREFIX):
+	case strings.HasPrefix(config.MergeSetting.Dsn, dbcm.MARIADB_PREFIX):
 		return mariadb.NewMariadbService()
 	default:
-		if config.Default.Dsn == "" {
+		if config.MergeSetting.Dsn == "" {
 			logrus.Panic("The database source name was not provided in configuration")
 		}
 	}
-	panic("Unsupported database type: " + config.Default.Dsn)
+	panic("Unsupported database type: " + config.MergeSetting.Dsn)
 }

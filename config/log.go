@@ -1,12 +1,23 @@
 package config
 
 import (
+	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
+
+type RollingFileDef struct {
+	File       string `yaml:"file" default:"system.log"`
+	MaxBackups int    `yaml:"maxBackups" default:"10"`
+	MaxSize    int    `yaml:"maxSize" default:"5"` // MB
+	MaxAge     int    `yaml:"maxAge" default:"30"` // days
+	Compress   bool   `yaml:"compress" default:"true"`
+}
 
 func SetLogFormatter() {
 	logrus.SetFormatter(&nested.Formatter{
@@ -31,4 +42,28 @@ func SetLogLevel() {
 	if logrus.IsLevelEnabled(logrus.TraceLevel) {
 		logrus.SetReportCaller(true)
 	}
+}
+
+func SetLogOutput(logfile string, config RollingFileDef) {
+	var multiWriter io.Writer
+
+	if logfile != "" {
+		logfile = filepath.ToSlash(logfile)
+		lumberjackLogger := &lumberjack.Logger{
+			// Log file abbsolute path, os agnostic
+			Filename:   logfile,
+			MaxSize:    config.MaxSize, // MB
+			MaxBackups: config.MaxBackups,
+			MaxAge:     config.MaxAge,   // days
+			Compress:   config.Compress, // disabled by default
+		}
+		logrus.Debugf("log file set to %s", logfile)
+
+		// Fork writing into two outputs
+		multiWriter = io.MultiWriter(os.Stderr, lumberjackLogger)
+	} else {
+		multiWriter = io.MultiWriter(os.Stderr)
+	}
+
+	logrus.SetOutput(multiWriter)
 }

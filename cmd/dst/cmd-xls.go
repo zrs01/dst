@@ -7,6 +7,7 @@ import (
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/service/xls"
+	"github.com/ztrue/tracerr"
 )
 
 func RegisterXlsCmd() *cli.Command {
@@ -22,7 +23,9 @@ func RegisterXlsCmd() *cli.Command {
 			flagbuilder.TableNameFlag().WithDestination(&options.TableName).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.LoadConfig(config.ExcelConf, options)
+			if err := config.LoadConfig(config.ExcelConf, options); err != nil {
+				return tracerr.Wrap(err)
+			}
 			return xls.Generate()
 		},
 	}

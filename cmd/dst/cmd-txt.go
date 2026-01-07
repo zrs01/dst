@@ -7,6 +7,7 @@ import (
 	"github.com/zrs01/dst/config"
 	"github.com/zrs01/dst/internal/flagbuilder"
 	"github.com/zrs01/dst/internal/service/txt"
+	"github.com/ztrue/tracerr"
 )
 
 func RegisterTextCmd() *cli.Command {
@@ -22,7 +23,9 @@ func RegisterTextCmd() *cli.Command {
 			flagbuilder.TemplateFileFlag().WithDestination(&options.Template).Build(),
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			config.LoadConfig(config.TextConf, options)
+			if err := config.LoadConfig(config.TextConf, options); err != nil {
+				return tracerr.Wrap(err)
+			}
 			return txt.Generate()
 		},
 	}

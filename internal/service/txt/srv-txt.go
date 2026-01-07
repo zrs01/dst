@@ -21,21 +21,21 @@ import (
 func Generate() error {
 	builder := service.NewLoadBuilder(
 		// service.WithSchemaPattern(config.Setting.SchemaFilter),
-		service.WithTablePattern(config.Default.TableName),
-		service.WithColumnPattern(config.Default.ColumnName))
+		service.WithTablePattern(config.MergeSetting.TableName),
+		service.WithColumnPattern(config.MergeSetting.ColumnName))
 	schema, err := builder.
-		LoadFromFile(config.Default.Sdf) // the data does not filter by schema and table
+		LoadFromFile(config.MergeSetting.Sdf) // the data does not filter by schema and table
 	if err != nil {
 		return tracerr.Wrap(err)
 	}
 	// filter the data if table name and column name provided
-	if err := schema.Filter(config.Default.TableName, config.Default.ColumnName); err != nil {
+	if err := schema.Filter(config.MergeSetting.TableName, config.MergeSetting.ColumnName); err != nil {
 		return tracerr.Wrap(err)
 	}
-	if config.Default.Template == "" {
-		return ddwriter.OutputYml(schema, config.Default.Output)
+	if config.MergeSetting.Template == "" {
+		return ddwriter.OutputYml(schema, config.MergeSetting.Output)
 	}
-	return WriteWithFileLoader(schema, config.Default.Template, config.Default.Output)
+	return WriteWithFileLoader(schema, config.MergeSetting.Template, config.MergeSetting.Output)
 }
 
 func WriteWithFileLoader(schema *model.Schema, tplf string, out string) error {
