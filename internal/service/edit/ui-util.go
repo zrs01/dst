@@ -4,6 +4,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+type Field struct {
+	Label string
+	Value string
+}
+
 // Center returns a new primitive which shows the provided primitive in its
 // center, given the provided primitive's size.
 func Center(width, height int, p tview.Primitive) tview.Primitive {

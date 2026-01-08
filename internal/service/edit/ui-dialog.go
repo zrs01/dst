@@ -112,21 +112,15 @@ func DebugDialog(text string) {
 }
 
 // InputDialog displays a dialog with input fields for the user to enter data.
-// Example:
-//
-//	InputDialog("Enter your name", map[string]string{"Name": ""}, func(fields map[string]string) {
-//	    fmt.Println("Name:", fields["Name"])
-//	})
-func InputDialog(title string, fields map[string]string, callback func(map[string]string)) {
+func InputDialog(title string, fields []Field, callback func([]Field)) {
 	pid := uuid.New().String()
 
 	c1 := tview.NewForm()
 	c1.SetBorderPadding(1, 1, 2, 2)
-	c1.SetFieldBackgroundColor(tcell.ColorGray)
 
 	for key, value := range fields {
-		c1.AddInputField(key, value, 0, nil, func(text string) {
-			fields[key] = text
+		c1.AddInputField(value.Label, value.Value, 0, nil, func(text string) {
+			fields[key] = Field{Label: value.Label, Value: text}
 		})
 	}
 
@@ -141,17 +135,11 @@ func InputDialog(title string, fields map[string]string, callback func(map[strin
 		return event
 	})
 
-	// c2 := tview.NewTextView()
-	// c2.SetDynamicColors(true)
-	// c2.SetBackgroundColor(tcell.Color(0x16))
-	// c2.SetText(`  [blue]F2:Confirm  ESC:Exit`)
-
 	frame := tview.NewFlex()
 	frame.SetDirection(tview.FlexRow)
 	frame.SetBorder(true)
 	frame.SetTitle(fmt.Sprintf(" %s ", title))
 	frame.AddItem(c1, 0, 1, true)
-	// frame.AddItem(c2, 1, 1, true)
 
 	view := Center(80, len(fields)*2+3, frame)
 	Container.AddPage(pid, view, true, true)

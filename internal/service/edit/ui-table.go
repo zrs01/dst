@@ -55,16 +55,27 @@ func (w *TableWidget) View() *tview.Flex {
 }
 
 func (w *TableWidget) selectedHandler(row, column int) {
-	fields := map[string]string{
-		"Name":  "John",
-		"Title": "John",
-		"Desc":  "John",
-	}
-	InputDialog("Edit Table", fields, func(fields map[string]string) {
-		// fmt.Printf("%s\n%s\n%s", fields["Name"], fields["Title"], fields["Desc"])
-	})
 }
 
 func (w *TableWidget) keyHandler(event *tcell.EventKey) *tcell.EventKey {
+	switch event.Key() {
+	case tcell.KeyF2:
+		row, _ := w.tableWidget.GetSelection()
+
+		fields := []Field{
+			{Label: "Name", Value: Schema.Tables[row].Name},
+			{Label: "Title", Value: Schema.Tables[row].Title},
+			{Label: "Description", Value: Schema.Tables[row].Desc},
+		}
+		InputDialog("Edit Table", fields, func(fields []Field) {
+			Schema.Tables[row].Name = fields[0].Value
+			Schema.Tables[row].Title = fields[1].Value
+			Schema.Tables[row].Desc = fields[2].Value
+
+			w.tableWidget.SetCell(row, 0, tview.NewTableCell(fields[0].Value))
+			w.tableWidget.SetCell(row, 1, tview.NewTableCell(fields[1].Value))
+			w.tableWidget.SetCell(row, 2, tview.NewTableCell(fields[2].Value))
+		})
+	}
 	return event
 }

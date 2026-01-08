@@ -22,6 +22,8 @@ func Launch() error {
 	if err := readData(); err != nil {
 		return tracerr.Wrap(err)
 	}
+	tview.Styles.ContrastBackgroundColor = tcell.ColorGray
+	tview.Styles.InverseTextColor = tcell.ColorGray
 	tview.Styles.PrimitiveBackgroundColor = tcell.Color16 // 0x000000
 
 	UIApp = tview.NewApplication()
