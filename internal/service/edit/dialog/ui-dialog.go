@@ -1,4 +1,4 @@
-package edit
+package dialog
 
 import (
 	"fmt"
@@ -6,8 +6,30 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/uuid"
 	"github.com/rivo/tview"
+	"github.com/zrs01/dst/internal/service/edit/app"
 	"github.com/ztrue/tracerr"
 )
+
+type Dialog struct {
+	title string
+	width int
+}
+
+func (d *Dialog) WithTitle(t string) *Dialog {
+	d.title = t
+	return d
+}
+
+func (d *Dialog) WithWidth(w int) *Dialog {
+	d.width = w
+	return d
+}
+
+func NewDialog() *Dialog {
+	return &Dialog{
+		width: 80,
+	}
+}
 
 func ConfirmDialog(text string, doneFunc func(ok bool) error) {
 	pid := uuid.New().String()
@@ -26,9 +48,9 @@ func ConfirmDialog(text string, doneFunc func(ok bool) error) {
 			ErrorDialog(err, nil)
 			return
 		}
-		Container.RemovePage(pid)
+		app.Container.RemovePage(pid)
 	})
-	Container.AddPage(pid, modalView, false, true)
+	app.Container.AddPage(pid, modalView, false, true)
 }
 
 func NotifyDialog(text string, doneFunc func()) {
@@ -37,12 +59,12 @@ func NotifyDialog(text string, doneFunc func()) {
 	modalView.SetText(text)
 	modalView.AddButtons([]string{"OK"})
 	modalView.SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-		Container.RemovePage(pid)
+		app.Container.RemovePage(pid)
 		if doneFunc != nil {
 			doneFunc()
 		}
 	})
-	Container.AddPage(pid, modalView, false, true)
+	app.Container.AddPage(pid, modalView, false, true)
 }
 
 func ErrorDialog(err error, doneFunc func()) {
@@ -61,12 +83,12 @@ func ErrorDialog(err error, doneFunc func()) {
 	modalView.SetBorderStyle(tcell.StyleDefault.Background(tcell.ColorRed))
 	modalView.AddButtons([]string{"OK"})
 	modalView.SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-		Container.RemovePage(pid)
+		app.Container.RemovePage(pid)
 		if doneFunc != nil {
 			doneFunc()
 		}
 	})
-	Container.AddPage(pid, modalView, false, true)
+	app.Container.AddPage(pid, modalView, false, true)
 }
 
 func stackTrace(text string, doneFunc func()) {
@@ -87,7 +109,7 @@ func stackTrace(text string, doneFunc func()) {
 	container.AddItem(textView, 0, 1, false)
 	container.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			Container.RemovePage(pid)
+			app.Container.RemovePage(pid)
 			if doneFunc != nil {
 				doneFunc()
 			}
@@ -95,7 +117,7 @@ func stackTrace(text string, doneFunc func()) {
 		}
 		return event
 	})
-	Container.AddPage(pid, container, true, true)
+	app.Container.AddPage(pid, container, true, true)
 }
 
 func DebugDialog(text string) {
@@ -104,15 +126,15 @@ func DebugDialog(text string) {
 	textView.SetText(text)
 	textView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			Container.RemovePage(pid)
+			app.Container.RemovePage(pid)
 		}
 		return event
 	})
-	Container.AddPage(pid, textView, true, true)
+	app.Container.AddPage(pid, textView, true, true)
 }
 
 // InputDialog displays a dialog with input fields for the user to enter data.
-func InputDialog(title string, fields []Field, callback func([]Field)) {
+func (d *Dialog) Input(fields []app.Field, callback func([]app.Field)) {
 	pid := uuid.New().String()
 
 	c1 := tview.NewForm()
@@ -120,7 +142,7 @@ func InputDialog(title string, fields []Field, callback func([]Field)) {
 
 	for key, value := range fields {
 		c1.AddInputField(value.Label, value.Value, 0, nil, func(text string) {
-			fields[key] = Field{Label: value.Label, Value: text}
+			fields[key] = app.Field{Label: value.Label, Value: text}
 		})
 	}
 
@@ -128,9 +150,9 @@ func InputDialog(title string, fields []Field, callback func([]Field)) {
 		switch event.Key() {
 		case tcell.KeyEnter:
 			callback(fields)
-			Container.RemovePage(pid)
+			app.Container.RemovePage(pid)
 		case tcell.KeyEscape:
-			Container.RemovePage(pid)
+			app.Container.RemovePage(pid)
 		}
 		return event
 	})
@@ -138,9 +160,9 @@ func InputDialog(title string, fields []Field, callback func([]Field)) {
 	frame := tview.NewFlex()
 	frame.SetDirection(tview.FlexRow)
 	frame.SetBorder(true)
-	frame.SetTitle(fmt.Sprintf(" %s ", title))
+	frame.SetTitle(fmt.Sprintf(" %s ", d.title))
 	frame.AddItem(c1, 0, 1, true)
 
-	view := Center(80, len(fields)*2+3, frame)
-	Container.AddPage(pid, view, true, true)
+	view := app.Center(d.width, len(fields)*2+3, frame)
+	app.Container.AddPage(pid, view, true, true)
 }

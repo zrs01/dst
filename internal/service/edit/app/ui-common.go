@@ -1,7 +1,12 @@
-package edit
+package app
 
 import (
 	"github.com/rivo/tview"
+)
+
+var (
+	UIApp     *tview.Application
+	Container *tview.Pages
 )
 
 type Field struct {

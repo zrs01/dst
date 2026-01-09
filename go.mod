@@ -12,6 +12,7 @@ require (
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/go-sqlx/sqlx v1.3.8
+	github.com/google/uuid v1.6.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jinzhu/configor v1.2.2
 	github.com/jmoiron/sqlx v1.4.0
@@ -21,6 +22,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/urfave/cli/v3 v3.3.3
 	github.com/xuri/excelize/v2 v2.9.1
+	github.com/yassinebenaid/godump v0.11.1
 	github.com/ztrue/tracerr v0.4.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -35,7 +37,6 @@ require (
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
