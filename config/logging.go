@@ -19,26 +19,36 @@ type RollingFileDef struct {
 	Compress   bool   `yaml:"compress" default:"true"`
 }
 
+func init() {
+	SetLogFormatter()
+	SetLogLevel()
+}
+
 func SetLogFormatter() {
-	logrus.SetFormatter(&nested.Formatter{
+	formatter := &nested.Formatter{
 		NoColors:        false,
 		NoFieldsColors:  false,
 		HideKeys:        true,
 		TimestampFormat: time.RFC3339,
-	})
+	}
+	if logrus.GetLevel() == logrus.InfoLevel {
+		formatter.NoColors = true
+		formatter.NoFieldsColors = true
+	}
+	logrus.SetFormatter(formatter)
 }
 
 func SetLogLevel() {
-	lvlstr := os.Getenv("LOG_LEVEL")
-	if lvlstr == "" {
-		lvlstr = "info"
+	level := logrus.InfoLevel
+	l := os.Getenv("LOG_LEVEL")
+	if l != "" {
+		newLevel, err := logrus.ParseLevel(l)
+		if err != nil {
+			logrus.Error(err)
+		}
+		level = newLevel
 	}
-	lvl, err := logrus.ParseLevel(lvlstr)
-	if err != nil {
-		logrus.Error(err)
-	}
-	logrus.SetLevel(lvl)
-
+	logrus.SetLevel(level)
 	if logrus.IsLevelEnabled(logrus.TraceLevel) {
 		logrus.SetReportCaller(true)
 	}
@@ -61,9 +71,6 @@ func SetLogOutput(logfile string, config RollingFileDef) {
 
 		// Fork writing into two outputs
 		multiWriter = io.MultiWriter(os.Stderr, lumberjackLogger)
-	} else {
-		multiWriter = io.MultiWriter(os.Stderr)
+		logrus.SetOutput(multiWriter)
 	}
-
-	logrus.SetOutput(multiWriter)
 }

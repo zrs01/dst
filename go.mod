@@ -22,7 +22,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/urfave/cli/v3 v3.3.3
 	github.com/xuri/excelize/v2 v2.9.1
-	github.com/yassinebenaid/godump v0.11.1
 	github.com/ztrue/tracerr v0.4.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
