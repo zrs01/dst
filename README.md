@@ -1,6 +1,6 @@
 # Database Schema Tool
 
-Export to different format from definition file.
+A versatile tool for exporting database schema definitions into various formats, such as SQL scripts and ER diagrams, from a single definition file.
 
 ## Usage
 
